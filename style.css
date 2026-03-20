@@ -145,6 +145,35 @@ td {
   height: 37px;
   width: 37px;
 }
+
+/* Modal styles */
+.request-btn, .send-btn {
+  background: #234368;
+  color: #fff;
+  border: none;
+  padding: 0.7em 1.7em;
+  border-radius: 7px;
+  font-size: 1rem;
+  margin-bottom: 1.1em;
+  cursor: pointer;
+  transition: background .15s;
+}
+.request-btn:hover, .send-btn:hover {
+  background: #264e6a;
+}
+.modal {
+  display:none; position:fixed; z-index:999; left:0; top:0; width:100vw; height:100vh; overflow:auto; background:rgba(0,0,0,0.27);
+}
+.modal-content {
+  background:#fff; margin:7% auto; padding:1.5em; border-radius:14px; width:98%; max-width:430px; box-shadow:0 6px 32px rgba(31,58,83,.25);
+  position:relative; animation:fadein .3s;
+}
+.close-modal {
+  position:absolute; right:18px; top:15px; font-size:1.4em; font-weight:700; color:#234368; cursor:pointer;
+}
+@keyframes fadein { 0%{transform:scale(.93);} 100%{transform:scale(1);} }
+label { display:block; margin:.5em 0 .3em 0; font-weight:500; }
+#ownerReqStatus { margin-top:5px; font-weight:600; color:#234368;}
 @media (max-width: 800px) {
   .card { padding: 1rem 0.6rem; }
   .summary-boxes { flex-direction: column; gap: 0.6rem; }
