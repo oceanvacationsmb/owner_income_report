@@ -19,11 +19,6 @@ function formatMoney(v) {
   return `$${Number(v || 0).toFixed(2)}`;
 }
 
-function loginOwner() {
-  // Login disabled for testing
-  return;
-}
-
 function loadOwnerReport() {
   if (!currentOwner || !currentOwner.guestyReportUrl) return;
 
@@ -172,9 +167,13 @@ function renderReservationsTable() {
 }
 
 // Auto-load on page load
-window.addEventListener('DOMContentLoaded', () => {
-  document.getElementById("loginBox").style.display = "none";
-  document.getElementById("ownerPortal").style.display = "block";
+document.addEventListener('DOMContentLoaded', () => {
+  const loginBox = document.getElementById("loginBox");
+  const ownerPortal = document.getElementById("ownerPortal");
+  
+  if (loginBox) loginBox.style.display = "none";
+  if (ownerPortal) ownerPortal.style.display = "block";
+  
   document.getElementById("portalTitle").textContent = `${currentOwner.ownerName} Statement`;
   loadOwnerReport();
 });
