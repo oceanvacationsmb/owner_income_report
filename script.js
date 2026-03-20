@@ -37,7 +37,7 @@ const OWNERS = {
     cleaningFee: 250
   },
     
-  "user@yahoo.com": {
+  "123@yahoo.com": {
     password: "1234",
     ownerName: "ZACK 2",
     propertyName: "Basin Trail, Murrells Inlet, SC 29576",
