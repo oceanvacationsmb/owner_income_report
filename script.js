@@ -44,8 +44,7 @@ const OWNERS = {
     guestyApiKey: "bbbab438244300805daaf5485d3b516cbeee616fba7e640fc3b80d0b648c01d13e3f70a2bde2abaf9deb3b661aabf1c17453fd4e6d799f380cfd059df66cf01e",
     cleaningFee: 350
   },
-  const OWNERS = {
-  "11313@yahoo.com": {
+   "11313@yahoo.com": {
     password: "1234",
     ownerName: "CARL",
     propertyName: "113B 13th Ave North. Surfside Beach SC 29575",
