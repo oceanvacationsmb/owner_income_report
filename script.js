@@ -284,7 +284,33 @@ function pickDate(value) {
 }
 
 function mapGuestyReservation(r) {
+  const baseAccommodation = pickNumber(
+    r["ACCOMMODATION FARE"] ||
+    r["money.fareAccommodation"] ||
+    r.accommodationFare ||
+    r.fareAccommodation
+  );
+  const markup = pickNumber(
+    r.markupAmount ||
+    r.markup ||
+    r["MARKUP"] ||
+    r["money.markup"]
+  );
+  const lengthOfStayDiscount = pickNumber(
+    r.lengthOfStayDiscount ||
+    r.lengthOfStayDiscountAmount ||
+    r["LENGTH OF STAY DISCOUNT"] ||
+    r["money.lengthOfStayDiscount"]
+  );
+  const calculatedAccommodation = baseAccommodation - markup - lengthOfStayDiscount;
+
   return {
+    status: pickText(
+      r.status ||
+      r.reservationStatus ||
+      r["STATUS"] ||
+      r["reservationStatus"]
+    ),
     listingNickname: pickText(
       r["LISTING'S NICKNAME"] ||
       r["listing.nickname"] ||
@@ -323,12 +349,9 @@ function mapGuestyReservation(r) {
       r.hostPayout ||
       r.totalPayout
     ),
-    accommodationFare: pickNumber(
-      r["ACCOMMODATION FARE"] ||
-      r["money.fareAccommodation"] ||
-      r.accommodationFare ||
-      r.fareAccommodation
-    )
+    accommodationFare: calculatedAccommodation,
+    // FOR DEBUGGING, optionally
+    baseAccommodation, markup, lengthOfStayDiscount
   };
 }
 
@@ -358,7 +381,9 @@ function loadOwnerReport() {
     .then(payload => {
       const rows = Array.isArray(payload) ? payload : (payload.results || payload.data || []);
       console.log("FIRST RAW ROW:", rows[0]);
-      reservationsData = rows.map(mapGuestyReservation);
+      reservationsData = rows
+      .map(mapGuestyReservation)
+      .filter(res => !res.status || (String(res.status).toLowerCase() !== 'cancelled'));
       console.log("FIRST MAPPED ROW:", reservationsData[0]);
       console.log("Reservations loaded:", reservationsData.length);
       renderDashboardHeader();
