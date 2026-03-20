@@ -80,10 +80,7 @@ function getExpectedPayoutDate(checkOutDate) {
 }
 
 function renderOwnerDashboard() {
-  let totalAccommodation = 0;
-  let totalPMC = 0;
-  let totalOwnerPayout = 0;
-
+  let totalAccommodation = 0, totalPMC = 0, totalOwnerPayout = 0;
   reservationsData.forEach(reservation => {
     const accommodation = reservation.accommodationFare;
     const pmc = accommodation * (currentOwner.pmcPercent / 100);
@@ -117,7 +114,6 @@ function renderOwnerDashboard() {
       </div>
     </div>
   `;
-
   renderReservationsTable();
 }
 
