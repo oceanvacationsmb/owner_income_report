@@ -96,26 +96,32 @@ function renderOwnerDashboard() {
 
 function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
+  tbody.innerHTML = "";
 
-  tbody.innerHTML = csvData.map(r => {
+  csvData.forEach(r => {
     const code = r["CODE"] || "";
+    const platform = r["PLATFORM"] || "";
     const checkIn = r["CHECK-IN DATE"] || "";
     const checkOut = r["CHECK-OUT DATE"] || "";
-    const platform = r["PLATFORM"] || "";
-    const accommodation = toNumber(r["ACCOMMODATION FARE"]).toFixed(2);
-    const cleaning = toNumber(r["CLEANING FARE"]).toFixed(2);
-    const payout = toNumber(r["TOTAL PAYOUT"]).toFixed(2);
 
-    return `
+    const accommodationFare = toNumber(r["ACCOMMODATION FARE"]);
+    const markup = toNumber(r["MARKUP"]);
+    const netAccommodation = accommodationFare - markup;
+    const pmc = netAccommodation * (currentOwner.pmcPercent / 100);
+    const ownerPayout = netAccommodation - pmc;
+    const expectedPayoutDate = getExpectedPayoutDate(checkOut);
+
+    tbody.innerHTML += `
       <tr>
         <td>${code}</td>
+        <td>${platform}</td>
         <td>${checkIn}</td>
         <td>${checkOut}</td>
-        <td>${platform}</td>
-        <td>$${accommodation}</td>
-        <td>$${cleaning}</td>
-        <td>$${payout}</td>
+        <td>${formatMoney(netAccommodation)}</td>
+        <td>${formatMoney(pmc)}</td>
+        <td>${formatMoney(ownerPayout)}</td>
+        <td>${expectedPayoutDate}</td>
       </tr>
     `;
-  }).join("");
+  });
 }
