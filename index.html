@@ -3,15 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Owner Portal</title>
+  <title>Ocean Vacations Owner Portal</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
 <body>
 
+  <header class="topbar">
+    <div class="brand">OCEAN VACATIONS</div>
+    <div class="subtitle">Owner Portal</div>
+  </header>
+
   <div class="container">
 
-    <div id="loginBox" class="card">
+    <div id="loginBox" class="card login-card">
       <h2>Owner Login</h2>
       <input id="email" type="email" placeholder="Email">
       <input id="password" type="password" placeholder="Password">
@@ -27,21 +32,23 @@
 
       <div class="card">
         <h3>Reservations</h3>
-        <table>
-         <thead>
-  <tr>
-    <th>Reservation Code</th>
-    <th>Platform</th>
-    <th>Check In</th>
-    <th>Check Out</th>
-    <th>Accommodation</th>
-    <th>PMC</th>
-    <th>Owner Payout</th>
-    <th>Expected Payout</th>
-  </tr>
-</thead>
-<tbody id="reservationsBody"></tbody>
-        </table>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Reservation Code</th>
+                <th>Platform</th>
+                <th>Check In</th>
+                <th>Check Out</th>
+                <th>Accommodation</th>
+                <th>PMC</th>
+                <th>Owner Payout</th>
+                <th>Expected Payout</th>
+              </tr>
+            </thead>
+            <tbody id="reservationsBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
