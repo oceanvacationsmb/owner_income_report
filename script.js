@@ -13,11 +13,9 @@ const OWNERS = {
 let currentOwner = OWNERS["ti3155@yahoo.com"];
 let reservationsData = [];
 
-// ====== FILLED IN WITH YOUR EMAILJS INFO ======
 const EMAILJS_USER_ID = "ti3155";
 const EMAILJS_SERVICE_ID = "service_06c56l2";
 const EMAILJS_TEMPLATE_ID = "template_91j57r4";
-// ==============================================
 
 (function () {
   if (typeof emailjs !== "undefined") {
@@ -35,7 +33,6 @@ function getTimeBasedGreeting() {
 function renderWeather(zip) {
   const apiKey = "301c3846b1ed5b804976f73bd010175a";
   const weatherBox = document.getElementById("weatherBox");
-
   if (!zip || !weatherBox) return;
 
   weatherBox.innerHTML = '<div class="weather-loading">Loading weather...</div>';
@@ -45,7 +42,7 @@ function renderWeather(zip) {
     .then(data => {
       if (!data.list || !data.city) throw new Error("Weather unavailable");
 
-      let daily = {};
+      const daily = {};
       data.list.forEach(item => {
         const day = item.dt_txt.split(" ")[0];
         const hour = item.dt_txt.split(" ")[1];
@@ -57,7 +54,7 @@ function renderWeather(zip) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      let forecast = Object.keys(daily)
+      const forecast = Object.keys(daily)
         .filter(day => {
           const d = new Date(day);
           d.setHours(0, 0, 0, 0);
@@ -79,12 +76,10 @@ function renderWeather(zip) {
         `;
       });
       html += "</div>";
-
       weatherBox.innerHTML = html;
     })
-    .catch(err => {
+    .catch(() => {
       weatherBox.innerHTML = `<div class="weather-box">Weather unavailable</div>`;
-      console.log("Weather Fetch Error:", err);
     });
 }
 
@@ -224,24 +219,115 @@ function fillReservationDropdown() {
   });
 }
 
+function pickText(value) {
+  if (value == null) return "";
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return String(value).trim();
+  }
+  if (Array.isArray(value)) {
+    return value.map(pickText).filter(Boolean).join(", ");
+  }
+  if (typeof value === "object") {
+    const candidates = [
+      value.value,
+      value.children,
+      value.label,
+      value.name,
+      value.text,
+      value.code,
+      value.title,
+      value.displayName,
+      value.nickname,
+      value.id,
+      value._id
+    ];
+
+    for (const item of candidates) {
+      if (item != null && typeof item !== "object") return String(item).trim();
+    }
+
+    for (const key in value) {
+      if (value[key] != null && typeof value[key] !== "object") return String(value[key]).trim();
+    }
+  }
+  return "";
+}
+
+function pickNumber(value) {
+  if (value == null) return 0;
+  if (typeof value === "number") return value;
+  if (typeof value === "string") return toNumber(value);
+  if (Array.isArray(value) && value.length) return pickNumber(value[0]);
+  if (typeof value === "object") {
+    const candidates = [value.value, value.amount, value.children, value.total, value.sum];
+    for (const item of candidates) {
+      if (item != null) {
+        const num = pickNumber(item);
+        if (!isNaN(num)) return num;
+      }
+    }
+  }
+  return 0;
+}
+
+function pickDate(value) {
+  if (value == null) return "";
+  if (typeof value === "string" || typeof value === "number") return String(value).trim();
+  if (Array.isArray(value) && value.length) return pickDate(value[0]);
+  if (typeof value === "object") {
+    const candidates = [value.value, value.date, value.iso, value.children, value.startDate, value.endDate];
+    for (const item of candidates) {
+      if (item != null && typeof item !== "object") return String(item).trim();
+    }
+  }
+  return "";
+}
+
 function mapGuestyReservation(r) {
   return {
-    listingNickname: r["listing.nickname"] || r.listingNickname || r.listing?.nickname || "",
-    platform: r["integration.platform"] || r.platform || r.integration?.platform || "",
-    confirmationCode: r.confirmationCode || r.code || r["confirmationCode"] || "",
-    checkIn: r["checkInDate"] || r.checkIn || r.checkInDate || "",
-    checkOut: r["checkOutDate"] || r.checkOut || r.checkOutDate || "",
-    totalPayout: toNumber(
-      r["money.hostPayout"]?.value ||
-      r.hostPayout ||
-      r.totalPayout ||
-      0
+    listingNickname: pickText(
+      r["LISTING'S NICKNAME"] ||
+      r["listing.nickname"] ||
+      r.listingNickname ||
+      r.listing?.nickname ||
+      r.listing
     ),
-    accommodationFare: toNumber(
-      r["money.fareAccommodation"]?.value ||
+    platform: pickText(
+      r["PLATFORM"] ||
+      r["integration.platform"] ||
+      r.platform ||
+      r.integration?.platform ||
+      r.integration
+    ),
+    confirmationCode: pickText(
+      r["CONFIRMATION CODE"] ||
+      r.confirmationCode ||
+      r.code ||
+      r.reservationCode
+    ),
+    checkIn: pickDate(
+      r["CHECK-IN DATE"] ||
+      r.checkInDate ||
+      r.checkIn ||
+      r.startDate
+    ),
+    checkOut: pickDate(
+      r["CHECK-OUT DATE"] ||
+      r.checkOutDate ||
+      r.checkOut ||
+      r.endDate
+    ),
+    totalPayout: pickNumber(
+      r["TOTAL PAYOUT"] ||
+      r["money.hostPayout"] ||
+      r.hostPayout ||
+      r.totalPayout
+    ),
+    accommodationFare: pickNumber(
+      r["ACCOMMODATION FARE"] ||
+      r["money.fareAccommodation"] ||
       r.accommodationFare ||
-      r.fareAccommodation ||
-      0
+      r.fareAccommodation
     )
   };
 }
@@ -256,13 +342,12 @@ function loadOwnerReport() {
     return;
   }
 
-  const apiKey = currentOwner.guestyApiKey;
   const reportUrl = "https://report.guesty.com/api/shared-reservations-reports?timezone=America/New_York&skip=0&limit=1000";
 
   fetch(reportUrl, {
     headers: {
       "accept": "*/*",
-      "authorization": apiKey,
+      "authorization": currentOwner.guestyApiKey,
       "content-type": "application/json"
     }
   })
@@ -272,7 +357,9 @@ function loadOwnerReport() {
     })
     .then(payload => {
       const rows = Array.isArray(payload) ? payload : (payload.results || payload.data || []);
+      console.log("FIRST RAW ROW:", rows[0]);
       reservationsData = rows.map(mapGuestyReservation);
+      console.log("FIRST MAPPED ROW:", reservationsData[0]);
       console.log("Reservations loaded:", reservationsData.length);
       renderDashboardHeader();
       renderSummaryBoxes();
