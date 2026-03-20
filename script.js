@@ -1,5 +1,3 @@
-SCRIPT
-
 let currentOwner = null;
 
 document.getElementById("loginBtn").onclick = function() {
