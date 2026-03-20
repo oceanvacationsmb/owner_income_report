@@ -1,9 +1,9 @@
 const OWNERS = {
   "ti3155@yahoo.com": {
     password: "1234",
-    ownerName: "Nicole",
-    propertyName: "1463 Basin Trail, Murrells Inlet, SC 29576",
-    pmcPercent: 12,
+    ownerName: "ZACK TEST",
+    propertyName: "1463 Wild Iris Dr.",
+    pmcPercent: 20,
     guestyReportUrl: "https://report.guesty.com/apps/reservations?apiKey=1a58fc1af3815f9023a08e09c590a05f3f3d1c73dbc3ab2e19985ecfe0003aa87acc7e264983e31d5b10a98cf4fd9b4789de3cb864daf2031e42aae6266c92f5"
   }
 };
@@ -25,17 +25,9 @@ function loadOwnerReport() {
     return;
   }
 
-  console.log("🚀 Starting to load report...");
-  console.log("URL:", currentOwner.guestyReportUrl);
-
   fetch(currentOwner.guestyReportUrl)
-    .then(r => {
-      console.log("✅ Response received, status:", r.status);
-      return r.text();
-    })
+    .then(r => r.text())
     .then(html => {
-      console.log("✅ HTML received, length:", html.length);
-      console.log("📄 First 1000 chars:", html.substring(0, 1000));
       parseGuestyTable(html);
       renderOwnerDashboard();
     })
@@ -48,16 +40,11 @@ function loadOwnerReport() {
 function parseGuestyTable(html) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
-  
   const rows = doc.querySelectorAll('table tbody tr');
-  console.log("📊 Found table rows:", rows.length);
-  
   reservationsData = [];
 
-  rows.forEach((row, index) => {
+  rows.forEach(row => {
     const cells = row.querySelectorAll('td');
-    console.log(`Row ${index}: ${cells.length} cells`);
-    
     if (cells.length > 0) {
       const reservation = {
         listingNickname: cells[0]?.textContent.trim() || "",
@@ -68,13 +55,9 @@ function parseGuestyTable(html) {
         totalPayout: toNumber(cells[5]?.textContent),
         accommodationFare: toNumber(cells[6]?.textContent),
       };
-      
-      console.log(`✅ Parsed row ${index}:`, reservation);
       reservationsData.push(reservation);
     }
   });
-
-  console.log("✅ Total reservations parsed:", reservationsData.length);
 }
 
 function formatDateDisplay(dateStr) {
@@ -86,15 +69,12 @@ function formatDateDisplay(dateStr) {
 function getExpectedPayoutDate(checkOutDate) {
   const d = new Date(checkOutDate);
   if (isNaN(d)) return "";
-
   let year = d.getFullYear();
   let month = d.getMonth() + 1;
-
   if (month > 11) {
     month = 0;
     year += 1;
   }
-
   const payoutDate = new Date(year, month, 5);
   return payoutDate.toLocaleDateString("en-US");
 }
@@ -108,20 +88,16 @@ function renderOwnerDashboard() {
     const accommodation = reservation.accommodationFare;
     const pmc = accommodation * (currentOwner.pmcPercent / 100);
     const ownerPayout = accommodation - pmc;
-
     totalAccommodation += accommodation;
     totalPMC += pmc;
     totalOwnerPayout += ownerPayout;
   });
 
-  console.log("💰 Totals:", { totalAccommodation, totalPMC, totalOwnerPayout });
-
   document.getElementById("summary").innerHTML = `
     <div class="owner-header">
       <h2>Welcome ${currentOwner.ownerName}</h2>
-      <p class="property-address">${currentOwner.propertyName}</p>
+      <div class="property-address">${currentOwner.propertyName}</div>
     </div>
-    
     <div class="summary-boxes">
       <div class="summary-box">
         <div class="summary-label">PMC %</div>
@@ -148,9 +124,6 @@ function renderOwnerDashboard() {
 function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
   tbody.innerHTML = "";
-
-  console.log("🎬 Rendering table with", reservationsData.length, "rows");
-
   reservationsData.forEach(reservation => {
     const accommodation = reservation.accommodationFare;
     const pmc = accommodation * (currentOwner.pmcPercent / 100);
@@ -174,7 +147,5 @@ function renderReservationsTable() {
 
 // Auto-load on page load
 document.addEventListener('DOMContentLoaded', () => {
-  console.log("🎯 Page loaded, starting report load...");
-  document.getElementById("portalTitle").textContent = `${currentOwner.ownerName} Statement`;
   loadOwnerReport();
 });
