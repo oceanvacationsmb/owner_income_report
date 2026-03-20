@@ -45,58 +45,46 @@ function loadOwnerReport() {
   if (!currentOwner || !currentOwner.guestyReportUrl) return;
 
   fetch(currentOwner.guestyReportUrl)
-    .then(r => r.json())
-    .then(data => {
-      // Handle the Guesty API response - could be array or object with data property
-      reservationsData = Array.isArray(data) ? data : (data.data || data.reservations || []);
+    .then(r => r.text())
+    .then(html => {
+      parseGuestyTable(html);
       renderOwnerDashboard();
     })
     .catch(err => {
-      console.error(err);
+      console.error("Error loading report:", err);
       alert("Could not load report");
     });
 }
 
-// Helper function to safely get nested field values
-function getNestedValue(obj, path) {
-  return path.split('.').reduce((current, prop) => current?.[prop], obj) || "";
-}
+function parseGuestyTable(html) {
+  // Create a temporary container to parse HTML
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  
+  // Find all table rows
+  const rows = doc.querySelectorAll('table tbody tr');
+  reservationsData = [];
 
-// Field getter functions for Guesty API structure
-function getReservationCode(row) {
-  return getNestedValue(row, "confirmationCode.children") || "";
-}
+  rows.forEach(row => {
+    const cells = row.querySelectorAll('td');
+    
+    if (cells.length > 0) {
+      const reservation = {
+        listingNickname: cells[0]?.textContent.trim() || "",
+        platform: cells[1]?.textContent.trim() || "",
+        confirmationCode: cells[2]?.textContent.trim() || "",
+        checkIn: cells[3]?.textContent.trim() || "",
+        checkOut: cells[4]?.textContent.trim() || "",
+        totalPayout: toNumber(cells[5]?.textContent),
+        accommodationFare: toNumber(cells[6]?.textContent),
+        // Add more fields as needed based on table columns
+      };
+      
+      reservationsData.push(reservation);
+    }
+  });
 
-function getPlatform(row) {
-  return getNestedValue(row, "integration.platform.children") || "";
-}
-
-function getCheckIn(row) {
-  return getNestedValue(row, "checkInDate.value") || "";
-}
-
-function getCheckOut(row) {
-  return getNestedValue(row, "checkOutDate.value") || "";
-}
-
-function getAccommodation(row) {
-  return toNumber(getNestedValue(row, "money.fareAccommodation.value"));
-}
-
-function getLengthOfStayDiscount(row) {
-  return toNumber(getNestedValue(row, "lengthOfStayDiscount.value"));
-}
-
-function getMarkup(row) {
-  return toNumber(getNestedValue(row, "money.invoiceItems.MAR.value"));
-}
-
-// Calculate Net Accommodation
-function getNetAccommodation(row) {
-  const accommodation = getAccommodation(row);
-  const discount = getLengthOfStayDiscount(row);
-  const markup = getMarkup(row);
-  return accommodation + discount - markup;
+  console.log("Parsed reservations:", reservationsData);
 }
 
 function formatDateDisplay(dateStr) {
@@ -126,12 +114,12 @@ function renderOwnerDashboard() {
   let totalPMC = 0;
   let totalOwnerPayout = 0;
 
-  reservationsData.forEach(row => {
-    const netAccommodation = getNetAccommodation(row);
-    const pmc = netAccommodation * (currentOwner.pmcPercent / 100);
-    const ownerPayout = netAccommodation - pmc;
+  reservationsData.forEach(reservation => {
+    const accommodation = reservation.accommodationFare;
+    const pmc = accommodation * (currentOwner.pmcPercent / 100);
+    const ownerPayout = accommodation - pmc;
 
-    totalAccommodation += netAccommodation;
+    totalAccommodation += accommodation;
     totalPMC += pmc;
     totalOwnerPayout += ownerPayout;
   });
@@ -170,24 +158,19 @@ function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
   tbody.innerHTML = "";
 
-  reservationsData.forEach(row => {
-    const code = getReservationCode(row);
-    const platform = getPlatform(row);
-    const checkIn = getCheckIn(row);
-    const checkOut = getCheckOut(row);
-
-    const netAccommodation = getNetAccommodation(row);
-    const pmc = netAccommodation * (currentOwner.pmcPercent / 100);
-    const ownerPayout = netAccommodation - pmc;
-    const expectedPayoutDate = getExpectedPayoutDate(checkOut);
+  reservationsData.forEach(reservation => {
+    const accommodation = reservation.accommodationFare;
+    const pmc = accommodation * (currentOwner.pmcPercent / 100);
+    const ownerPayout = accommodation - pmc;
+    const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
 
     tbody.innerHTML += `
       <tr>
-        <td>${code}</td>
-        <td>${platform}</td>
-        <td>${formatDateDisplay(checkIn)}</td>
-        <td>${formatDateDisplay(checkOut)}</td>
-        <td>${formatMoney(netAccommodation)}</td>
+        <td>${reservation.confirmationCode}</td>
+        <td>${reservation.platform}</td>
+        <td>${formatDateDisplay(reservation.checkIn)}</td>
+        <td>${formatDateDisplay(reservation.checkOut)}</td>
+        <td>${formatMoney(accommodation)}</td>
         <td>${formatMoney(pmc)}</td>
         <td>${formatMoney(ownerPayout)}</td>
         <td>${expectedPayoutDate}</td>
