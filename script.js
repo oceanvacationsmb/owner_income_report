@@ -1,3 +1,7 @@
+let currentOwner = null;
+let reservationsData = [];
+let ownerStayData = [];
+
 // === OWNER CONFIGURATION ===
 const OWNERS = {
   "1463@yahoo.com": {
@@ -29,12 +33,102 @@ const OWNERS = {
   }
 };
 
-let currentOwner = null;
-let reservationsData = [];
-let ownerStayData = [];
+// === GENERIC GETTERS & HELPERS ===
+function pickText(...args) {
+  for (const v of args) {
+    if (v == null) continue;
+    if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") return String(v).trim();
+    if (Array.isArray(v)) return v.map(pickText).filter(Boolean).join(", ");
+    if (typeof v === "object") {
+      const candidates = [v.value, v.children, v.label, v.name, v.text, v.code, v.title, v.displayName, v.nickname, v.id, v._id];
+      for (const item of candidates) {
+        if (item != null && typeof item !== "object") return String(item).trim();
+      }
+      for (const key in v) {
+        if (v[key] != null && typeof v[key] !== "object") return String(v[key]).trim();
+      }
+    }
+  }
+  return "";
+}
+function pickNumber(...args) {
+  for (const v of args) {
+    if (v == null) continue;
+    if (typeof v === "number") return v;
+    if (typeof v === "string") {
+      const n = Number(String(v).replace(/[$,]/g, "").trim());
+      if (!isNaN(n)) return n;
+    }
+    if (Array.isArray(v) && v.length) {
+      const n = pickNumber(v[0]);
+      if (!isNaN(n)) return n;
+    }
+    if (typeof v === "object") {
+      const candidates = [v.value, v.amount, v.children, v.total, v.sum];
+      for (const item of candidates) {
+        if (item != null) {
+          const n = pickNumber(item);
+          if (!isNaN(n)) return n;
+        }
+      }
+    }
+  }
+  return 0;
+}
+function toNumber(v) { return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0; }
+function formatMoney(v) { return `$${Number(v || 0).toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2})}`; }
 
-// --- LOGIN LOGIC
+function getExpectedPayoutDate(checkOutDate) {
+  const d = new Date(checkOutDate);
+  if (isNaN(d)) return "";
+  const payoutDate = new Date(d.getFullYear(), d.getMonth() + 1, 5);
+  return payoutDate.toLocaleDateString("en-US");
+}
+
+// === MAPPING ===
+function mapGuestyReservation(r) {
+  const baseAccommodation = pickNumber(r["money.fareAccommodation"]?.value);
+  const markup = pickNumber(r["money.invoiceItems.MAR"]?.value);
+  const lengthOfStayDiscount = 0;
+  const calculatedAccommodation = baseAccommodation - markup + lengthOfStayDiscount;
+
+  return {
+    status: pickText(r.status, r.reservationStatus, r["STATUS"], r["reservationStatus"]),
+    platform: pickText(r["integration.platform"], r.platform, r.integration?.platform, r.integration),
+    confirmationCode: (pickText(r["confirmationCode"], r.code, r.reservationCode) || "").toUpperCase(),
+    checkIn: r["checkInDate"]?.value || "",
+    checkOut: r["checkOutDate"]?.value || "",
+    ownerStay:
+      r["guest.fullName"] &&
+      r["guest.fullName"].children &&
+      r["guest.fullName"].children.toUpperCase().includes("OWNER STAY")
+        ? "OWNER STAY"
+        : "",
+    totalPayout: pickNumber(r["money.hostPayout"]?.value, r.hostPayout, r.totalPayout),
+    accommodationFare: calculatedAccommodation,
+    baseAccommodation,
+    markup,
+    lengthOfStayDiscount
+  };
+}
+
+// === GREETING & ADDRESS RENDER ===
+function renderGreetingAndAddress() {
+  const greeting = document.getElementById("greeting");
+  const propertyAddress = document.getElementById("propertyAddress");
+  if (!currentOwner) return;
+  const hour = new Date().getHours();
+  let greet = "Welcome";
+  if (hour < 12) greet = "Good morning";
+  else if (hour < 18) greet = "Good afternoon";
+  else greet = "Good evening";
+  if (greeting) greeting.innerText = `${greet}, ${currentOwner.ownerName}`;
+  if (propertyAddress) propertyAddress.innerText = currentOwner.propertyName;
+}
+
+// === LOGIN HANDLER ===
 document.addEventListener("DOMContentLoaded", function() {
+  // Modern login (assume HTML/CSS includes .login-container, #loginBtn, etc)
   const loginBox = document.getElementById("loginBox");
   const portal = document.getElementById("ownerPortal");
   const loginBtn = document.getElementById("loginBtn");
@@ -45,10 +139,12 @@ document.addEventListener("DOMContentLoaded", function() {
   portal.style.display = 'none';
 
   // Show/hide password
-  showPwd.onclick = function() {
-    ownerPwd.type = ownerPwd.type === 'password' ? 'text' : 'password';
-    showPwd.style.color = ownerPwd.type === 'text' ? '#3282b8' : '#aaa';
-  };
+  if (showPwd && ownerPwd) {
+    showPwd.onclick = function() {
+      ownerPwd.type = ownerPwd.type === 'password' ? 'text' : 'password';
+      showPwd.style.color = ownerPwd.type === 'text' ? '#3282b8' : '#aaa';
+    };
+  }
 
   loginBtn.onclick = function() {
     const email = (document.getElementById("ownerEmail").value || "").trim().toLowerCase();
@@ -67,38 +163,19 @@ document.addEventListener("DOMContentLoaded", function() {
     loginBox.style.display = 'none';
     portal.style.display = '';
     loginStatus.innerText = "";
+    renderGreetingAndAddress();
     loadOwnerReport();
   };
 });
 
-// --- UTILS
-function formatMoney(v) { return `$${Number(v || 0).toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2})}`; }
-function toNumber(v) { return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0; }
-
-// --- MAP DATA
-function mapGuestyReservation(r) {
-  return {
-    status: (r.status || r.reservationStatus || r["STATUS"] || r["reservationStatus"] || "").toString(),
-    platform: r["integration.platform"] || r.platform || (r.integration || {}).platform || r.integration || "",
-    confirmationCode: String(r["confirmationCode"] || r.code || r.reservationCode || "").toUpperCase(),
-    checkIn: (r["checkInDate"] && r["checkInDate"].value) || "",
-    checkOut: (r["checkOutDate"] && r["checkOutDate"].value) || "",
-    ownerStay:
-      r["guest.fullName"] && r["guest.fullName"].children &&
-      r["guest.fullName"].children.toUpperCase().includes("OWNER STAY") ? "OWNER STAY" : "",
-    accommodationFare: toNumber(r["money.fareAccommodation"] && r["money.fareAccommodation"].value),
-    totalPayout: toNumber(r["money.hostPayout"] && r["money.hostPayout"].value),
-  };
-}
-
-// --- DASHBOARD SUMMARY
+// === SUMMARY BOXES ===
 function renderSummaryBoxes() {
   const summaryBoxes = document.getElementById("summaryBoxes");
   if (!summaryBoxes) return;
-
   let totalAccommodation = 0, totalPMC = 0, totalOwnerPayout = 0;
+
   reservationsData.forEach(reservation => {
-    const accommodation = toNumber(reservation.accommodationFare || 0);
+    const accommodation = toNumber(reservation.accommodationFare);
     const pmc = accommodation * (currentOwner.pmcPercent / 100);
     const ownerPayout = accommodation - pmc;
     totalAccommodation += accommodation;
@@ -133,7 +210,7 @@ function renderSummaryBoxes() {
   `;
 }
 
-// --- MAIN TABLE
+// === MAIN TABLE ===
 function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
   if (!tbody) return;
@@ -150,12 +227,7 @@ function renderReservationsTable() {
     const accommodation = toNumber(reservation.accommodationFare);
     const pmc = accommodation * (currentOwner.pmcPercent / 100);
     const ownerPayout = accommodation - pmc;
-    // Calculate first of next month from checkOut or today's date
-    let payoutDate = "";
-    if (reservation.checkOut) {
-      const d = new Date(reservation.checkOut);
-      payoutDate = !isNaN(d) ? new Date(d.getFullYear(), d.getMonth() + 1, 5).toLocaleDateString("en-US") : "";
-    }
+    const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
     const codeToShow = reservation.ownerStay ? reservation.ownerStay : reservation.confirmationCode;
     tbody.innerHTML += `
       <tr>
@@ -166,13 +238,13 @@ function renderReservationsTable() {
         <td>${reservation.ownerStay ? "" : formatMoney(accommodation)}</td>
         <td>${reservation.ownerStay ? "" : formatMoney(pmc)}</td>
         <td>${reservation.ownerStay ? "" : formatMoney(ownerPayout)}</td>
-        <td>${payoutDate}</td>
+        <td>${expectedPayoutDate}</td>
       </tr>
     `;
   });
 }
 
-// --- OWNER STAYS TABLE
+// === OWNER STAY TABLE ===
 function renderOwnerStayTable() {
   const container = document.getElementById("ownerStaysTableContainer");
   if (!container) return;
@@ -212,11 +284,12 @@ function renderOwnerStayTable() {
   container.innerHTML = tableHtml;
 }
 
-// --- FETCH & FILTER DATA
+// === FETCHING & FILTERING DATA ===
 function loadOwnerReport() {
   if (!currentOwner || !currentOwner.guestyApiKey) {
     reservationsData = [];
     ownerStayData = [];
+    renderGreetingAndAddress();
     renderSummaryBoxes();
     renderReservationsTable();
     renderOwnerStayTable();
@@ -243,6 +316,7 @@ function loadOwnerReport() {
         String(res.status || '').toLowerCase() !== 'canceled' &&
         toNumber(res.accommodationFare) > 0
       );
+      renderGreetingAndAddress();
       renderSummaryBoxes();
       renderReservationsTable();
       renderOwnerStayTable();
@@ -250,6 +324,7 @@ function loadOwnerReport() {
     .catch(() => {
       reservationsData = [];
       ownerStayData = [];
+      renderGreetingAndAddress();
       renderSummaryBoxes();
       renderReservationsTable();
       renderOwnerStayTable();
