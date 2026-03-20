@@ -189,10 +189,14 @@ function mapGuestyReservation(r) {
     pickDeep(r, "money.fareAccommodation.value")
   );
   const markup = pickNumber(
-    r.markupAmount, r.markup, r["MARKUP"],
-    pickDeep(r, "money.markup.value"), pickDeep(r, "markup.value"),
-    pickDeep(r, "money.invoiceItems.MAR.value")
-  );
+  r.markupAmount,
+  r.markup,
+  r["MARKUP"],
+  pickDeep(r, "money.markup.value"),
+  pickDeep(r, "markup.value"),
+  // Use explicit lookup for .money.invoiceItems.MAR.value if exists:
+  (r["money"] && r["money"]["invoiceItems"] && r["money"]["invoiceItems"]["MAR"] && r["money"]["invoiceItems"]["MAR"].value) || 0
+);
   const lengthOfStayDiscount = pickNumber(
     r.lengthOfStayDiscount, r.lengthOfStayDiscountAmount, r["LENGTH OF STAY DISCOUNT"],
     pickDeep(r, "money.lengthOfStayDiscount.value"), pickDeep(r, "lengthOfStayDiscount.value")
