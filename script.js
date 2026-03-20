@@ -69,13 +69,11 @@ function loadOwnerReport() {
 
 function renderOwnerDashboard() {
   let totalAccommodation = 0;
-  let totalCleaning = 0;
   let totalPayout = 0;
 
   csvData.forEach(r => {
     totalAccommodation += toNumber(r["ACCOMMODATION FARE"]);
-    totalCleaning += toNumber(r["CLEANING FARE"]);
-    totalPayout += toNumber(r["TOTAL PAYOUT"]);
+   totalPayout += toNumber(r["TOTAL PAYOUT"]);
   });
 
   const pmcFee = totalAccommodation * (currentOwner.pmcPercent / 100);
@@ -85,8 +83,6 @@ function renderOwnerDashboard() {
     <div><strong>Owner:</strong> ${currentOwner.ownerName}</div>
     <div><strong>Property:</strong> ${currentOwner.propertyName}</div>
     <div><strong>Total Accommodation:</strong> $${totalAccommodation.toFixed(2)}</div>
-    <div><strong>Total Cleaning:</strong> $${totalCleaning.toFixed(2)}</div>
-    <div><strong>Total Payout:</strong> $${totalPayout.toFixed(2)}</div>
     <div><strong>PMC (${currentOwner.pmcPercent}%):</strong> $${pmcFee.toFixed(2)}</div>
     <div><strong>Estimated Owner Net:</strong> $${ownerNet.toFixed(2)}</div>
   `;
