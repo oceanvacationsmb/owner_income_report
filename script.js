@@ -3,7 +3,7 @@ const OWNERS = {
     password: "1234",
     ownerName: "ZACK TEST",
     propertyName: "1463 Wild Iris Dr.",
-    postalCode: "78245",
+    postalCode: "29576",
     pmcPercent: 20,
     guestyReportUrl: "https://report.guesty.com/apps/reservations?apiKey=1a58fc1af3815f9023a08e09c590a05f3f3d1c73dbc3ab2e19985ecfe0003aa87acc7e264983e31d5b10a98cf4fd9b4789de3cb864daf2031e42aae6266c92f5",
     cleaningFee: 250
@@ -13,9 +13,14 @@ const OWNERS = {
 let currentOwner = OWNERS["ti3155@yahoo.com"];
 let reservationsData = [];
 
-// EmailJS Init (update with your actual user ID)
+// ====== REPLACE THESE IDS WITH YOUR EMAILJS ACCOUNT'S IDS ======
+// Find these in EmailJS > Integration (user ID), Services, Templates
+const EMAILJS_USER_ID = "YOUR_EMAILJS_USER_ID";
+const EMAILJS_SERVICE_ID = "YOUR_EMAILJS_SERVICE_ID";
+const EMAILJS_TEMPLATE_ID = "YOUR_EMAILJS_TEMPLATE_ID";
+// ===============================================================
 (function(){
-  emailjs.init("YOUR_EMAILJS_USER_ID_HERE");
+  emailjs.init(EMAILJS_USER_ID);
 })();
 
 function getTimeBasedGreeting() {
@@ -27,7 +32,7 @@ function getTimeBasedGreeting() {
 
 // ------- WEATHER (with debug logging) -------
 function renderWeather(zip) {
-  const apiKey = "301c3846b1ed5b804976f73bd010175a"; // Use YOUR OpenWeatherMap API key
+  const apiKey = "301c3846b1ed5b804976f73bd010175a"; // ← your OpenWeatherMap API key
   const weatherBox = document.getElementById("weatherBox");
   if (!zip || !weatherBox) {
     console.log('No zip or no weatherBox found');
@@ -103,7 +108,7 @@ function renderOwnerDashboard() {
   renderWeather(currentOwner.postalCode);
   renderReservationsTable();
 
-  // Modal open/close and reservation-fill logic (must re-apply listeners after rebuilding DOM!)
+  // Re-attach button event (since it's rebuilt each time)
   document.getElementById('openRequestBox').onclick = () => {
     document.getElementById('requestModal').style.display = 'block';
     document.getElementById('ownerReqStatus').innerText = '';
@@ -167,11 +172,11 @@ function fillReservationDropdown() {
   });
 }
 
-// Setup modal, subject logic, and email sending only once
+// Setup modal logic and EmailJS handler
 document.addEventListener('DOMContentLoaded', () => {
   loadOwnerReport();
 
-  // Modal open/close logic (the button event is RE-added in renderOwnerDashboard after summary renders)
+  // Modal handlers
   document.getElementById('closeModal').onclick = () => {
     document.getElementById('requestModal').style.display = 'none';
   };
@@ -181,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Subject logic: show/hide date & reservation fields
+  // Subject logic
   document.getElementById('subject').addEventListener('change', function() {
     const showDates = this.value === 'Request Owner Stay';
     const showRes = this.value === 'Inquiry about Reservation';
@@ -216,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
     message += `\nInfo/Notes: ${info}`;
     if(!subject || !valid) { document.getElementById('ownerReqStatus').innerText = "Please fill all required fields."; return; }
     // ---- Send email via EmailJS ----
-    emailjs.send('YOUR_EMAILJS_SERVICE_ID', 'YOUR_EMAILJS_TEMPLATE_ID', {
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
       from_name: currentOwner.ownerName,
       from_email: "portal@oceanvacations.com",
       message: message,
@@ -229,3 +234,45 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 });
+
+// ------- GUESTY REPORT LOAD -------
+function loadOwnerReport() {
+  if (!currentOwner || !currentOwner.guestyReportUrl) {
+    console.error("No owner or URL configured");
+    return;
+  }
+
+  fetch(currentOwner.guestyReportUrl)
+    .then(r => r.text())
+    .then(html => {
+      parseGuestyTable(html);
+      renderOwnerDashboard();
+    })
+    .catch(err => {
+      console.error("❌ Error loading report:", err);
+      reservationsData = [];
+      renderOwnerDashboard();
+    });
+}
+function parseGuestyTable(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const rows = doc.querySelectorAll('table tbody tr');
+  reservationsData = [];
+
+  rows.forEach(row => {
+    const cells = row.querySelectorAll('td');
+    if (cells.length > 0) {
+      const reservation = {
+        listingNickname: cells[0]?.textContent.trim() || "",
+        platform: cells[1]?.textContent.trim() || "",
+        confirmationCode: cells[2]?.textContent.trim() || "",
+        checkIn: cells[3]?.textContent.trim() || "",
+        checkOut: cells[4]?.textContent.trim() || "",
+        totalPayout: toNumber(cells[5]?.textContent),
+        accommodationFare: toNumber(cells[6]?.textContent),
+      };
+      reservationsData.push(reservation);
+    }
+  });
+}
