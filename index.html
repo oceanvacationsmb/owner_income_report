@@ -54,9 +54,18 @@
     </div>
     
     <div id="ownerPortal" style="display:block;">
-      <div class="card">
-        <div id="summary"></div>
+      <div class="summary-header-flex">
+        <div class="summary-header-left">
+          <h2 id="greeting"></h2>
+          <div class="property-address" id="propertyAddress"></div>
+        </div>
+        <div class="summary-header-right">
+          <div id="weatherBox"></div>
+          <button id="openRequestBox" class="request-btn">Contact Management</button>
+        </div>
       </div>
+
+      <div class="summary-boxes" id="summaryBoxes"></div>
 
       <div class="card">
         <h3>Reservations</h3>
