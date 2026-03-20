@@ -183,20 +183,23 @@ function setDateFieldsMin() {
 
 // === RESERVATION MAPPING & LOADING ===
 function mapGuestyReservation(r) {
-  // Base, Markup, Discount fields—broad compatibility
   const baseAccommodation = pickNumber(
-    r["ACCOMMODATION FARE"], r["fareAccommodation"], r["money.fareAccommodation"], r.accommodationFare, r.fareAccommodation,
-    pickDeep(r, "money.fareAccommodation.value"), pickDeep(r, "fareAccommodation.value")
+    r["ACCOMMODATION FARE"], r["fareAccommodation"], r["money.fareAccommodation"],
+    r.accommodationFare, r.fareAccommodation, pickDeep(r, "money.fareAccommodation.value")
   );
+  // Use MAR as Markup
   const markup = pickNumber(
-    r.markupAmount, r.markup, r["MARKUP"], r["money.markup"],
-    pickDeep(r,"money.markup.value"), pickDeep(r,"markup.value")
+    r.markupAmount, r.markup, r["MARKUP"],
+    pickDeep(r, "money.markup.value"), pickDeep(r, "markup.value"),
+    // <-- Add this line:
+    pickDeep(r, "money.invoiceItems.MAR.value")
   );
   const lengthOfStayDiscount = pickNumber(
-    r.lengthOfStayDiscount, r.lengthOfStayDiscountAmount, r["LENGTH OF STAY DISCOUNT"], r["money.lengthOfStayDiscount"],
-    pickDeep(r,"money.lengthOfStayDiscount.value"), pickDeep(r,"lengthOfStayDiscount.value")
+    r.lengthOfStayDiscount, r.lengthOfStayDiscountAmount, r["LENGTH OF STAY DISCOUNT"],
+    pickDeep(r, "money.lengthOfStayDiscount.value"), pickDeep(r, "lengthOfStayDiscount.value")
   );
   const calculatedAccommodation = baseAccommodation - markup - lengthOfStayDiscount;
+
   return {
     status: pickText(r.status, r.reservationStatus, r["STATUS"], r["reservationStatus"]),
     listingNickname: pickText(r["LISTING'S NICKNAME"], r["listing.nickname"], r.listingNickname, r.listing?.nickname, r.listing),
@@ -206,7 +209,7 @@ function mapGuestyReservation(r) {
     checkOut: pickDate(r["CHECK-OUT DATE"], r.checkOutDate, r.checkOut, r.endDate),
     totalPayout: pickNumber(r["TOTAL PAYOUT"], r["money.hostPayout"], r.hostPayout, r.totalPayout),
     accommodationFare: calculatedAccommodation,
-    baseAccommodation, markup, lengthOfStayDiscount // debug only; not needed in UI
+    baseAccommodation, markup, lengthOfStayDiscount // (optional debug)
   };
 }
 
