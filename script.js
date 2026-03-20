@@ -381,11 +381,12 @@ function parseGuestyTable(html) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
 
-  let rows = doc.querySelectorAll("table tbody tr");
+  console.log("PAGE TITLE:", doc.title);
+  console.log("BODY TEXT:", doc.body.innerText.substring(0, 1000));
+  console.log("FULL HTML START:", html.substring(0, 3000));
 
-  if (!rows.length) {
-    rows = doc.querySelectorAll("tr");
-  }
+  let rows = doc.querySelectorAll("table tbody tr");
+  if (!rows.length) rows = doc.querySelectorAll("tr");
 
   reservationsData = [];
 
