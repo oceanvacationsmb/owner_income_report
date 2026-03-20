@@ -308,6 +308,7 @@ function loadOwnerReport() {
     renderSummaryBoxes();
     renderReservationsTable();
     renderOwnerStayTable();
+    renderMonthPieChart();
     return;
   }
   const reportUrl = "https://report.guesty.com/api/shared-reservations-reports?timezone=America/New_York&skip=0&limit=1000";
@@ -335,7 +336,8 @@ function loadOwnerReport() {
       renderSummaryBoxes();
       renderReservationsTable();
       renderOwnerStayTable();
-    })
+      renderMonthPieChart();
+      })
     .catch(() => {
       reservationsData = [];
       ownerStayData = [];
