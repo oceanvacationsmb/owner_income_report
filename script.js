@@ -185,27 +185,25 @@ function setDateFieldsMin() {
 function mapGuestyReservation(r) {
   const baseAccommodation = pickNumber(
     r["ACCOMMODATION FARE"], r["fareAccommodation"], r["money.fareAccommodation"],
-    r.accommodationFare, r.fareAccommodation,
-    pickDeep(r, "money.fareAccommodation.value")
+    r.accommodationFare, r.fareAccommodation, pickDeep(r, "money.fareAccommodation.value")
   );
   const markup = pickNumber(
-  r.markupAmount,
-  r.markup,
-  r["MARKUP"],
-  pickDeep(r, "money.markup.value"),
-  pickDeep(r, "markup.value"),
-  // Use explicit lookup for .money.invoiceItems.MAR.value if exists:
-  (r["money"] && r["money"]["invoiceItems"] && r["money"]["invoiceItems"]["MAR"] && r["money"]["invoiceItems"]["MAR"].value) || 0
-);
+    r.markupAmount,
+    r.markup,
+    r["MARKUP"],
+    pickDeep(r, "money.markup.value"),
+    pickDeep(r, "markup.value"),
+    (r["money"] && r["money"]["invoiceItems"] && r["money"]["invoiceItems"]["MAR"] && r["money"]["invoiceItems"]["MAR"].value) || 0
+  );
   const lengthOfStayDiscount = pickNumber(
     r.lengthOfStayDiscount, r.lengthOfStayDiscountAmount, r["LENGTH OF STAY DISCOUNT"],
-    pickDeep(r, "money.lengthOfStayDiscount.value"), pickDeep(r, "lengthOfStayDiscount.value")
+    pickDeep(r,"money.lengthOfStayDiscount.value"), pickDeep(r,"lengthOfStayDiscount.value")
   );
   const calculatedAccommodation = baseAccommodation - markup - lengthOfStayDiscount;
 
+  // Optionally debug
   if (markup !== 0) {
-    console.log('Markup detected:', markup, 'from', pickDeep(r, "money.invoiceItems.MAR.value"));
-    console.log('Accommodation calculation:', baseAccommodation, '-', markup, '-', lengthOfStayDiscount, '=', calculatedAccommodation);
+    console.log("Extracted markup:", markup);
   }
 
   return {
