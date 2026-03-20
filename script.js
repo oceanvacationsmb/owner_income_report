@@ -1,16 +1,23 @@
+// OWNER settings
 const OWNERS = {
   "ti3155@yahoo.com": {
     password: "1234",
-    ownerName: "Nicole",
-    propertyName: "1463 Basin Trail, Murrells Inlet, SC 29576",
-    postalCode: "29576", // MAKE SURE this is the zip for your weather widget!
-    pmcPercent: 12,
-    guestyReportUrl: "https://report.guesty.com/apps/reservations?apiKey=1a58fc1af3815f9023a08e09c590a05f3f3d1c73dbc3ab2e19985ecfe0003aa87acc7e264983e31d5b10a98cf4fd9b4789de3cb864daf2031e42aae6266c92f5"
+    ownerName: "ZACK TEST",
+    propertyName: "1463 Wild Iris Dr.",
+    postalCode: "78245",
+    pmcPercent: 20,
+    guestyReportUrl: "https://report.guesty.com/apps/reservations?apiKey=1a58fc1af3815f9023a08e09c590a05f3f3d1c73dbc3ab2e19985ecfe0003aa87acc7e264983e31d5b10a98cf4fd9b4789de3cb864daf2031e42aae6266c92f5",
+    cleaningFee: 185
   }
 };
 
 let currentOwner = OWNERS["ti3155@yahoo.com"];
 let reservationsData = [];
+
+// EmailJS Init (put your real user ID)
+(function(){
+  emailjs.init("YOUR_EMAILJS_USER_ID_HERE");
+})();
 
 function toNumber(v) {
   return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0;
@@ -28,7 +35,7 @@ function getTimeBasedGreeting() {
 }
 
 function renderWeather(zip) {
-  const apiKey = "YOUR_OPENWEATHERMAP_API_KEY"; // <--- INSERT your API KEY here!
+  const apiKey = "YOUR_OPENWEATHERMAP_API_KEY"; // <-- put your API key here!
   const weatherBox = document.getElementById("weatherBox");
   if (!zip || !weatherBox) return;
   weatherBox.innerHTML = '<div class="weather-loading">Loading weather...</div>';
@@ -150,7 +157,6 @@ function renderOwnerDashboard() {
       </div>
     </div>
   `;
-
   renderWeather(currentOwner.postalCode);
   renderReservationsTable();
 }
@@ -158,7 +164,7 @@ function renderOwnerDashboard() {
 function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
   tbody.innerHTML = "";
-  reservationsData.forEach(reservation => {
+  reservationsData.forEach((reservation, idx) => {
     const accommodation = reservation.accommodationFare;
     const pmc = accommodation * (currentOwner.pmcPercent / 100);
     const ownerPayout = accommodation - pmc;
@@ -179,7 +185,79 @@ function renderReservationsTable() {
   });
 }
 
-// Auto-load on page load
+// ---- Email Request Modal logic ----
+function getCleaningFee() {
+  return currentOwner.cleaningFee ? Number(currentOwner.cleaningFee) : 0;
+}
+function fillReservationDropdown() {
+  const select = document.getElementById("reservationSelect");
+  select.innerHTML = '';
+  reservationsData.forEach((res, i) => {
+    select.innerHTML += `<option value="${i}">${res.confirmationCode} (${res.platform}, ${res.checkIn} - ${res.checkOut})</option>`;
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   loadOwnerReport();
+  // Modal open/close 
+  document.getElementById('openRequestBox').onclick = () => {
+    document.getElementById('requestModal').style.display = 'block';
+    document.getElementById('ownerReqStatus').innerText = '';
+    fillReservationDropdown();
+  };
+  document.getElementById('closeModal').onclick = () => {
+    document.getElementById('requestModal').style.display = 'none';
+  };
+  window.onclick = function(e) {
+    if (e.target == document.getElementById('requestModal')) {
+      document.getElementById('requestModal').style.display = "none";
+    }
+  };
+
+  // Subject logic: show/hide date & reservation
+  document.getElementById('subject').addEventListener('change', function() {
+    const showDates = this.value === 'Request Owner Stay';
+    const showRes = this.value === 'Inquiry about Reservation';
+    document.getElementById('dateFields').style.display = showDates ? '' : 'none';
+    document.getElementById('reservationField').style.display = showRes ? '' : 'none';
+    // Cleaning Fee agreement for Owner Stay
+    document.getElementById('cleaningAgreement').innerHTML = showDates
+      ? `<div><b>Cleaning Fee:</b> $${getCleaningFee().toFixed(2)}<br><label><input type="checkbox" required name="agreeClean" id="agreeClean"> I agree to pay cleaning fee</label></div>`
+      : '';
+  });
+
+  // Form submit
+  document.getElementById('ownerRequestForm').onsubmit = function(e) {
+    e.preventDefault();
+    const subject = document.getElementById('subject').value;
+    let message = `Owner: ${currentOwner.ownerName}\nProperty: ${currentOwner.propertyName}\nSubject: ${subject}`;
+    let valid = true;
+    if(subject === "Request Owner Stay") {
+      const inDate = document.getElementById('checkInDate').value;
+      const outDate = document.getElementById('checkOutDate').value;
+      if(!inDate || !outDate) valid = false;
+      if(!document.getElementById('agreeClean').checked) valid = false;
+      message += `\nRequested Stay: ${inDate} - ${outDate}\nCleaning Fee: $${getCleaningFee().toFixed(2)} (Agreed: Yes)`;
+    }
+    if(subject === "Inquiry about Reservation") {
+      const idx = document.getElementById('reservationSelect').value;
+      const res = reservationsData[idx];
+      message += `\nInquiry Reservation: ${res.confirmationCode}, ${res.platform}, ${res.checkIn} - ${res.checkOut}`;
+    }
+    const info = document.getElementById('extraInfo').value;
+    message += `\nInfo/Notes: ${info}`;
+    if(!subject || !valid) { document.getElementById('ownerReqStatus').innerText = "Please fill all required fields."; return; }
+    // ---- Send email via EmailJS ----
+    emailjs.send('YOUR_EMAILJS_SERVICE_ID', 'YOUR_EMAILJS_TEMPLATE_ID', {
+      from_name: currentOwner.ownerName,
+      from_email: "portal@oceanvacations.com",
+      message: message,
+      to_email: "oceanvacationsmb@gmail.com"
+    }).then(() => {
+      document.getElementById('ownerReqStatus').innerText = "Request sent successfully!";
+      this.reset();
+    }, () => {
+      document.getElementById('ownerReqStatus').innerText = "Failed to send. Please try again.";
+    });
+  };
 });
