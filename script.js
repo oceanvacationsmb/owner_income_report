@@ -190,6 +190,8 @@ function fillReservationDropdown() {
 
 document.addEventListener('DOMContentLoaded', () => {
   loadOwnerReport();
+  console.log("JS loaded!");
+});
 
   // Header logic
   document.getElementById('openRequestBox').onclick = () => {
