@@ -8,7 +8,7 @@ const OWNERS = {
   }
 };
 
-let currentOwner = OWNERS["ti3155@yahoo.com"]; // Auto-login
+let currentOwner = OWNERS["ti3155@yahoo.com"];
 let reservationsData = [];
 
 function toNumber(v) {
@@ -20,40 +20,43 @@ function formatMoney(v) {
 }
 
 function loadOwnerReport() {
-  if (!currentOwner || !currentOwner.guestyReportUrl) return;
+  if (!currentOwner || !currentOwner.guestyReportUrl) {
+    console.error("No owner or URL configured");
+    return;
+  }
 
-  console.log("Loading report from:", currentOwner.guestyReportUrl);
+  console.log("🚀 Starting to load report...");
+  console.log("URL:", currentOwner.guestyReportUrl);
 
   fetch(currentOwner.guestyReportUrl)
     .then(r => {
-      console.log("Response status:", r.status);
+      console.log("✅ Response received, status:", r.status);
       return r.text();
     })
     .then(html => {
-      console.log("HTML length:", html.length);
-      console.log("First 500 chars:", html.substring(0, 500));
+      console.log("✅ HTML received, length:", html.length);
+      console.log("📄 First 1000 chars:", html.substring(0, 1000));
       parseGuestyTable(html);
       renderOwnerDashboard();
     })
     .catch(err => {
-      console.error("Error loading report:", err);
+      console.error("❌ Error loading report:", err);
       alert("Could not load report: " + err.message);
     });
 }
 
 function parseGuestyTable(html) {
-  // Create a temporary container to parse HTML
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   
-  // Find all table rows
   const rows = doc.querySelectorAll('table tbody tr');
-  console.log("Found rows:", rows.length);
+  console.log("📊 Found table rows:", rows.length);
+  
   reservationsData = [];
 
   rows.forEach((row, index) => {
     const cells = row.querySelectorAll('td');
-    console.log(`Row ${index} cells:`, cells.length);
+    console.log(`Row ${index}: ${cells.length} cells`);
     
     if (cells.length > 0) {
       const reservation = {
@@ -66,12 +69,12 @@ function parseGuestyTable(html) {
         accommodationFare: toNumber(cells[6]?.textContent),
       };
       
-      console.log("Parsed reservation:", reservation);
+      console.log(`✅ Parsed row ${index}:`, reservation);
       reservationsData.push(reservation);
     }
   });
 
-  console.log("Total parsed reservations:", reservationsData.length);
+  console.log("✅ Total reservations parsed:", reservationsData.length);
 }
 
 function formatDateDisplay(dateStr) {
@@ -111,6 +114,8 @@ function renderOwnerDashboard() {
     totalOwnerPayout += ownerPayout;
   });
 
+  console.log("💰 Totals:", { totalAccommodation, totalPMC, totalOwnerPayout });
+
   document.getElementById("summary").innerHTML = `
     <div class="summary-box">
       <div class="summary-label">Owner</div>
@@ -145,6 +150,8 @@ function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
   tbody.innerHTML = "";
 
+  console.log("🎬 Rendering table with", reservationsData.length, "rows");
+
   reservationsData.forEach(reservation => {
     const accommodation = reservation.accommodationFare;
     const pmc = accommodation * (currentOwner.pmcPercent / 100);
@@ -156,24 +163,4 @@ function renderReservationsTable() {
         <td>${reservation.confirmationCode}</td>
         <td>${reservation.platform}</td>
         <td>${formatDateDisplay(reservation.checkIn)}</td>
-        <td>${formatDateDisplay(reservation.checkOut)}</td>
-        <td>${formatMoney(accommodation)}</td>
-        <td>${formatMoney(pmc)}</td>
-        <td>${formatMoney(ownerPayout)}</td>
-        <td>${expectedPayoutDate}</td>
-      </tr>
-    `;
-  });
-}
-
-// Auto-load on page load
-document.addEventListener('DOMContentLoaded', () => {
-  const loginBox = document.getElementById("loginBox");
-  const ownerPortal = document.getElementById("ownerPortal");
-  
-  if (loginBox) loginBox.style.display = "none";
-  if (ownerPortal) ownerPortal.style.display = "block";
-  
-  document.getElementById("portalTitle").textContent = `${currentOwner.ownerName} Statement`;
-  loadOwnerReport();
-});
+        <td>${format`*
