@@ -1,28 +1,3 @@
-let currentOwner = null;
-
-document.getElementById("loginBtn").onclick = function() {
-  const email = (document.getElementById("ownerEmail").value || "").trim().toLowerCase();
-  const pw = (document.getElementById("ownerPassword").value || "");
-  const loginStatus = document.getElementById("loginStatus");
-
-  if (!OWNERS[email]) {
-    loginStatus.innerText = "Email not found.";
-    return;
-  }
-  if (OWNERS[email].password !== pw) {
-    loginStatus.innerText = "Password incorrect.";
-    return;
-  }
-
-  currentOwner = OWNERS[email];
-  document.getElementById("loginBox").style.display = "none";
-  document.getElementById("ownerPortal").style.display = "";
-  loginStatus.innerText = "";
-
-  loadOwnerReport();
-};
-
-
 // === OWNER CONFIGURATION ===
 const OWNERS = {
   "1463@yahoo.com": {
@@ -54,227 +29,86 @@ const OWNERS = {
   }
 };
 
+let currentOwner = null;
 let reservationsData = [];
+let ownerStayData = [];
 
-// === EMAILJS CONFIGURATION ===
-const EMAILJS_USER_ID = "ti3155";
-const EMAILJS_SERVICE_ID = "service_06c56l2";
-const EMAILJS_TEMPLATE_ID = "template_91j57r4";
+// --- LOGIN LOGIC
+document.addEventListener("DOMContentLoaded", function() {
+  const loginBox = document.getElementById("loginBox");
+  const portal = document.getElementById("ownerPortal");
+  const loginBtn = document.getElementById("loginBtn");
+  const showPwd = document.getElementById("showPwd");
+  const ownerPwd = document.getElementById("ownerPassword");
 
-// === INIT EMAILJS (safe check) ===
-(function () {
-  if (typeof emailjs !== "undefined") {
-    emailjs.init(EMAILJS_USER_ID);
-  }
-})();
+  loginBox.style.display = 'flex';
+  portal.style.display = 'none';
 
-// === GENERIC GETTERS & HELPERS ===
-function pickDeep(obj, ...paths) {
-  for (const path of paths) {
-    if (!obj) continue;
-    const parts = path.split(".");
-    let value = obj;
-    for (const part of parts) {
-      value = value?.[part];
-      if (value === undefined) break;
-    }
-    if (value !== undefined && value !== null) return value;
-  }
-  return undefined;
-}
+  // Show/hide password
+  showPwd.onclick = function() {
+    ownerPwd.type = ownerPwd.type === 'password' ? 'text' : 'password';
+    showPwd.style.color = ownerPwd.type === 'text' ? '#3282b8' : '#aaa';
+  };
 
-function pickText(...args) {
-  for (const v of args) {
-    if (v == null) continue;
-    if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") return String(v).trim();
-    if (Array.isArray(v)) return v.map(pickText).filter(Boolean).join(", ");
-    if (typeof v === "object") {
-      const candidates = [v.value, v.children, v.label, v.name, v.text, v.code, v.title, v.displayName, v.nickname, v.id, v._id];
-      for (const item of candidates) {
-        if (item != null && typeof item !== "object") return String(item).trim();
-      }
-      for (const key in v) {
-        if (v[key] != null && typeof v[key] !== "object") return String(v[key]).trim();
-      }
+  loginBtn.onclick = function() {
+    const email = (document.getElementById("ownerEmail").value || "").trim().toLowerCase();
+    const pw = (ownerPwd.value || "");
+    const loginStatus = document.getElementById("loginStatus");
+
+    if (!OWNERS[email]) {
+      loginStatus.innerText = "Email not found.";
+      return;
     }
-  }
-  return "";
-}
-function pickNumber(...args) {
-  for (const v of args) {
-    if (v == null) continue;
-    if (typeof v === "number") return v;
-    if (typeof v === "string") {
-      const n = Number(String(v).replace(/[$,]/g, "").trim());
-      if (!isNaN(n)) return n;
+    if (OWNERS[email].password !== pw) {
+      loginStatus.innerText = "Password incorrect.";
+      return;
     }
-    if (Array.isArray(v) && v.length) {
-      const n = pickNumber(v[0]);
-      if (!isNaN(n)) return n;
-    }
-    if (typeof v === "object") {
-      const candidates = [v.value, v.amount, v.children, v.total, v.sum];
-      for (const item of candidates) {
-        if (item != null) {
-          const n = pickNumber(item);
-          if (!isNaN(n)) return n;
-        }
-      }
-    }
-  }
-  return 0;
-}
-function pickDate(...args) {
-  for (const v of args) {
-    if (v == null) continue;
-    if (typeof v === "string" || typeof v === "number") return String(v).trim();
-    if (Array.isArray(v) && v.length) return pickDate(v[0]);
-    if (typeof v === "object") {
-      const candidates = [v.value, v.date, v.iso, v.children, v.startDate, v.endDate];
-      for (const item of candidates) {
-        if (item != null && typeof item !== "object") return String(item).trim();
-      }
-    }
-  }
-  return "";
-}
-function formatMoney(v) { return `$${Number(v || 0).toFixed(2)}`; }
+    currentOwner = OWNERS[email];
+    loginBox.style.display = 'none';
+    portal.style.display = '';
+    loginStatus.innerText = "";
+    loadOwnerReport();
+  };
+});
+
+// --- UTILS
+function formatMoney(v) { return `$${Number(v || 0).toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2})}`; }
 function toNumber(v) { return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0; }
-function formatDateDisplay(dateStr) {
-  if (!dateStr) return "";
-  const date = new Date(dateStr);
-  if (isNaN(date)) return dateStr;
-  return date.toLocaleDateString("en-US");
-}
-function getExpectedPayoutDate(checkOutDate) {
-  const d = new Date(checkOutDate);
-  if (isNaN(d)) return "";
-  const payoutDate = new Date(d.getFullYear(), d.getMonth() + 1, 5);
-  return payoutDate.toLocaleDateString("en-US");
-}
-function getCleaningFee() {
-  return currentOwner.cleaningFee ? Number(currentOwner.cleaningFee) : 0;
-}
 
-// === DASHBOARD + WEATHER ===
-function getTimeBasedGreeting() {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
-}
-function renderDashboardHeader() {
-  const greeting = document.getElementById("greeting");
-  const propertyAddress = document.getElementById("propertyAddress");
-  if (greeting) greeting.innerText = `${getTimeBasedGreeting()} ${currentOwner.ownerName}`;
-  if (propertyAddress) propertyAddress.innerText = currentOwner.propertyName;
-  renderWeather(currentOwner.postalCode);
-}
-function renderWeather(zip) {
-  const apiKey = "301c3846b1ed5b804976f73bd010175a";
-  const weatherBox = document.getElementById("weatherBox");
-  if (!zip || !weatherBox) return;
-  weatherBox.innerHTML = '<div class="weather-loading">Loading weather...</div>';
-  fetch(`https://api.openweathermap.org/data/2.5/forecast?zip=${zip},US&appid=${apiKey}&units=imperial`)
-    .then(res => res.json())
-    .then(data => {
-      if (!data.list || !data.city) throw new Error("Weather unavailable");
-      const daily = {};
-      data.list.forEach(item => {
-        const day = item.dt_txt.split(" ")[0];
-        const hour = item.dt_txt.split(" ")[1];
-        if (!daily[day] && (hour === "12:00:00" || hour === "15:00:00" || hour === "09:00:00")) {
-          daily[day] = item;
-        }
-      });
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      const forecast = Object.keys(daily)
-        .filter(day => { const d = new Date(day); d.setHours(0, 0, 0, 0); return d >= today; })
-        .slice(0, 5).map(day => daily[day]);
-      let html = '<div class="weather-forecast">';
-      forecast.forEach(day => {
-        const dateObj = new Date(day.dt_txt);
-        html += `
-          <div class="forecast-day">
-            <div>${dateObj.toLocaleDateString("en-US", { weekday: "short" })}</div>
-            <img src="https://openweathermap.org/img/wn/${day.weather[0].icon}.png" alt="">
-            <div><b>${Math.round(day.main.temp)}°F</b></div>
-            <div style="font-size:.95em;">${day.weather[0].main}</div>
-          </div>
-        `;
-      });
-      html += "</div>";
-      weatherBox.innerHTML = html;
-    })
-    .catch(() => { weatherBox.innerHTML = `<div class="weather-box">Weather unavailable</div>`; });
-}
-
-// === MODAL FORM ===
-function setDateFieldsMin() {
-  const now = new Date();
-  now.setDate(now.getDate() + 1);
-  const yyyy = now.getFullYear();
-  const mm = String(now.getMonth() + 1).padStart(2, "0");
-  const dd = String(now.getDate()).padStart(2, "0");
-  const minDate = `${yyyy}-${mm}-${dd}`;
-  const checkIn = document.getElementById("checkInDate");
-  const checkOut = document.getElementById("checkOutDate");
-  if (checkIn) checkIn.setAttribute("min", minDate);
-  if (checkOut) checkOut.setAttribute("min", minDate);
-}
-
+// --- MAP DATA
 function mapGuestyReservation(r) {
-  // 1. Get base accommodation fare
-  const baseAccommodation = pickNumber(r["money.fareAccommodation"]?.value);
-
-  // 2. Get markup (as a number, default 0)
-  const markup = pickNumber(
-    r["money.invoiceItems.MAR"]?.value
-  );
-
-  // 3. Get length of stay discount (replace/expand the field as needed)
-  // Placeholder: set to 0 unless you confirm the correct field
-  const lengthOfStayDiscount = 0;
-  // EXAMPLE if it's available as "money.invoiceItems.LSD.value", otherwise leave as 0:
-  // const lengthOfStayDiscount = pickNumber(r["money.invoiceItems.LSD"]?.value);
-
-  // 4. Final calculation
-  const calculatedAccommodation = baseAccommodation - markup + lengthOfStayDiscount;
-
   return {
-    status: pickText(r.status, r.reservationStatus, r["STATUS"], r["reservationStatus"]),
-    listingNickname: pickText(r["listing.nickname"], r.listingNickname, r.listing?.nickname, r.listing),
-    platform: pickText(r["integration.platform"], r.platform, r.integration?.platform, r.integration),
-    confirmationCode: (pickText(r["confirmationCode"], r.code, r.reservationCode) || "").toUpperCase(),
-    checkIn: r["checkInDate"]?.value || "",
-    checkOut: r["checkOutDate"]?.value || "",
+    status: (r.status || r.reservationStatus || r["STATUS"] || r["reservationStatus"] || "").toString(),
+    platform: r["integration.platform"] || r.platform || (r.integration || {}).platform || r.integration || "",
+    confirmationCode: String(r["confirmationCode"] || r.code || r.reservationCode || "").toUpperCase(),
+    checkIn: (r["checkInDate"] && r["checkInDate"].value) || "",
+    checkOut: (r["checkOutDate"] && r["checkOutDate"].value) || "",
     ownerStay:
-      r["guest.fullName"] &&
-      r["guest.fullName"].children &&
-      r["guest.fullName"].children.toUpperCase().includes("OWNER STAY")
-        ? "OWNER STAY"
-        : "",
-    totalPayout: pickNumber(r["money.hostPayout"]?.value, r.hostPayout, r.totalPayout),
-    accommodationFare: calculatedAccommodation,
-    baseAccommodation,
-    markup,
-    lengthOfStayDiscount
+      r["guest.fullName"] && r["guest.fullName"].children &&
+      r["guest.fullName"].children.toUpperCase().includes("OWNER STAY") ? "OWNER STAY" : "",
+    accommodationFare: toNumber(r["money.fareAccommodation"] && r["money.fareAccommodation"].value),
+    totalPayout: toNumber(r["money.hostPayout"] && r["money.hostPayout"].value),
   };
 }
 
-// === SUMMARY, TABLE, DROPDOWNS ===
+// --- DASHBOARD SUMMARY
 function renderSummaryBoxes() {
   const summaryBoxes = document.getElementById("summaryBoxes");
   if (!summaryBoxes) return;
+
   let totalAccommodation = 0, totalPMC = 0, totalOwnerPayout = 0;
   reservationsData.forEach(reservation => {
-    const accommodation = toNumber(reservation.accommodationFare);
+    const accommodation = toNumber(reservation.accommodationFare || 0);
     const pmc = accommodation * (currentOwner.pmcPercent / 100);
     const ownerPayout = accommodation - pmc;
     totalAccommodation += accommodation;
     totalPMC += pmc;
     totalOwnerPayout += ownerPayout;
   });
+
+  // Owner Stay cleaning total
+  let totalOwnerStayCleaning = (ownerStayData || []).length * (currentOwner.cleaningFee ? Number(currentOwner.cleaningFee) : 0);
+
   summaryBoxes.innerHTML = `
     <div class="summary-box">
       <div class="summary-label">PMC %</div>
@@ -292,12 +126,14 @@ function renderSummaryBoxes() {
       <div class="summary-label">Total Owner Payout</div>
       <div class="summary-value">${formatMoney(totalOwnerPayout)}</div>
     </div>
+    <div class="summary-box" style="background:#e0f7fa">
+      <div class="summary-label">OWNER STAY</div>
+      <div class="summary-value">${formatMoney(totalOwnerStayCleaning)}</div>
+    </div>
   `;
-  summaryBoxes.style.textAlign = "center";
-  summaryBoxes.style.display = "flex";
-  summaryBoxes.style.justifyContent = "center";
 }
 
+// --- MAIN TABLE
 function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
   if (!tbody) return;
@@ -314,11 +150,13 @@ function renderReservationsTable() {
     const accommodation = toNumber(reservation.accommodationFare);
     const pmc = accommodation * (currentOwner.pmcPercent / 100);
     const ownerPayout = accommodation - pmc;
-    const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
-
-    // Show "OWNER STAY" if that flag is present, otherwise show the confirmation code
+    // Calculate first of next month from checkOut or today's date
+    let payoutDate = "";
+    if (reservation.checkOut) {
+      const d = new Date(reservation.checkOut);
+      payoutDate = !isNaN(d) ? new Date(d.getFullYear(), d.getMonth() + 1, 5).toLocaleDateString("en-US") : "";
+    }
     const codeToShow = reservation.ownerStay ? reservation.ownerStay : reservation.confirmationCode;
-
     tbody.innerHTML += `
       <tr>
         <td>${codeToShow}</td>
@@ -326,30 +164,62 @@ function renderReservationsTable() {
         <td>${reservation.checkIn || ""}</td>
         <td>${reservation.checkOut || ""}</td>
         <td>${reservation.ownerStay ? "" : formatMoney(accommodation)}</td>
-        <td>${formatMoney(pmc)}</td>
-        <td>${formatMoney(ownerPayout)}</td>
-        <td>${expectedPayoutDate}</td>
+        <td>${reservation.ownerStay ? "" : formatMoney(pmc)}</td>
+        <td>${reservation.ownerStay ? "" : formatMoney(ownerPayout)}</td>
+        <td>${payoutDate}</td>
       </tr>
     `;
   });
 }
-function fillReservationDropdown() {
-  const select = document.getElementById("reservationSelect");
-  if (!select) return;
-  select.innerHTML = "";
-  reservationsData.forEach((res, i) => {
-    select.innerHTML += `<option value="${i}">${res.confirmationCode || ""} (${res.platform || ""}, ${res.checkIn || ""} - ${res.checkOut || ""})</option>`;
+
+// --- OWNER STAYS TABLE
+function renderOwnerStayTable() {
+  const container = document.getElementById("ownerStaysTableContainer");
+  if (!container) return;
+  if (!ownerStayData.length) {
+    container.innerHTML = ""; // Hide when empty
+    return;
+  }
+  let tableHtml = `
+    <h3 class="section-title">Owner Stays</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Check In</th>
+            <th>Check Out</th>
+            <th>Cleaning Fee</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+  ownerStayData.forEach(reservation => {
+    tableHtml += `
+      <tr>
+        <td>OWNER STAY</td>
+        <td>${reservation.checkIn || ""}</td>
+        <td>${reservation.checkOut || ""}</td>
+        <td>${formatMoney(currentOwner.cleaningFee)}</td>
+      </tr>
+    `;
   });
+  tableHtml += `
+        </tbody>
+      </table>
+    </div>
+  `;
+  container.innerHTML = tableHtml;
 }
 
-// === LOAD AND FILTER RESERVATIONS ===
+// --- FETCH & FILTER DATA
 function loadOwnerReport() {
   if (!currentOwner || !currentOwner.guestyApiKey) {
-    console.error("No owner or API key configured");
     reservationsData = [];
-    renderDashboardHeader();
+    ownerStayData = [];
     renderSummaryBoxes();
     renderReservationsTable();
+    renderOwnerStayTable();
     return;
   }
   const reportUrl = "https://report.guesty.com/api/shared-reservations-reports?timezone=America/New_York&skip=0&limit=1000";
@@ -360,131 +230,28 @@ function loadOwnerReport() {
       "content-type": "application/json"
     }
   })
-    .then(r => {
-      if (!r.ok) throw new Error("Guesty fetch failed: " + r.status);
-      return r.json();
-    })
+    .then(r => r.ok ? r.json() : Promise.reject(r))
     .then(payload => {
       const rows = Array.isArray(payload) ? payload : (payload.results || payload.data || []);
       const mappedRows = rows.map(mapGuestyReservation);
-      reservationsData = mappedRows.filter(res => {
-        const status = String(res.status || '').toLowerCase();
-        return (status !== 'cancel' && status !== 'cancelled' && status !== 'canceled' && toNumber(res.accommodationFare) > 0);
-      });
-      renderDashboardHeader();
+
+      ownerStayData = mappedRows.filter(res => res.ownerStay);
+      reservationsData = mappedRows.filter(res =>
+        !res.ownerStay &&
+        String(res.status || '').toLowerCase() !== 'cancel' &&
+        String(res.status || '').toLowerCase() !== 'cancelled' &&
+        String(res.status || '').toLowerCase() !== 'canceled' &&
+        toNumber(res.accommodationFare) > 0
+      );
       renderSummaryBoxes();
       renderReservationsTable();
+      renderOwnerStayTable();
     })
-    .catch(err => {
-      console.error("Error loading report:", err);
+    .catch(() => {
       reservationsData = [];
-      renderDashboardHeader();
+      ownerStayData = [];
       renderSummaryBoxes();
       renderReservationsTable();
+      renderOwnerStayTable();
     });
 }
-
-// === CONTACT MODAL AND EMAILJS HANDLERS ===
-document.addEventListener("DOMContentLoaded", () => {
-  loadOwnerReport();
-  const openRequestBox = document.getElementById("openRequestBox");
-  if (openRequestBox) {
-    openRequestBox.onclick = () => {
-      const requestModal = document.getElementById("requestModal");
-      const ownerReqStatus = document.getElementById("ownerReqStatus");
-      if (requestModal) requestModal.style.display = "block";
-      if (ownerReqStatus) ownerReqStatus.innerText = "";
-      fillReservationDropdown();
-      setDateFieldsMin();
-    };
-  }
-
-  const closeModal = document.getElementById("closeModal");
-  if (closeModal) {
-    closeModal.onclick = () => {
-      const requestModal = document.getElementById("requestModal");
-      if (requestModal) requestModal.style.display = "none";
-    };
-  }
-
-  window.onclick = function (e) {
-    const requestModal = document.getElementById("requestModal");
-    if (requestModal && e.target === requestModal) {
-      requestModal.style.display = "none";
-    }
-  };
-
-  const subject = document.getElementById("subject");
-  if (subject) {
-    subject.addEventListener("change", function () {
-      const showDates = this.value === "Request Owner Stay";
-      const dateFields = document.getElementById("dateFields");
-      const reservationField = document.getElementById("reservationField");
-      const cleaningAgreement = document.getElementById("cleaningAgreement");
-
-      if (dateFields) dateFields.style.display = showDates ? "" : "none";
-      if (reservationField) reservationField.style.display = this.value === "Inquiry about Reservation" ? "" : "none";
-      if (cleaningAgreement) {
-        cleaningAgreement.innerHTML = showDates
-          ? `<div><b>Cleaning Fee:</b> $${getCleaningFee().toFixed(2)}<br><label><input type="checkbox" required name="agreeClean" id="agreeClean"> I agree to pay cleaning fee</label></div>`
-          : "";
-      }
-      if (showDates) setDateFieldsMin();
-    });
-  }
-
-  const ownerRequestForm = document.getElementById("ownerRequestForm");
-  if (ownerRequestForm) {
-    ownerRequestForm.onsubmit = function (e) {
-      e.preventDefault();
-      const subjectEl = document.getElementById("subject");
-      const ownerReqStatus = document.getElementById("ownerReqStatus");
-      const extraInfo = document.getElementById("extraInfo");
-      if (!subjectEl) return;
-      const subjectValue = subjectEl.value;
-      let message = `Owner: ${currentOwner.ownerName}\nProperty: ${currentOwner.propertyName}\nSubject: ${subjectValue}`;
-      let valid = true;
-      if (subjectValue === "Request Owner Stay") {
-        const inDate = document.getElementById("checkInDate")?.value || "";
-        const outDate = document.getElementById("checkOutDate")?.value || "";
-        const agreeClean = document.getElementById("agreeClean");
-        if (!inDate || !outDate) valid = false;
-        if (!agreeClean || !agreeClean.checked) valid = false;
-        message += `\nRequested Stay: ${inDate} - ${outDate}\nCleaning Fee: $${getCleaningFee().toFixed(2)} (Agreed: Yes)`;
-      }
-      if (subjectValue === "Inquiry about Reservation") {
-        const idx = document.getElementById("reservationSelect")?.value;
-        const res = reservationsData[idx];
-        if (res) {
-          message += `\nInquiry Reservation: ${res.confirmationCode}, ${res.platform}, ${res.checkIn} - ${res.checkOut}`;
-        }
-      }
-      message += `\nInfo/Notes: ${extraInfo ? extraInfo.value : ""}`;
-      if (!subjectValue || !valid) {
-        if (ownerReqStatus) ownerReqStatus.innerText = "Please fill all required fields.";
-        return;
-      }
-      if (typeof emailjs === "undefined") {
-        if (ownerReqStatus) ownerReqStatus.innerText = "Email service is not loaded.";
-        return;
-      }
-      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-        from_name: currentOwner.ownerName,
-        from_email: "portal@oceanvacations.com",
-        message: message,
-        to_email: "oceanvacationsmb@gmail.com"
-      }).then(() => {
-        if (ownerReqStatus) ownerReqStatus.innerText = "Request sent successfully!";
-        ownerRequestForm.reset();
-        const dateFields = document.getElementById("dateFields");
-        const reservationField = document.getElementById("reservationField");
-        const cleaningAgreement = document.getElementById("cleaningAgreement");
-        if (dateFields) dateFields.style.display = "none";
-        if (reservationField) reservationField.style.display = "none";
-        if (cleaningAgreement) cleaningAgreement.innerHTML = "";
-      }).catch(() => {
-        if (ownerReqStatus) ownerReqStatus.innerText = "Failed to send. Please try again.";
-      });
-    };
-  }
-});
