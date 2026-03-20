@@ -181,41 +181,36 @@ function setDateFieldsMin() {
   if (checkOut) checkOut.setAttribute("min", minDate);
 }
 
-// === RESERVATION MAPPING & LOADING ===
 function mapGuestyReservation(r) {
-  const baseAccommodation = pickNumber(
-    r["ACCOMMODATION FARE"], r["fareAccommodation"], r["money.fareAccommodation"],
-    r.accommodationFare, r.fareAccommodation, pickDeep(r, "money.fareAccommodation.value")
-  );
-  const markup = pickNumber(
-    r.markupAmount,
-    r.markup,
-    r["MARKUP"],
-    pickDeep(r, "money.markup.value"),
-    pickDeep(r, "markup.value"),
-    (r["money"] && r["money"]["invoiceItems"] && r["money"]["invoiceItems"]["MAR"] && r["money"]["invoiceItems"]["MAR"].value) || 0
-  );
-  const lengthOfStayDiscount = pickNumber(
-    r.lengthOfStayDiscount, r.lengthOfStayDiscountAmount, r["LENGTH OF STAY DISCOUNT"],
-    pickDeep(r,"money.lengthOfStayDiscount.value"), pickDeep(r,"lengthOfStayDiscount.value")
-  );
-  const calculatedAccommodation = baseAccommodation - markup - lengthOfStayDiscount;
+  // 1. Get base accommodation fare
+  const baseAccommodation = pickNumber(r["money.fareAccommodation"]?.value);
 
-  // Optionally debug
-  if (markup !== 0) {
-    console.log("Extracted markup:", markup);
-  }
+  // 2. Get markup (as a number, default 0)
+  const markup = pickNumber(
+    r["money.invoiceItems.MAR"]?.value
+  );
+
+  // 3. Get length of stay discount (replace/expand the field as needed)
+  // Placeholder: set to 0 unless you confirm the correct field
+  const lengthOfStayDiscount = 0;
+  // EXAMPLE if it's available as "money.invoiceItems.LSD.value", otherwise leave as 0:
+  // const lengthOfStayDiscount = pickNumber(r["money.invoiceItems.LSD"]?.value);
+
+  // 4. Final calculation
+  const calculatedAccommodation = baseAccommodation - markup + lengthOfStayDiscount;
 
   return {
     status: pickText(r.status, r.reservationStatus, r["STATUS"], r["reservationStatus"]),
-    listingNickname: pickText(r["LISTING'S NICKNAME"], r["listing.nickname"], r.listingNickname, r.listing?.nickname, r.listing),
-    platform: pickText(r["PLATFORM"], r["integration.platform"], r.platform, r.integration?.platform, r.integration),
-    confirmationCode: pickText(r["CONFIRMATION CODE"], r.confirmationCode, r.code, r.reservationCode),
-    checkIn: pickDate(r["CHECK-IN DATE"], r.checkInDate, r.checkIn, r.startDate),
-    checkOut: pickDate(r["CHECK-OUT DATE"], r.checkOutDate, r.checkOut, r.endDate),
-    totalPayout: pickNumber(r["TOTAL PAYOUT"], r["money.hostPayout"], r.hostPayout, r.totalPayout),
+    listingNickname: pickText(r["listing.nickname"], r.listingNickname, r.listing?.nickname, r.listing),
+    platform: pickText(r["integration.platform"], r.platform, r.integration?.platform, r.integration),
+    confirmationCode: pickText(r["confirmationCode"], r.code, r.reservationCode),
+    checkIn: pickDate(r["checkInDate"]?.value, r.checkIn, r.startDate),
+    checkOut: pickDate(r["checkOutDate"]?.value, r.checkOut, r.endDate),
+    totalPayout: pickNumber(r["money.hostPayout"]?.value, r.hostPayout, r.totalPayout),
     accommodationFare: calculatedAccommodation,
-    baseAccommodation, markup, lengthOfStayDiscount
+    baseAccommodation,
+    markup,
+    lengthOfStayDiscount
   };
 }
 
