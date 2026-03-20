@@ -14,7 +14,7 @@ let currentOwner = OWNERS["ti3155@yahoo.com"];
 let reservationsData = [];
 
 // ====== FILLED IN WITH YOUR EMAILJS INFO ======
-const EMAILJS_USER_ID = "ti3155";
+const EMAILJS_USER_ID = "oceanvacationsmb@gmail.com";
 const EMAILJS_SERVICE_ID = "service_06c56l2";
 const EMAILJS_TEMPLATE_ID = "template_91j57r4";
 // ==============================================
