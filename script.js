@@ -3,6 +3,7 @@ const OWNERS = {
     password: "1234",
     ownerName: "Nicole",
     propertyName: "1463 Basin Trail, Murrells Inlet, SC 29576",
+    postalCode: "29576", // MAKE SURE this is the zip for your weather widget!
     pmcPercent: 12,
     guestyReportUrl: "https://report.guesty.com/apps/reservations?apiKey=1a58fc1af3815f9023a08e09c590a05f3f3d1c73dbc3ab2e19985ecfe0003aa87acc7e264983e31d5b10a98cf4fd9b4789de3cb864daf2031e42aae6266c92f5"
   }
@@ -19,6 +20,34 @@ function formatMoney(v) {
   return `$${Number(v || 0).toFixed(2)}`;
 }
 
+function getTimeBasedGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+}
+
+function renderWeather(zip) {
+  const apiKey = "YOUR_OPENWEATHERMAP_API_KEY"; // <--- INSERT your API KEY here!
+  const weatherBox = document.getElementById("weatherBox");
+  if (!zip || !weatherBox) return;
+  weatherBox.innerHTML = '<div class="weather-loading">Loading weather...</div>';
+  fetch(`https://api.openweathermap.org/data/2.5/weather?zip=${zip},US&appid=${apiKey}&units=imperial`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.cod !== 200) throw new Error(data.message || "Weather unavailable");
+      weatherBox.innerHTML = `
+        <div class="weather-box">
+          <img src="https://openweathermap.org/img/wn/${data.weather[0].icon}.png" alt="">
+          <span><b>${Math.round(data.main.temp)}°F</b>, ${data.weather[0].main}</span>
+        </div>
+      `;
+    })
+    .catch(() => {
+      weatherBox.innerHTML = `<div class="weather-box">Weather unavailable</div>`;
+    });
+}
+
 function loadOwnerReport() {
   if (!currentOwner || !currentOwner.guestyReportUrl) {
     console.error("No owner or URL configured");
@@ -33,7 +62,8 @@ function loadOwnerReport() {
     })
     .catch(err => {
       console.error("❌ Error loading report:", err);
-      alert("Could not load report: " + err.message);
+      reservationsData = [];
+      renderOwnerDashboard(); // still render UI even if fetch fails
     });
 }
 
@@ -80,7 +110,10 @@ function getExpectedPayoutDate(checkOutDate) {
 }
 
 function renderOwnerDashboard() {
-  let totalAccommodation = 0, totalPMC = 0, totalOwnerPayout = 0;
+  let totalAccommodation = 0;
+  let totalPMC = 0;
+  let totalOwnerPayout = 0;
+
   reservationsData.forEach(reservation => {
     const accommodation = reservation.accommodationFare;
     const pmc = accommodation * (currentOwner.pmcPercent / 100);
@@ -91,9 +124,12 @@ function renderOwnerDashboard() {
   });
 
   document.getElementById("summary").innerHTML = `
-    <div class="owner-header">
-      <h2>Welcome ${currentOwner.ownerName}</h2>
-      <div class="property-address">${currentOwner.propertyName}</div>
+    <div class="owner-header-flex">
+      <div class="left">
+        <h2>${getTimeBasedGreeting()} ${currentOwner.ownerName}</h2>
+        <div class="property-address">${currentOwner.propertyName}</div>
+      </div>
+      <div id="weatherBox"></div>
     </div>
     <div class="summary-boxes">
       <div class="summary-box">
@@ -114,6 +150,8 @@ function renderOwnerDashboard() {
       </div>
     </div>
   `;
+
+  renderWeather(currentOwner.postalCode);
   renderReservationsTable();
 }
 
