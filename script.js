@@ -325,7 +325,7 @@ function renderReservationsTable() {
         <td>${reservation.platform || ""}</td>
         <td>${reservation.checkIn || ""}</td>
         <td>${reservation.checkOut || ""}</td>
-        <td>${formatMoney(accommodation)}</td>
+        <td>${reservation.ownerStay ? "" : formatMoney(accommodation)}</td>
         <td>${formatMoney(pmc)}</td>
         <td>${formatMoney(ownerPayout)}</td>
         <td>${expectedPayoutDate}</td>
