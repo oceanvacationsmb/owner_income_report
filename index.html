@@ -6,6 +6,7 @@
   <title>Ocean Vacations Owner Portal</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@2.6.4/dist/email.min.js"></script>
 </head>
 <body>
 
@@ -16,17 +17,44 @@
 
   <div class="container">
 
-    <div id="loginBox" class="card login-card" style="display: none;">
-      <h2>Owner Login</h2>
-      <input id="email" type="email" placeholder="Email">
-      <input id="password" type="password" placeholder="Password">
-      <button onclick="loginOwner()">Login</button>
-      <div id="loginError" class="error"></div>
+    <button id="openRequestBox" class="request-btn">Contact Management / Request</button>
+    <div id="requestModal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <span class="close-modal" id="closeModal">&times;</span>
+        <h3>Send a Request</h3>
+        <form id="ownerRequestForm">
+          <label>Subject
+            <select id="subject" name="subject" required>
+              <option value="">Select an option</option>
+              <option value="Request Owner Stay">Request Owner Stay</option>
+              <option value="Inquiry about Payout">Inquiry about Payout</option>
+              <option value="Inquiry about Reservation">Inquiry about Specific Reservation</option>
+            </select>
+          </label>
+
+          <div id="dateFields" style="display:none;">
+            <label>Check-in Date <input type="date" id="checkInDate" name="checkInDate"></label>
+            <label>Check-out Date <input type="date" id="checkOutDate" name="checkOutDate"></label>
+            <div id="cleaningAgreement"></div>
+          </div>
+
+          <div id="reservationField" style="display:none;">
+            <label>Reservation
+              <select id="reservationSelect" name="reservationSelect"></select>
+            </label>
+          </div>
+
+          <label>More information<br>
+            <textarea id="extraInfo" name="extraInfo" rows="3" style="width:98%;"></textarea>
+          </label>
+          <button class="send-btn" type="submit">Send Request</button>
+          <div id="ownerReqStatus"></div>
+        </form>
+      </div>
     </div>
     
     <div id="ownerPortal" style="display:block;">
       <div class="card">
-        <!-- Portal title can be kept or removed as you prefer -->
         <div id="summary"></div>
       </div>
 
