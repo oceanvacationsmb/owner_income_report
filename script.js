@@ -267,8 +267,8 @@ function renderReservationsTable() {
       <tr>
         <td>${reservation.confirmationCode || ""}</td>
         <td>${reservation.platform || ""}</td>
-        <td>${formatDateDisplay(reservation.checkIn)}</td>
-        <td>${formatDateDisplay(reservation.checkOut)}</td>
+        <td>${reservation.checkIn || ""}</td>
+        <td>${reservation.checkOut || ""}</td>
         <td>${formatMoney(accommodation)}</td>
         <td>${formatMoney(pmc)}</td>
         <td>${formatMoney(ownerPayout)}</td>
