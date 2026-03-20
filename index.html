@@ -5,98 +5,54 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ocean Vacations Owner Portal</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@2.6.4/dist/email.min.js"></script>
 </head>
 <body>
 
-  <!-- Login Box (shows first, hides after login) -->
-  <div id="loginBox" style="max-width:400px;margin:30px auto;border:1px solid #ccc;padding:24px;text-align:center;background:#fff;">
-    <h2>Owner Login</h2>
-    <input type="email" id="ownerEmail" placeholder="Email" style="width:90%;margin-bottom:8px" autocomplete="username" /><br/>
-    <input type="password" id="ownerPassword" placeholder="Password" style="width:90%;margin-bottom:12px" autocomplete="current-password" /><br/>
-    <button id="loginBtn" style="width:60%;padding:8px 0">Login</button>
-    <div id="loginStatus" style="color:red;margin-top:12px;"></div>
+  <!-- Modern Login Box -->
+  <div id="loginBox" class="login-container">
+    <div class="login-inner">
+      <div class="login-header">Ocean Vacations<br><span>Owner Portal</span></div>
+      <input type="email" id="ownerEmail" class="login-input" placeholder="Email" autocomplete="username">
+      <div style="position:relative;">
+        <input type="password" id="ownerPassword" class="login-input" placeholder="Password" autocomplete="current-password">
+        <span id="showPwd" class="show-password">👁️</span>
+      </div>
+      <button id="loginBtn" class="login-btn">Login</button>
+      <div id="loginStatus" class="login-status"></div>
+    </div>
   </div>
-  
-  <!-- Portal content, hidden until login -->
+
   <div id="ownerPortal" style="display:none;">
     <header class="topbar">
       <div class="brand">OCEAN VACATIONS</div>
       <div class="subtitle">Owner Portal</div>
     </header>
-
     <div class="container">
-
-      <!-- Modal: Management Request -->
-      <div id="requestModal" class="modal" style="display:none;">
-        <div class="modal-content">
-          <span class="close-modal" id="closeModal">&times;</span>
-          <h3>Send a Request</h3>
-          <form id="ownerRequestForm">
-            <label>Subject
-              <select id="subject" name="subject" required>
-                <option value="">Select an option</option>
-                <option value="Request Owner Stay">Request Owner Stay</option>
-                <option value="Inquiry about Payout">Inquiry about Payout</option>
-                <option value="Inquiry about Reservation">Inquiry about Specific Reservation</option>
-              </select>
-            </label>
-
-            <div id="dateFields" style="display:none;">
-              <label>Check-in Date <input type="date" id="checkInDate" name="checkInDate"></label>
-              <label>Check-out Date <input type="date" id="checkOutDate" name="checkOutDate"></label>
-              <div id="cleaningAgreement"></div>
-            </div>
-
-            <div id="reservationField" style="display:none;">
-              <label>Reservation
-                <select id="reservationSelect" name="reservationSelect"></select>
-              </label>
-            </div>
-
-            <label>More information<br>
-              <textarea id="extraInfo" name="extraInfo" rows="3" style="width:98%;"></textarea>
-            </label>
-            <button class="send-btn" type="submit">Send Request</button>
-            <div id="ownerReqStatus"></div>
-          </form>
-        </div>
-      </div>
-      
-      <div class="summary-header-flex">
-        <div class="summary-header-left">
-          <h2 id="greeting"></h2>
-          <div class="property-address" id="propertyAddress"></div>
-        </div>
-        <div class="summary-header-right">
-          <div id="weatherBox"></div>
-          <button id="openRequestBox" class="request-btn">Contact Management</button>
-        </div>
-      </div>
-
+      <!-- Summary -->
       <div class="summary-boxes" id="summaryBoxes"></div>
 
-      <div class="card">
-        <h3>Reservations</h3>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Reservation Code</th>
-                <th>Platform</th>
-                <th>Check In</th>
-                <th>Check Out</th>
-                <th>Accommodation</th>
-                <th>PMC</th>
-                <th>Owner Payout</th>
-                <th>Expected Payout</th>
-              </tr>
-            </thead>
-            <tbody id="reservationsBody"></tbody>
-          </table>
-        </div>
+      <!-- Regular Reservations Table -->
+      <h3 class="section-title">Reservations</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Platform</th>
+              <th>Check In</th>
+              <th>Check Out</th>
+              <th>Accommodation</th>
+              <th>PMC</th>
+              <th>Owner Payout</th>
+              <th>Expected Payout</th>
+            </tr>
+          </thead>
+          <tbody id="reservationsBody"></tbody>
+        </table>
       </div>
+
+      <!-- Owner Stay Table (shows only if owner stays) -->
+      <div id="ownerStaysTableContainer"></div>
     </div>
   </div>
 
