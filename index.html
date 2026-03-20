@@ -6,12 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Chart.js for the pie chart -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Your existing CSS file -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <!-- LOGIN BOX (required for script.js to work!) -->
+  <!-- LOGIN BOX (exactly as before, unchanged) -->
   <div id="loginBox" class="login-container">
     <div class="login-inner">
       <div class="login-header">Ocean Vacations<br><span>Owner Portal</span></div>
@@ -25,27 +23,34 @@
     </div>
   </div>
 
-  <!-- GREETING AND PIE CHART -->
-  <div class="container" id="greetingContainer" style="display:none;">
-    <div class="greeting-pie-flex">
-      <div>
-        <h2 id="greeting" style="margin-bottom:5px;"></h2>
-        <div id="propertyAddress" style="font-size:1.13em;color:#3282b8;font-weight:bold;"></div>
-      </div>
-      <div class="pie-container">
-        <canvas id="monthPieChart" width="180" height="180"></canvas>
+  <!-- OWNER PORTAL (hidden by default, visible only after login) -->
+  <div id="ownerPortal" style="display: none;">
+    <!-- GREETING AND PIE CHART -->
+    <div class="container" id="greetingContainer">
+      <div class="greeting-pie-flex">
+        <div>
+          <h2 id="greeting" style="margin-bottom:5px;"></h2>
+          <div id="propertyAddress" style="font-size:1.13em;color:#3282b8;font-weight:bold;"></div>
+        </div>
+        <div class="pie-container">
+          <canvas id="monthPieChart" width="180" height="180"></canvas>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- The rest of your portal HTML (summary boxes, tables, etc). Example placeholder: -->
-  <div id="ownerPortal" style="display:none;">
-    <!-- Add your summary boxes, reservations table, owner stays table here -->
+    <!-- SUMMARY BOXES, RESERVATIONS TABLE, ETC. -->
     <div id="summaryBoxes"></div>
     <table>
       <thead>
         <tr>
-          <th>Code</th><th>Platform</th><th>Check In</th><th>Check Out</th><th>Accommodation</th><th>PMC</th><th>Owner Payout</th><th>Expected Payout</th>
+          <th>Code</th>
+          <th>Platform</th>
+          <th>Check In</th>
+          <th>Check Out</th>
+          <th>Accommodation</th>
+          <th>PMC</th>
+          <th>Owner Payout</th>
+          <th>Expected Payout</th>
         </tr>
       </thead>
       <tbody id="reservationsBody"></tbody>
