@@ -263,6 +263,7 @@ function loadOwnerReport() {
   fetch(currentOwner.guestyReportUrl)
     .then(r => r.text())
     .then(html => {
+      console.log("GUESTY HTML:", html);
       parseGuestyTable(html);
       renderDashboardHeader();
       renderSummaryBoxes();
