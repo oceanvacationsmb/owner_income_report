@@ -190,8 +190,6 @@ function fillReservationDropdown() {
 
 document.addEventListener('DOMContentLoaded', () => {
   loadOwnerReport();
-  console.log("JS loaded!");
-});
 
   // Header logic
   document.getElementById('openRequestBox').onclick = () => {
@@ -253,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('ownerReqStatus').innerText = "Failed to send. Please try again.";
     });
   };
+});
 
 // ========== FETCH GUESTY DATA ==========
 function loadOwnerReport() {
@@ -264,7 +263,6 @@ function loadOwnerReport() {
   fetch(currentOwner.guestyReportUrl)
     .then(r => r.text())
     .then(html => {
-      console.log("GUESTY HTML:", html);
       parseGuestyTable(html);
       renderDashboardHeader();
       renderSummaryBoxes();
