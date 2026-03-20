@@ -1,36 +1,87 @@
-.owner-header {
+body {
+  background: #f4f7fa;
+  margin: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.topbar {
+  background: #153a53;
+  color: #fff;
+  padding: 1.2rem 0 0.8rem 0;
   text-align: center;
-  margin-bottom: 1rem;
+  font-weight: bold;
+  font-size: 2rem;
+  box-shadow: 0 2px 8px rgba(21,58,83,.07);
+  letter-spacing: 2px;
+}
+
+.topbar .brand {
+  font-size: 2.1rem;
+  font-weight: 700;
+  margin-bottom: 0.1rem;
+}
+
+.topbar .subtitle {
+  font-size: 1.06rem;
+  font-weight: 400;
+  margin-top: -9px;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2.5rem 0 1.2rem 0;
+}
+
+.card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 16px rgba(12,38,76,.07);
+  margin-bottom: 1.8rem;
+  padding: 2rem 2.2rem;
+}
+
+.owner-header {
+  text-align: left;
+  margin-bottom: 0.6rem;
+}
+
+.owner-header h2 {
+  margin: 0 0 0.3rem 0;
+  color: #123053;
+  font-size: 2rem;
+  font-weight: bold;
+  /* text-align: left; */
 }
 
 .property-address {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   color: #37506a;
-  margin-top: -0.4rem;
-  margin-bottom: 1.2rem;
+  margin-bottom: 1.3rem;
+  margin-left: 2px;
 }
 
 .summary-boxes {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 1.3rem;
+  margin-top: 0.3rem;
 }
 
 .summary-box {
   background: #f5f8fb;
   border-radius: 10px;
-  padding: 1rem 1.3rem;
-  min-width: 160px;
+  padding: 1rem 2.2rem 1rem 1.7rem;
+  min-width: 170px;
+  min-height: 70px;
   box-shadow: 0 1px 4px rgba(141,164,182,0.07);
-  text-align: center;
+  text-align: left;
 }
 
 .summary-label {
   color: #5c768d;
   font-size: 1rem;
-  margin-bottom: 0.15rem;
+  margin-bottom: 0.1rem;
   font-weight: 600;
 }
 
@@ -38,4 +89,43 @@
   font-size: 1.4rem;
   font-weight: 700;
   color: #234368;
+  margin-top: 3px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  margin-top: 12px;
+}
+
+th, td {
+  padding: 0.9em 0.4em;
+}
+
+th {
+  background: #eaf1fa;
+  color: #2c4761;
+  font-size: 1rem;
+  border-radius: 5px 5px 0 0;
+  font-weight: 600;
+  border-bottom: 2px solid #d4e3f3;
+  letter-spacing: 1px;
+  text-align: left;
+}
+
+td {
+  color: #213d4b;
+  font-size: 1.02rem;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+@media (max-width: 800px) {
+  .card { padding: 1rem 0.6rem; }
+  .summary-boxes { flex-direction: column; gap: 0.6rem; }
+  .summary-box { min-width: unset; }
 }
