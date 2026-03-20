@@ -4,11 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ocean Vacations Owner Portal</title>
+  <!-- Chart.js only if you use the pie chart; safe to leave or remove -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- Modern Login Box -->
+  <!-- Unchanged Login Box -->
   <div id="loginBox" class="login-container">
     <div class="login-inner">
       <div class="login-header">Ocean Vacations<br><span>Owner Portal</span></div>
@@ -27,13 +29,26 @@
       <div class="brand">OCEAN VACATIONS</div>
       <div class="subtitle">Owner Portal</div>
     </header>
-    <div class="container" id="greetingContainer" style="margin-bottom:10px; text-align:left;">
-  <h2 id="greeting" style="margin-bottom:5px;"></h2>
-  <div id="propertyAddress" style="font-size:1.13em;color:#3282b8;font-weight:bold;"></div>
-</div>
+    
+    <div class="container" id="greetingContainer" style="margin-bottom:10px;">
+      <div class="greeting-pie-flex">
+        <div>
+          <h2 id="greeting" style="margin-bottom:5px;"></h2>
+          <div id="propertyAddress" style="font-size:1.13em;color:#3282b8;font-weight:bold;"></div>
+        </div>
+        <div class="pie-container">
+          <canvas id="monthPieChart" width="180" height="180"></canvas>
+        </div>
+      </div>
+    </div>
+
     <div class="container">
       <!-- Summary -->
       <div class="summary-boxes" id="summaryBoxes"></div>
+
+      <!-- Owner Cleaning Fee Summary -->
+      <h3 class="section-title">Owner Stays Cleaning Fee Summary</h3>
+      <div class="summary-boxes" id="ownerCleaningFeeSummary"></div>
 
       <!-- Regular Reservations Table -->
       <h3 class="section-title">Reservations</h3>
@@ -55,8 +70,23 @@
         </table>
       </div>
 
-      <!-- Owner Stay Table (shows only if owner stays) -->
-      <div id="ownerStaysTableContainer"></div>
+      <!-- Owner Stay Table -->
+      <h3 class="section-title">Owner Stays</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Check In</th>
+              <th>Check Out</th>
+              <th>Accommodation</th>
+              <th>Cleaning Fee</th>
+              <!-- add columns as you see fit -->
+            </tr>
+          </thead>
+          <tbody id="ownerStaysBody"></tbody>
+        </table>
+      </div>
+
     </div>
   </div>
 
