@@ -13,8 +13,6 @@ const OWNERS = {
 let currentOwner = OWNERS["ti3155@yahoo.com"];
 let reservationsData = [];
 
-const REPORT_API_URL = "https://guesty-api-5jnz.onrender.com/reservations";
-
 // ====== FILLED IN WITH YOUR EMAILJS INFO ======
 const EMAILJS_USER_ID = "ti3155";
 const EMAILJS_SERVICE_ID = "service_06c56l2";
@@ -27,15 +25,6 @@ const EMAILJS_TEMPLATE_ID = "template_91j57r4";
   }
 })();
 
-function getEl(id) {
-  return document.getElementById(id);
-}
-
-function safeSetText(id, value) {
-  const el = getEl(id);
-  if (el) el.innerText = value;
-}
-
 function getTimeBasedGreeting() {
   const hour = new Date().getHours();
   if (hour < 12) return "Good morning";
@@ -43,11 +32,15 @@ function getTimeBasedGreeting() {
   return "Good evening";
 }
 
+// --------- WEATHER 5-DAY FORECAST ---------
 function renderWeather(zip) {
   const apiKey = "301c3846b1ed5b804976f73bd010175a";
-  const weatherBox = getEl("weatherBox");
+  const weatherBox = document.getElementById("weatherBox");
 
-  if (!zip || !weatherBox) return;
+  if (!zip || !weatherBox) {
+    console.log("No zip or no weatherBox found");
+    return;
+  }
 
   weatherBox.innerHTML = '<div class="weather-loading">Loading weather...</div>';
 
@@ -56,9 +49,10 @@ function renderWeather(zip) {
     .then(data => {
       if (!data.list || !data.city) throw new Error("Weather unavailable");
 
-      const daily = {};
+      let daily = {};
       data.list.forEach(item => {
-        const [day, hour] = item.dt_txt.split(" ");
+        const day = item.dt_txt.split(" ")[0];
+        const hour = item.dt_txt.split(" ")[1];
         if (!daily[day] && (hour === "12:00:00" || hour === "15:00:00" || hour === "09:00:00")) {
           daily[day] = item;
         }
@@ -67,7 +61,7 @@ function renderWeather(zip) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const forecast = Object.keys(daily)
+      let forecast = Object.keys(daily)
         .filter(day => {
           const d = new Date(day);
           d.setHours(0, 0, 0, 0);
@@ -98,6 +92,7 @@ function renderWeather(zip) {
     });
 }
 
+// --------- SUMMARY BOXES ---------
 function formatMoney(v) {
   return `$${Number(v || 0).toFixed(2)}`;
 }
@@ -106,6 +101,7 @@ function toNumber(v) {
   return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0;
 }
 
+// --------- DATE FIELDS ---------
 function setDateFieldsMin() {
   const now = new Date();
   now.setDate(now.getDate() + 1);
@@ -115,23 +111,26 @@ function setDateFieldsMin() {
   const dd = String(now.getDate()).padStart(2, "0");
   const minDate = `${yyyy}-${mm}-${dd}`;
 
-  const checkIn = getEl("checkInDate");
-  const checkOut = getEl("checkOutDate");
+  const checkIn = document.getElementById("checkInDate");
+  const checkOut = document.getElementById("checkOutDate");
 
   if (checkIn) checkIn.setAttribute("min", minDate);
   if (checkOut) checkOut.setAttribute("min", minDate);
 }
 
 function renderDashboardHeader() {
-  if (!currentOwner) return;
-  safeSetText("greeting", `${getTimeBasedGreeting()} ${currentOwner.ownerName}`);
-  safeSetText("propertyAddress", currentOwner.propertyName);
+  const greeting = document.getElementById("greeting");
+  const propertyAddress = document.getElementById("propertyAddress");
+
+  if (greeting) greeting.innerText = `${getTimeBasedGreeting()} ${currentOwner.ownerName}`;
+  if (propertyAddress) propertyAddress.innerText = currentOwner.propertyName;
+
   renderWeather(currentOwner.postalCode);
 }
 
 function renderSummaryBoxes() {
-  const summaryBoxes = getEl("summaryBoxes");
-  if (!summaryBoxes || !currentOwner) return;
+  const summaryBoxes = document.getElementById("summaryBoxes");
+  if (!summaryBoxes) return;
 
   let totalAccommodation = 0;
   let totalPMC = 0;
@@ -168,7 +167,7 @@ function renderSummaryBoxes() {
 }
 
 function renderReservationsTable() {
-  const tbody = getEl("reservationsBody");
+  const tbody = document.getElementById("reservationsBody");
   if (!tbody) return;
 
   tbody.innerHTML = "";
@@ -203,6 +202,7 @@ function renderReservationsTable() {
   });
 }
 
+// ------- UTILITIES -------
 function formatDateDisplay(dateStr) {
   if (!dateStr) return "";
   const date = new Date(dateStr);
@@ -217,182 +217,78 @@ function getExpectedPayoutDate(checkOutDate) {
   return payoutDate.toLocaleDateString("en-US");
 }
 
+// ------- CONTACT MODAL / EMAILJS -------
 function getCleaningFee() {
-  return currentOwner && currentOwner.cleaningFee ? Number(currentOwner.cleaningFee) : 0;
+  return currentOwner.cleaningFee ? Number(currentOwner.cleaningFee) : 0;
 }
 
 function fillReservationDropdown() {
-  const select = getEl("reservationSelect");
+  const select = document.getElementById("reservationSelect");
   if (!select) return;
 
   select.innerHTML = "";
-
   reservationsData.forEach((res, i) => {
-    select.innerHTML += `<option value="${i}">${res.confirmationCode || "No Code"} (${res.platform || ""}, ${res.checkIn || ""} - ${res.checkOut || ""})</option>`;
+    select.innerHTML += `<option value="${i}">${res.confirmationCode || ""} (${res.platform || ""}, ${res.checkIn || ""} - ${res.checkOut || ""})</option>`;
   });
 }
 
-function normalizeReservationRow(r) {
-  return {
-    listingNickname:
-      r["LISTING'S NICKNAME"] ||
-      r["Listing Nickname"] ||
-      r.listingNickname ||
-      r.listing_name ||
-      "",
-    platform:
-      r["PLATFORM"] ||
-      r["Platform"] ||
-      r.platform ||
-      r.integrationPlatform ||
-      "",
-    confirmationCode:
-      r["CONFIRMATION CODE"] ||
-      r["Confirmation Code"] ||
-      r.confirmationCode ||
-      r.code ||
-      r.reservationCode ||
-      "",
-    checkIn:
-      r["CHECK-IN DATE"] ||
-      r["CHECK IN"] ||
-      r["Check In"] ||
-      r.checkIn ||
-      r.checkInDate ||
-      "",
-    checkOut:
-      r["CHECK-OUT DATE"] ||
-      r["CHECK OUT"] ||
-      r["Check Out"] ||
-      r.checkOut ||
-      r.checkOutDate ||
-      "",
-    totalPayout: toNumber(
-      r["TOTAL PAYOUT"] ||
-      r["Total Payout"] ||
-      r.totalPayout ||
-      r.hostPayout ||
-      0
-    ),
-    accommodationFare: toNumber(
-      r["ACCOMMODATION FARE"] ||
-      r["Accommodation Fare"] ||
-      r.accommodationFare ||
-      r.fareAccommodation ||
-      0
-    )
-  };
-}
-
-function loadOwnerReport() {
-  if (!currentOwner) {
-    console.error("No owner configured");
-    reservationsData = [];
-    renderDashboardHeader();
-    renderSummaryBoxes();
-    renderReservationsTable();
-    return;
-  }
-
-  fetch(REPORT_API_URL)
-    .then(async r => {
-      if (!r.ok) {
-        const txt = await r.text().catch(() => "");
-        throw new Error(`HTTP ${r.status} ${txt}`);
-      }
-      return r.json();
-    })
-    .then(data => {
-      console.log("API RESPONSE:", data);
-
-      const rows =
-        (Array.isArray(data) && data) ||
-        data.results ||
-        data.data ||
-        data.rows ||
-        [];
-
-      reservationsData = rows.map(normalizeReservationRow);
-
-      console.log("NORMALIZED RESERVATIONS:", reservationsData);
-
-      renderDashboardHeader();
-      renderSummaryBoxes();
-      renderReservationsTable();
-    })
-    .catch(err => {
-      console.error("Error loading report:", err);
-      reservationsData = [];
-      renderDashboardHeader();
-      renderSummaryBoxes();
-      renderReservationsTable();
-    });
-}
-
 document.addEventListener("DOMContentLoaded", () => {
-  renderDashboardHeader();
-  renderSummaryBoxes();
-  renderReservationsTable();
   loadOwnerReport();
 
-  const openRequestBox = getEl("openRequestBox");
+  const openRequestBox = document.getElementById("openRequestBox");
   if (openRequestBox) {
     openRequestBox.onclick = () => {
-      const requestModal = getEl("requestModal");
-      const ownerReqStatus = getEl("ownerReqStatus");
-
+      const requestModal = document.getElementById("requestModal");
+      const ownerReqStatus = document.getElementById("ownerReqStatus");
       if (requestModal) requestModal.style.display = "block";
       if (ownerReqStatus) ownerReqStatus.innerText = "";
-
       fillReservationDropdown();
       setDateFieldsMin();
     };
   }
 
-  const closeModal = getEl("closeModal");
+  const closeModal = document.getElementById("closeModal");
   if (closeModal) {
     closeModal.onclick = () => {
-      const requestModal = getEl("requestModal");
+      const requestModal = document.getElementById("requestModal");
       if (requestModal) requestModal.style.display = "none";
     };
   }
 
   window.onclick = function (e) {
-    const requestModal = getEl("requestModal");
+    const requestModal = document.getElementById("requestModal");
     if (requestModal && e.target === requestModal) {
       requestModal.style.display = "none";
     }
   };
 
-  const subject = getEl("subject");
+  const subject = document.getElementById("subject");
   if (subject) {
     subject.addEventListener("change", function () {
       const showDates = this.value === "Request Owner Stay";
-      const dateFields = getEl("dateFields");
-      const reservationField = getEl("reservationField");
-      const cleaningAgreement = getEl("cleaningAgreement");
+      const dateFields = document.getElementById("dateFields");
+      const reservationField = document.getElementById("reservationField");
+      const cleaningAgreement = document.getElementById("cleaningAgreement");
 
       if (dateFields) dateFields.style.display = showDates ? "" : "none";
       if (reservationField) reservationField.style.display = this.value === "Inquiry about Reservation" ? "" : "none";
-
       if (cleaningAgreement) {
         cleaningAgreement.innerHTML = showDates
           ? `<div><b>Cleaning Fee:</b> $${getCleaningFee().toFixed(2)}<br><label><input type="checkbox" required name="agreeClean" id="agreeClean"> I agree to pay cleaning fee</label></div>`
           : "";
       }
-
       if (showDates) setDateFieldsMin();
     });
   }
 
-  const ownerRequestForm = getEl("ownerRequestForm");
+  const ownerRequestForm = document.getElementById("ownerRequestForm");
   if (ownerRequestForm) {
     ownerRequestForm.onsubmit = function (e) {
       e.preventDefault();
 
-      const subjectEl = getEl("subject");
-      const ownerReqStatus = getEl("ownerReqStatus");
-      const extraInfo = getEl("extraInfo");
+      const subjectEl = document.getElementById("subject");
+      const ownerReqStatus = document.getElementById("ownerReqStatus");
+      const extraInfo = document.getElementById("extraInfo");
 
       if (!subjectEl) return;
 
@@ -401,9 +297,9 @@ document.addEventListener("DOMContentLoaded", () => {
       let valid = true;
 
       if (subjectValue === "Request Owner Stay") {
-        const inDate = getEl("checkInDate")?.value || "";
-        const outDate = getEl("checkOutDate")?.value || "";
-        const agreeClean = getEl("agreeClean");
+        const inDate = document.getElementById("checkInDate")?.value || "";
+        const outDate = document.getElementById("checkOutDate")?.value || "";
+        const agreeClean = document.getElementById("agreeClean");
 
         if (!inDate || !outDate) valid = false;
         if (!agreeClean || !agreeClean.checked) valid = false;
@@ -412,9 +308,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (subjectValue === "Inquiry about Reservation") {
-        const idx = getEl("reservationSelect")?.value;
+        const idx = document.getElementById("reservationSelect")?.value;
         const res = reservationsData[idx];
-
         if (res) {
           message += `\nInquiry Reservation: ${res.confirmationCode}, ${res.platform}, ${res.checkIn} - ${res.checkOut}`;
         }
@@ -441,9 +336,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (ownerReqStatus) ownerReqStatus.innerText = "Request sent successfully!";
         ownerRequestForm.reset();
 
-        const dateFields = getEl("dateFields");
-        const reservationField = getEl("reservationField");
-        const cleaningAgreement = getEl("cleaningAgreement");
+        const dateFields = document.getElementById("dateFields");
+        const reservationField = document.getElementById("reservationField");
+        const cleaningAgreement = document.getElementById("cleaningAgreement");
 
         if (dateFields) dateFields.style.display = "none";
         if (reservationField) reservationField.style.display = "none";
@@ -454,3 +349,55 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 });
+
+// ------- INITIAL DATA LOAD -------
+function loadOwnerReport() {
+  if (!currentOwner || !currentOwner.guestyReportUrl) {
+    console.error("No owner or URL configured");
+    reservationsData = [];
+    renderDashboardHeader();
+    renderSummaryBoxes();
+    renderReservationsTable();
+    return;
+  }
+
+  fetch(currentOwner.guestyReportUrl)
+    .then(r => r.text())
+    .then(html => {
+      parseGuestyTable(html);
+      renderDashboardHeader();
+      renderSummaryBoxes();
+      renderReservationsTable();
+    })
+    .catch(err => {
+      console.error("Error loading report:", err);
+      reservationsData = [];
+      renderDashboardHeader();
+      renderSummaryBoxes();
+      renderReservationsTable();
+    });
+}
+
+function parseGuestyTable(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  const rows = doc.querySelectorAll("table tbody tr");
+
+  reservationsData = [];
+
+  rows.forEach(row => {
+    const cells = row.querySelectorAll("td");
+
+    if (cells.length > 0) {
+      reservationsData.push({
+        listingNickname: cells[0]?.textContent.trim() || "",
+        platform: cells[1]?.textContent.trim() || "",
+        confirmationCode: cells[2]?.textContent.trim() || "",
+        checkIn: cells[3]?.textContent.trim() || "",
+        checkOut: cells[4]?.textContent.trim() || "",
+        totalPayout: toNumber(cells[5]?.textContent),
+        accommodationFare: toNumber(cells[6]?.textContent)
+      });
+    }
+  });
+}
