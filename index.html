@@ -11,10 +11,22 @@
 </head>
 <body>
 
-  <!-- Login and other HTML content (unchanged) -->
+  <!-- LOGIN BOX (required for script.js to work!) -->
+  <div id="loginBox" class="login-container">
+    <div class="login-inner">
+      <div class="login-header">Ocean Vacations<br><span>Owner Portal</span></div>
+      <input type="email" id="ownerEmail" class="login-input" placeholder="Email" autocomplete="username">
+      <div style="position:relative;">
+        <input type="password" id="ownerPassword" class="login-input" placeholder="Password" autocomplete="current-password">
+        <span id="showPwd" class="show-password">👁️</span>
+      </div>
+      <button id="loginBtn" class="login-btn">Login</button>
+      <div id="loginStatus" class="login-status"></div>
+    </div>
+  </div>
 
-  <!-- Greeting and Pie Chart (update this part only) -->
-  <div class="container" id="greetingContainer">
+  <!-- GREETING AND PIE CHART -->
+  <div class="container" id="greetingContainer" style="display:none;">
     <div class="greeting-pie-flex">
       <div>
         <h2 id="greeting" style="margin-bottom:5px;"></h2>
@@ -26,9 +38,20 @@
     </div>
   </div>
 
-  <!-- The rest of your page HTML remains unchanged... -->
-  <!-- Example: -->
-  <!-- ...summary boxes, reservations table, owner stays table, etc... -->
+  <!-- The rest of your portal HTML (summary boxes, tables, etc). Example placeholder: -->
+  <div id="ownerPortal" style="display:none;">
+    <!-- Add your summary boxes, reservations table, owner stays table here -->
+    <div id="summaryBoxes"></div>
+    <table>
+      <thead>
+        <tr>
+          <th>Code</th><th>Platform</th><th>Check In</th><th>Check Out</th><th>Accommodation</th><th>PMC</th><th>Owner Payout</th><th>Expected Payout</th>
+        </tr>
+      </thead>
+      <tbody id="reservationsBody"></tbody>
+    </table>
+    <div id="ownerStaysTableContainer"></div>
+  </div>
 
   <!-- Your main JS below Chart.js -->
   <script src="script.js"></script>
