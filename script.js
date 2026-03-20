@@ -8,7 +8,7 @@ const OWNERS = {
   }
 };
 
-let currentOwner = null;
+let currentOwner = OWNERS["ti3155@yahoo.com"]; // Auto-login
 let reservationsData = [];
 
 function toNumber(v) {
@@ -20,39 +20,29 @@ function formatMoney(v) {
 }
 
 function loginOwner() {
-  const email = document.getElementById("email").value.trim().toLowerCase();
-  const password = document.getElementById("password").value.trim();
-  const loginError = document.getElementById("loginError");
-
-  loginError.textContent = "";
-
-  const owner = OWNERS[email];
-
-  if (!owner || owner.password !== password) {
-    loginError.textContent = "Invalid email or password";
-    return;
-  }
-
-  currentOwner = owner;
-  document.getElementById("loginBox").style.display = "none";
-  document.getElementById("ownerPortal").style.display = "block";
-  document.getElementById("portalTitle").textContent = `${owner.ownerName} Statement`;
-
-  loadOwnerReport();
+  // Login disabled for testing
+  return;
 }
 
 function loadOwnerReport() {
   if (!currentOwner || !currentOwner.guestyReportUrl) return;
 
+  console.log("Loading report from:", currentOwner.guestyReportUrl);
+
   fetch(currentOwner.guestyReportUrl)
-    .then(r => r.text())
+    .then(r => {
+      console.log("Response status:", r.status);
+      return r.text();
+    })
     .then(html => {
+      console.log("HTML length:", html.length);
+      console.log("First 500 chars:", html.substring(0, 500));
       parseGuestyTable(html);
       renderOwnerDashboard();
     })
     .catch(err => {
       console.error("Error loading report:", err);
-      alert("Could not load report");
+      alert("Could not load report: " + err.message);
     });
 }
 
@@ -63,10 +53,12 @@ function parseGuestyTable(html) {
   
   // Find all table rows
   const rows = doc.querySelectorAll('table tbody tr');
+  console.log("Found rows:", rows.length);
   reservationsData = [];
 
-  rows.forEach(row => {
+  rows.forEach((row, index) => {
     const cells = row.querySelectorAll('td');
+    console.log(`Row ${index} cells:`, cells.length);
     
     if (cells.length > 0) {
       const reservation = {
@@ -77,14 +69,14 @@ function parseGuestyTable(html) {
         checkOut: cells[4]?.textContent.trim() || "",
         totalPayout: toNumber(cells[5]?.textContent),
         accommodationFare: toNumber(cells[6]?.textContent),
-        // Add more fields as needed based on table columns
       };
       
+      console.log("Parsed reservation:", reservation);
       reservationsData.push(reservation);
     }
   });
 
-  console.log("Parsed reservations:", reservationsData);
+  console.log("Total parsed reservations:", reservationsData.length);
 }
 
 function formatDateDisplay(dateStr) {
@@ -178,3 +170,11 @@ function renderReservationsTable() {
     `;
   });
 }
+
+// Auto-load on page load
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("ownerPortal").style.display = "block";
+  document.getElementById("portalTitle").textContent = `${currentOwner.ownerName} Statement`;
+  loadOwnerReport();
+});
