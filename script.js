@@ -9,7 +9,7 @@ const OWNERS = {
 };
 
 let currentOwner = null;
-let csvData = [];
+let reservationsData = [];
 
 function toNumber(v) {
   return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0;
@@ -45,14 +45,10 @@ function loadOwnerReport() {
   if (!currentOwner || !currentOwner.guestyReportUrl) return;
 
   fetch(currentOwner.guestyReportUrl)
-    .then(r => r.text())
-    .then(csv => {
-      const result = Papa.parse(csv, {
-        header: true,
-        skipEmptyLines: true
-      });
-
-      csvData = result.data || [];
+    .then(r => r.json())
+    .then(data => {
+      // Handle the Guesty API response - could be array or object with data property
+      reservationsData = Array.isArray(data) ? data : (data.data || data.reservations || []);
       renderOwnerDashboard();
     })
     .catch(err => {
@@ -61,42 +57,57 @@ function loadOwnerReport() {
     });
 }
 
-function getField(row, possibleNames) {
-  for (const name of possibleNames) {
-    if (row[name] !== undefined) return row[name];
-  }
-  return "";
+// Helper function to safely get nested field values
+function getNestedValue(obj, path) {
+  return path.split('.').reduce((current, prop) => current?.[prop], obj) || "";
 }
 
-function parseDateFlexible(dateStr) {
-  if (!dateStr) return null;
+// Field getter functions for Guesty API structure
+function getReservationCode(row) {
+  return getNestedValue(row, "confirmationCode.children") || "";
+}
 
-  const raw = String(dateStr).trim();
+function getPlatform(row) {
+  return getNestedValue(row, "integration.platform.children") || "";
+}
 
-  let d = new Date(raw);
-  if (!isNaN(d)) return d;
+function getCheckIn(row) {
+  return getNestedValue(row, "checkInDate.value") || "";
+}
 
-  const parts = raw.split(/[\/\-]/);
-  if (parts.length === 3) {
-    const month = parseInt(parts[0], 10) - 1;
-    const day = parseInt(parts[1], 10);
-    const year = parseInt(parts[2], 10);
-    d = new Date(year, month, day);
-    if (!isNaN(d)) return d;
-  }
+function getCheckOut(row) {
+  return getNestedValue(row, "checkOutDate.value") || "";
+}
 
-  return null;
+function getAccommodation(row) {
+  return toNumber(getNestedValue(row, "money.fareAccommodation.value"));
+}
+
+function getLengthOfStayDiscount(row) {
+  return toNumber(getNestedValue(row, "lengthOfStayDiscount.value"));
+}
+
+function getMarkup(row) {
+  return toNumber(getNestedValue(row, "money.invoiceItems.MAR.value"));
+}
+
+// Calculate Net Accommodation
+function getNetAccommodation(row) {
+  const accommodation = getAccommodation(row);
+  const discount = getLengthOfStayDiscount(row);
+  const markup = getMarkup(row);
+  return accommodation + discount - markup;
 }
 
 function formatDateDisplay(dateStr) {
-  const d = parseDateFlexible(dateStr);
-  if (!d) return dateStr || "";
-  return d.toLocaleDateString("en-US");
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US");
 }
 
 function getExpectedPayoutDate(checkOutDate) {
-  const d = parseDateFlexible(checkOutDate);
-  if (!d) return "";
+  const d = new Date(checkOutDate);
+  if (isNaN(d)) return "";
 
   let year = d.getFullYear();
   let month = d.getMonth() + 1;
@@ -110,73 +121,13 @@ function getExpectedPayoutDate(checkOutDate) {
   return payoutDate.toLocaleDateString("en-US");
 }
 
-function getMarkupAmount(row) {
-  return toNumber(
-    getField(row, [
-      "MARKUP",
-      "Markup",
-      "markup",
-      "OWNER MARKUP",
-      "Owner Markup"
-    ])
-  );
-}
-
-function getAccommodationFare(row) {
-  return toNumber(
-    getField(row, [
-      "ACCOMMODATION FARE",
-      "Accommodation Fare",
-      "accommodation fare"
-    ])
-  );
-}
-
-function getReservationCode(row) {
-  return getField(row, [
-    "CODE",
-    "Code",
-    "RESERVATION CODE",
-    "Reservation Code"
-  ]) || "";
-}
-
-function getPlatform(row) {
-  return getField(row, [
-    "PLATFORM",
-    "Platform",
-    "CHANNEL",
-    "Channel"
-  ]) || "";
-}
-
-function getCheckIn(row) {
-  return getField(row, [
-    "CHECK-IN DATE",
-    "Check-in Date",
-    "CHECK IN",
-    "Check In"
-  ]) || "";
-}
-
-function getCheckOut(row) {
-  return getField(row, [
-    "CHECK-OUT DATE",
-    "Check-out Date",
-    "CHECK OUT",
-    "Check Out"
-  ]) || "";
-}
-
 function renderOwnerDashboard() {
   let totalAccommodation = 0;
   let totalPMC = 0;
   let totalOwnerPayout = 0;
 
-  csvData.forEach(row => {
-    const accommodationFare = getAccommodationFare(row);
-    const markup = getMarkupAmount(row);
-    const netAccommodation = accommodationFare - markup;
+  reservationsData.forEach(row => {
+    const netAccommodation = getNetAccommodation(row);
     const pmc = netAccommodation * (currentOwner.pmcPercent / 100);
     const ownerPayout = netAccommodation - pmc;
 
@@ -219,15 +170,13 @@ function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
   tbody.innerHTML = "";
 
-  csvData.forEach(row => {
+  reservationsData.forEach(row => {
     const code = getReservationCode(row);
     const platform = getPlatform(row);
     const checkIn = getCheckIn(row);
     const checkOut = getCheckOut(row);
 
-    const accommodationFare = getAccommodationFare(row);
-    const markup = getMarkupAmount(row);
-    const netAccommodation = accommodationFare - markup;
+    const netAccommodation = getNetAccommodation(row);
     const pmc = netAccommodation * (currentOwner.pmcPercent / 100);
     const ownerPayout = netAccommodation - pmc;
     const expectedPayoutDate = getExpectedPayoutDate(checkOut);
