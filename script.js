@@ -75,8 +75,23 @@ function pickNumber(...args) {
   }
   return 0;
 }
-function toNumber(v) { return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0; }
-function formatMoney(v) { return `$${Number(v || 0).toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2})}`; }
+function toNumber(v) { 
+  return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0; 
+}
+
+function formatMoney(v) { 
+  return Number(v || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' }); 
+}
+
+function formatDateDisplay(dateStr) {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  if (isNaN(date)) return dateStr;
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  const yyyy = date.getFullYear();
+  return `${mm}/${dd}/${yyyy}`;
+}
 
 function getExpectedPayoutDate(checkOutDate) {
   const d = new Date(checkOutDate);
@@ -233,8 +248,8 @@ function renderReservationsTable() {
       <tr>
         <td>${codeToShow}</td>
         <td>${reservation.platform || ""}</td>
-        <td>${reservation.checkIn || ""}</td>
-        <td>${reservation.checkOut || ""}</td>
+        <td>${formatDateDisplay(reservation.checkIn)}</td>
+        <td>${formatDateDisplay(reservation.checkOut)}</td>
         <td>${reservation.ownerStay ? "" : formatMoney(accommodation)}</td>
         <td>${reservation.ownerStay ? "" : formatMoney(pmc)}</td>
         <td>${reservation.ownerStay ? "" : formatMoney(ownerPayout)}</td>
@@ -270,8 +285,8 @@ function renderOwnerStayTable() {
     tableHtml += `
       <tr>
         <td>OWNER STAY</td>
-        <td>${reservation.checkIn || ""}</td>
-        <td>${reservation.checkOut || ""}</td>
+        <td>${formatDateDisplay(reservation.checkIn)}</td>
+        <td>${formatDateDisplay(reservation.checkOut)}</td>
         <td>${formatMoney(currentOwner.cleaningFee)}</td>
       </tr>
     `;
