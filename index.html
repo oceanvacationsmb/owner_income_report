@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Owner Portal</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+
+  <div class="container">
+
+    <div id="loginBox" class="card">
+      <h2>Owner Login</h2>
+      <input id="email" type="email" placeholder="Email">
+      <input id="password" type="password" placeholder="Password">
+      <button onclick="loginOwner()">Login</button>
+      <div id="loginError" class="error"></div>
+    </div>
+
+    <div id="ownerPortal" style="display:none;">
+      <div class="card">
+        <h2 id="portalTitle">Owner Statement</h2>
+        <div id="summary"></div>
+      </div>
+
+      <div class="card">
+        <h3>Reservations</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Check In</th>
+              <th>Check Out</th>
+              <th>Platform</th>
+              <th>Accommodation</th>
+              <th>Cleaning</th>
+              <th>Total Payout</th>
+            </tr>
+          </thead>
+          <tbody id="reservationsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
