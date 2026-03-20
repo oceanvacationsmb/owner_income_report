@@ -377,34 +377,19 @@ function loadOwnerReport() {
     });
 }
 
-function parseGuestyTable(html) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
+function loadOwnerReport() {
+  if (!currentOwner || !currentOwner.guestyReportUrl) {
+    console.error("No owner or URL configured");
+    reservationsData = [];
+    renderDashboardHeader();
+    renderSummaryBoxes();
+    renderReservationsTable();
+    return;
+  }
 
-  console.log("PAGE TITLE:", doc.title);
-  console.log("BODY TEXT:", doc.body.innerText.substring(0, 1000));
-  console.log("FULL HTML START:", html.substring(0, 3000));
-
-  let rows = doc.querySelectorAll("table tbody tr");
-  if (!rows.length) rows = doc.querySelectorAll("tr");
-
+  console.log("Guesty shared report URL returns only app shell HTML, not reservation data.");
   reservationsData = [];
-
-  rows.forEach(row => {
-    const cells = row.querySelectorAll("td");
-
-    if (cells.length >= 7) {
-      reservationsData.push({
-        listingNickname: cells[0]?.textContent.trim() || "",
-        platform: cells[1]?.textContent.trim() || "",
-        confirmationCode: cells[2]?.textContent.trim() || "",
-        checkIn: cells[3]?.textContent.trim() || "",
-        checkOut: cells[4]?.textContent.trim() || "",
-        totalPayout: toNumber(cells[5]?.textContent),
-        accommodationFare: toNumber(cells[6]?.textContent)
-      });
-    }
-  });
-
-  console.log("Reservations loaded:", reservationsData.length);
+  renderDashboardHeader();
+  renderSummaryBoxes();
+  renderReservationsTable();
 }
