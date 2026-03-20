@@ -1,4 +1,3 @@
-// OWNER settings
 const OWNERS = {
   "ti3155@yahoo.com": {
     password: "1234",
@@ -7,25 +6,17 @@ const OWNERS = {
     postalCode: "78245",
     pmcPercent: 20,
     guestyReportUrl: "https://report.guesty.com/apps/reservations?apiKey=1a58fc1af3815f9023a08e09c590a05f3f3d1c73dbc3ab2e19985ecfe0003aa87acc7e264983e31d5b10a98cf4fd9b4789de3cb864daf2031e42aae6266c92f5",
-    cleaningFee: 185
+    cleaningFee: 250
   }
 };
 
 let currentOwner = OWNERS["ti3155@yahoo.com"];
 let reservationsData = [];
 
-// EmailJS Init (put your real user ID)
+// EmailJS Init (update with your actual user ID)
 (function(){
   emailjs.init("YOUR_EMAILJS_USER_ID_HERE");
 })();
-
-function toNumber(v) {
-  return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0;
-}
-
-function formatMoney(v) {
-  return `$${Number(v || 0).toFixed(2)}`;
-}
 
 function getTimeBasedGreeting() {
   const hour = new Date().getHours();
@@ -34,14 +25,19 @@ function getTimeBasedGreeting() {
   return 'Good evening';
 }
 
+// ------- WEATHER (with debug logging) -------
 function renderWeather(zip) {
-  const apiKey = "301c3846b1ed5b804976f73bd010175a"; // <--- YOUR key!
+  const apiKey = "301c3846b1ed5b804976f73bd010175a"; // Use YOUR OpenWeatherMap API key
   const weatherBox = document.getElementById("weatherBox");
-  if (!zip || !weatherBox) return;
+  if (!zip || !weatherBox) {
+    console.log('No zip or no weatherBox found');
+    return;
+  }
   weatherBox.innerHTML = '<div class="weather-loading">Loading weather...</div>';
   fetch(`https://api.openweathermap.org/data/2.5/weather?zip=${zip},US&appid=${apiKey}&units=imperial`)
     .then(res => res.json())
     .then(data => {
+      console.log('Weather API Response:', data);
       if (data.cod !== 200) throw new Error(data.message || "Weather unavailable");
       weatherBox.innerHTML = `
         <div class="weather-box">
@@ -50,77 +46,21 @@ function renderWeather(zip) {
         </div>
       `;
     })
-    .catch(() => {
+    .catch((err) => {
+      console.log('Weather Fetch Error:', err);
       weatherBox.innerHTML = `<div class="weather-box">Weather unavailable</div>`;
     });
 }
 
-function loadOwnerReport() {
-  if (!currentOwner || !currentOwner.guestyReportUrl) {
-    console.error("No owner or URL configured");
-    return;
-  }
-
-  fetch(currentOwner.guestyReportUrl)
-    .then(r => r.text())
-    .then(html => {
-      parseGuestyTable(html);
-      renderOwnerDashboard();
-    })
-    .catch(err => {
-      console.error("❌ Error loading report:", err);
-      reservationsData = [];
-      renderOwnerDashboard(); // still render UI even if fetch fails
-    });
+// ------- OWNER DASHBOARD -------
+function formatMoney(v) {
+  return `$${Number(v || 0).toFixed(2)}`;
 }
-
-function parseGuestyTable(html) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
-  const rows = doc.querySelectorAll('table tbody tr');
-  reservationsData = [];
-
-  rows.forEach(row => {
-    const cells = row.querySelectorAll('td');
-    if (cells.length > 0) {
-      const reservation = {
-        listingNickname: cells[0]?.textContent.trim() || "",
-        platform: cells[1]?.textContent.trim() || "",
-        confirmationCode: cells[2]?.textContent.trim() || "",
-        checkIn: cells[3]?.textContent.trim() || "",
-        checkOut: cells[4]?.textContent.trim() || "",
-        totalPayout: toNumber(cells[5]?.textContent),
-        accommodationFare: toNumber(cells[6]?.textContent),
-      };
-      reservationsData.push(reservation);
-    }
-  });
+function toNumber(v) {
+  return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0;
 }
-
-function formatDateDisplay(dateStr) {
-  if (!dateStr) return "";
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US");
-}
-
-function getExpectedPayoutDate(checkOutDate) {
-  const d = new Date(checkOutDate);
-  if (isNaN(d)) return "";
-  let year = d.getFullYear();
-  let month = d.getMonth() + 1;
-  if (month > 11) {
-    month = 0;
-    year += 1;
-  }
-  const payoutDate = new Date(year, month, 5);
-  return payoutDate.toLocaleDateString("en-US");
-}
-
 function renderOwnerDashboard() {
-  let totalAccommodation = 0;
-  let totalPMC = 0;
-  let totalOwnerPayout = 0;
-
+  let totalAccommodation = 0, totalPMC = 0, totalOwnerPayout = 0;
   reservationsData.forEach(reservation => {
     const accommodation = reservation.accommodationFare;
     const pmc = accommodation * (currentOwner.pmcPercent / 100);
@@ -136,7 +76,10 @@ function renderOwnerDashboard() {
         <h2>${getTimeBasedGreeting()} ${currentOwner.ownerName}</h2>
         <div class="property-address">${currentOwner.propertyName}</div>
       </div>
-      <div id="weatherBox"></div>
+      <div class="top-right-tools">
+        <div id="weatherBox"></div>
+        <button id="openRequestBox" class="request-btn">Contact Management / Request</button>
+      </div>
     </div>
     <div class="summary-boxes">
       <div class="summary-box">
@@ -159,8 +102,16 @@ function renderOwnerDashboard() {
   `;
   renderWeather(currentOwner.postalCode);
   renderReservationsTable();
+
+  // Modal open/close and reservation-fill logic (must re-apply listeners after rebuilding DOM!)
+  document.getElementById('openRequestBox').onclick = () => {
+    document.getElementById('requestModal').style.display = 'block';
+    document.getElementById('ownerReqStatus').innerText = '';
+    fillReservationDropdown();
+  };
 }
 
+// ------- RESERVATION TABLE -------
 function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
   tbody.innerHTML = "";
@@ -185,7 +136,26 @@ function renderReservationsTable() {
   });
 }
 
-// ---- Email Request Modal logic ----
+// ------- UTILITIES -------
+function formatDateDisplay(dateStr) {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US");
+}
+function getExpectedPayoutDate(checkOutDate) {
+  const d = new Date(checkOutDate);
+  if (isNaN(d)) return "";
+  let year = d.getFullYear();
+  let month = d.getMonth() + 1;
+  if (month > 11) {
+    month = 0;
+    year += 1;
+  }
+  const payoutDate = new Date(year, month, 5);
+  return payoutDate.toLocaleDateString("en-US");
+}
+
+// ------- CONTACT MODAL/EMAILJS HANDLING -------
 function getCleaningFee() {
   return currentOwner.cleaningFee ? Number(currentOwner.cleaningFee) : 0;
 }
@@ -197,14 +167,11 @@ function fillReservationDropdown() {
   });
 }
 
+// Setup modal, subject logic, and email sending only once
 document.addEventListener('DOMContentLoaded', () => {
   loadOwnerReport();
-  // Modal open/close 
-  document.getElementById('openRequestBox').onclick = () => {
-    document.getElementById('requestModal').style.display = 'block';
-    document.getElementById('ownerReqStatus').innerText = '';
-    fillReservationDropdown();
-  };
+
+  // Modal open/close logic (the button event is RE-added in renderOwnerDashboard after summary renders)
   document.getElementById('closeModal').onclick = () => {
     document.getElementById('requestModal').style.display = 'none';
   };
@@ -214,19 +181,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Subject logic: show/hide date & reservation
+  // Subject logic: show/hide date & reservation fields
   document.getElementById('subject').addEventListener('change', function() {
     const showDates = this.value === 'Request Owner Stay';
     const showRes = this.value === 'Inquiry about Reservation';
     document.getElementById('dateFields').style.display = showDates ? '' : 'none';
     document.getElementById('reservationField').style.display = showRes ? '' : 'none';
+
     // Cleaning Fee agreement for Owner Stay
     document.getElementById('cleaningAgreement').innerHTML = showDates
       ? `<div><b>Cleaning Fee:</b> $${getCleaningFee().toFixed(2)}<br><label><input type="checkbox" required name="agreeClean" id="agreeClean"> I agree to pay cleaning fee</label></div>`
       : '';
   });
 
-  // Form submit
+  // Form submit handler
   document.getElementById('ownerRequestForm').onsubmit = function(e) {
     e.preventDefault();
     const subject = document.getElementById('subject').value;
