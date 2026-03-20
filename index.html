@@ -10,50 +10,60 @@
 </head>
 <body>
 
-  <header class="topbar">
-    <div class="brand">OCEAN VACATIONS</div>
-    <div class="subtitle">Owner Portal</div>
-  </header>
+  <!-- Login Box (shows first, hides after login) -->
+  <div id="loginBox" style="max-width:400px;margin:30px auto;border:1px solid #ccc;padding:24px;text-align:center;background:#fff;">
+    <h2>Owner Login</h2>
+    <input type="email" id="ownerEmail" placeholder="Email" style="width:90%;margin-bottom:8px" autocomplete="username" /><br/>
+    <input type="password" id="ownerPassword" placeholder="Password" style="width:90%;margin-bottom:12px" autocomplete="current-password" /><br/>
+    <button id="loginBtn" style="width:60%;padding:8px 0">Login</button>
+    <div id="loginStatus" style="color:red;margin-top:12px;"></div>
+  </div>
+  
+  <!-- Portal content, hidden until login -->
+  <div id="ownerPortal" style="display:none;">
+    <header class="topbar">
+      <div class="brand">OCEAN VACATIONS</div>
+      <div class="subtitle">Owner Portal</div>
+    </header>
 
-  <div class="container">
+    <div class="container">
 
-    <!-- Modal: Management Request -->
-    <div id="requestModal" class="modal" style="display:none;">
-      <div class="modal-content">
-        <span class="close-modal" id="closeModal">&times;</span>
-        <h3>Send a Request</h3>
-        <form id="ownerRequestForm">
-          <label>Subject
-            <select id="subject" name="subject" required>
-              <option value="">Select an option</option>
-              <option value="Request Owner Stay">Request Owner Stay</option>
-              <option value="Inquiry about Payout">Inquiry about Payout</option>
-              <option value="Inquiry about Reservation">Inquiry about Specific Reservation</option>
-            </select>
-          </label>
-
-          <div id="dateFields" style="display:none;">
-            <label>Check-in Date <input type="date" id="checkInDate" name="checkInDate"></label>
-            <label>Check-out Date <input type="date" id="checkOutDate" name="checkOutDate"></label>
-            <div id="cleaningAgreement"></div>
-          </div>
-
-          <div id="reservationField" style="display:none;">
-            <label>Reservation
-              <select id="reservationSelect" name="reservationSelect"></select>
+      <!-- Modal: Management Request -->
+      <div id="requestModal" class="modal" style="display:none;">
+        <div class="modal-content">
+          <span class="close-modal" id="closeModal">&times;</span>
+          <h3>Send a Request</h3>
+          <form id="ownerRequestForm">
+            <label>Subject
+              <select id="subject" name="subject" required>
+                <option value="">Select an option</option>
+                <option value="Request Owner Stay">Request Owner Stay</option>
+                <option value="Inquiry about Payout">Inquiry about Payout</option>
+                <option value="Inquiry about Reservation">Inquiry about Specific Reservation</option>
+              </select>
             </label>
-          </div>
 
-          <label>More information<br>
-            <textarea id="extraInfo" name="extraInfo" rows="3" style="width:98%;"></textarea>
-          </label>
-          <button class="send-btn" type="submit">Send Request</button>
-          <div id="ownerReqStatus"></div>
-        </form>
+            <div id="dateFields" style="display:none;">
+              <label>Check-in Date <input type="date" id="checkInDate" name="checkInDate"></label>
+              <label>Check-out Date <input type="date" id="checkOutDate" name="checkOutDate"></label>
+              <div id="cleaningAgreement"></div>
+            </div>
+
+            <div id="reservationField" style="display:none;">
+              <label>Reservation
+                <select id="reservationSelect" name="reservationSelect"></select>
+              </label>
+            </div>
+
+            <label>More information<br>
+              <textarea id="extraInfo" name="extraInfo" rows="3" style="width:98%;"></textarea>
+            </label>
+            <button class="send-btn" type="submit">Send Request</button>
+            <div id="ownerReqStatus"></div>
+          </form>
+        </div>
       </div>
-    </div>
-    
-    <div id="ownerPortal" style="display:block;">
+      
       <div class="summary-header-flex">
         <div class="summary-header-left">
           <h2 id="greeting"></h2>
@@ -88,7 +98,6 @@
         </div>
       </div>
     </div>
-
   </div>
 
   <script src="script.js"></script>
