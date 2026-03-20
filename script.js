@@ -2,9 +2,9 @@ const OWNERS = {
   "ti3155@yahoo.com": {
     password: "1234",
     ownerName: "ZACK TEST",
-    propertyName: "1463 Wild Iris Dr.",
+    propertyName: "1463 Basin Trail, Murrells Inlet, SC 29576",
     postalCode: "29576",
-    pmcPercent: 20,
+    pmcPercent: 12,
     guestyReportUrl: "https://report.guesty.com/apps/reservations?apiKey=1a58fc1af3815f9023a08e09c590a05f3f3d1c73dbc3ab2e19985ecfe0003aa87acc7e264983e31d5b10a98cf4fd9b4789de3cb864daf2031e42aae6266c92f5",
     cleaningFee: 250
   }
@@ -13,12 +13,11 @@ const OWNERS = {
 let currentOwner = OWNERS["ti3155@yahoo.com"];
 let reservationsData = [];
 
-// ====== REPLACE THESE IDS WITH YOUR EMAILJS ACCOUNT'S IDS ======
-// Find these in EmailJS > Integration (user ID), Services, Templates
+// ====== FILLED IN WITH YOUR EMAILJS INFO ======
 const EMAILJS_USER_ID = "ti3155";
 const EMAILJS_SERVICE_ID = "service_06c56l2";
 const EMAILJS_TEMPLATE_ID = "template_91j57r4";
-// ===============================================================
+// ==============================================
 (function(){
   emailjs.init(EMAILJS_USER_ID);
 })();
@@ -30,41 +29,84 @@ function getTimeBasedGreeting() {
   return 'Good evening';
 }
 
-// ------- WEATHER (with debug logging) -------
+// --------- WEATHER 5-DAY FORECAST ---------
+// This will use free OWM 5-day/3-hour forecast and pick "midday" (12:00) for each day
 function renderWeather(zip) {
-  const apiKey = "301c3846b1ed5b804976f73bd010175a"; // ← your OpenWeatherMap API key
+  const apiKey = "301c3846b1ed5b804976f73bd010175a"; // <<-- your OWM key!
   const weatherBox = document.getElementById("weatherBox");
   if (!zip || !weatherBox) {
     console.log('No zip or no weatherBox found');
     return;
   }
   weatherBox.innerHTML = '<div class="weather-loading">Loading weather...</div>';
-  fetch(`https://api.openweathermap.org/data/2.5/weather?zip=${zip},US&appid=${apiKey}&units=imperial`)
+
+  fetch(`https://api.openweathermap.org/data/2.5/forecast?zip=${zip},US&appid=${apiKey}&units=imperial`)
     .then(res => res.json())
     .then(data => {
-      console.log('Weather API Response:', data);
-      if (data.cod !== 200) throw new Error(data.message || "Weather unavailable");
-      weatherBox.innerHTML = `
-        <div class="weather-box">
-          <img src="https://openweathermap.org/img/wn/${data.weather[0].icon}.png" alt="">
-          <span><b>${Math.round(data.main.temp)}°F</b>, ${data.weather[0].main}</span>
-        </div>
-      `;
+      if (!data.list || !data.city) throw new Error("Weather unavailable");
+      let daily = {};
+      data.list.forEach(item => {
+        const day = item.dt_txt.split(' ')[0];
+        const hour = item.dt_txt.split(' ')[1];
+        if (!daily[day] && (hour === "12:00:00" || hour === "15:00:00" || hour === "09:00:00")) {
+          daily[day] = item;
+        }
+      });
+      const today = new Date();
+      let forecast = Object.keys(daily)
+        .filter(day => new Date(day) > today)
+        .slice(0, 5)
+        .map(day => daily[day]);
+      let html = '<div class="weather-forecast">';
+      forecast.forEach(day => {
+        const dateObj = new Date(day.dt_txt);
+        html += `
+          <div class="forecast-day">
+            <div>${dateObj.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+            <img src="https://openweathermap.org/img/wn/${day.weather[0].icon}.png" alt="">
+            <div><b>${Math.round(day.main.temp)}°F</b></div>
+            <div style="font-size: .95em;">${day.weather[0].main}</div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      weatherBox.innerHTML = html;
     })
     .catch((err) => {
-      console.log('Weather Fetch Error:', err);
       weatherBox.innerHTML = `<div class="weather-box">Weather unavailable</div>`;
+      console.log('Weather Fetch Error:', err);
     });
 }
 
-// ------- OWNER DASHBOARD -------
+// --------- SUMMARY BOXES ---------
 function formatMoney(v) {
   return `$${Number(v || 0).toFixed(2)}`;
 }
 function toNumber(v) {
   return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0;
 }
-function renderOwnerDashboard() {
+
+// --------- DATE FIELDS: Only allow selection from tomorrow forward ---------
+function setDateFieldsMin() {
+  const now = new Date();
+  now.setDate(now.getDate() + 1); // tomorrow
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const minDate = `${yyyy}-${mm}-${dd}`;
+  const checkIn = document.getElementById('checkInDate');
+  const checkOut = document.getElementById('checkOutDate');
+  if (checkIn) checkIn.setAttribute('min', minDate);
+  if (checkOut) checkOut.setAttribute('min', minDate);
+}
+
+function renderDashboardHeader() {
+  document.getElementById("greeting").innerText = `${getTimeBasedGreeting()} ${currentOwner.ownerName}`;
+  document.getElementById("propertyAddress").innerText = currentOwner.propertyName;
+  renderWeather(currentOwner.postalCode);
+}
+
+function renderSummaryBoxes() {
   let totalAccommodation = 0, totalPMC = 0, totalOwnerPayout = 0;
   reservationsData.forEach(reservation => {
     const accommodation = reservation.accommodationFare;
@@ -75,48 +117,26 @@ function renderOwnerDashboard() {
     totalOwnerPayout += ownerPayout;
   });
 
-  document.getElementById("summary").innerHTML = `
-    <div class="owner-header-flex">
-      <div class="left">
-        <h2>${getTimeBasedGreeting()} ${currentOwner.ownerName}</h2>
-        <div class="property-address">${currentOwner.propertyName}</div>
-      </div>
-      <div class="top-right-tools">
-        <div id="weatherBox"></div>
-        <button id="openRequestBox" class="request-btn">Contact Management / Request</button>
-      </div>
+  document.getElementById("summaryBoxes").innerHTML = `
+    <div class="summary-box">
+      <div class="summary-label">PMC %</div>
+      <div class="summary-value">${currentOwner.pmcPercent}%</div>
     </div>
-    <div class="summary-boxes">
-      <div class="summary-box">
-        <div class="summary-label">PMC %</div>
-        <div class="summary-value">${currentOwner.pmcPercent}%</div>
-      </div>
-      <div class="summary-box">
-        <div class="summary-label">Total Accommodation</div>
-        <div class="summary-value">${formatMoney(totalAccommodation)}</div>
-      </div>
-      <div class="summary-box">
-        <div class="summary-label">Total PMC</div>
-        <div class="summary-value">${formatMoney(totalPMC)}</div>
-      </div>
-      <div class="summary-box">
-        <div class="summary-label">Total Owner Payout</div>
-        <div class="summary-value">${formatMoney(totalOwnerPayout)}</div>
-      </div>
+    <div class="summary-box">
+      <div class="summary-label">Total Accommodation</div>
+      <div class="summary-value">${formatMoney(totalAccommodation)}</div>
+    </div>
+    <div class="summary-box">
+      <div class="summary-label">Total PMC</div>
+      <div class="summary-value">${formatMoney(totalPMC)}</div>
+    </div>
+    <div class="summary-box">
+      <div class="summary-label">Total Owner Payout</div>
+      <div class="summary-value">${formatMoney(totalOwnerPayout)}</div>
     </div>
   `;
-  renderWeather(currentOwner.postalCode);
-  renderReservationsTable();
-
-  // Re-attach button event (since it's rebuilt each time)
-  document.getElementById('openRequestBox').onclick = () => {
-    document.getElementById('requestModal').style.display = 'block';
-    document.getElementById('ownerReqStatus').innerText = '';
-    fillReservationDropdown();
-  };
 }
 
-// ------- RESERVATION TABLE -------
 function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
   tbody.innerHTML = "";
@@ -172,9 +192,16 @@ function fillReservationDropdown() {
   });
 }
 
-// Setup modal logic and EmailJS handler
 document.addEventListener('DOMContentLoaded', () => {
   loadOwnerReport();
+
+  // Header logic
+  document.getElementById('openRequestBox').onclick = () => {
+    document.getElementById('requestModal').style.display = 'block';
+    document.getElementById('ownerReqStatus').innerText = '';
+    fillReservationDropdown();
+    setDateFieldsMin();
+  };
 
   // Modal handlers
   document.getElementById('closeModal').onclick = () => {
@@ -186,17 +213,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Subject logic
-  document.getElementById('subject').addEventListener('change', function() {
+  document.getElementById('subject').addEventListener('change', function () {
     const showDates = this.value === 'Request Owner Stay';
-    const showRes = this.value === 'Inquiry about Reservation';
     document.getElementById('dateFields').style.display = showDates ? '' : 'none';
-    document.getElementById('reservationField').style.display = showRes ? '' : 'none';
-
-    // Cleaning Fee agreement for Owner Stay
+    document.getElementById('reservationField').style.display = this.value === 'Inquiry about Reservation' ? '' : 'none';
     document.getElementById('cleaningAgreement').innerHTML = showDates
       ? `<div><b>Cleaning Fee:</b> $${getCleaningFee().toFixed(2)}<br><label><input type="checkbox" required name="agreeClean" id="agreeClean"> I agree to pay cleaning fee</label></div>`
       : '';
+    if (showDates) setDateFieldsMin();
   });
 
   // Form submit handler
@@ -220,7 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const info = document.getElementById('extraInfo').value;
     message += `\nInfo/Notes: ${info}`;
     if(!subject || !valid) { document.getElementById('ownerReqStatus').innerText = "Please fill all required fields."; return; }
-    // ---- Send email via EmailJS ----
     emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
       from_name: currentOwner.ownerName,
       from_email: "portal@oceanvacations.com",
@@ -235,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 });
 
-// ------- GUESTY REPORT LOAD -------
+// ------- INITIAL DATA LOAD -------
 function loadOwnerReport() {
   if (!currentOwner || !currentOwner.guestyReportUrl) {
     console.error("No owner or URL configured");
@@ -246,20 +269,24 @@ function loadOwnerReport() {
     .then(r => r.text())
     .then(html => {
       parseGuestyTable(html);
-      renderOwnerDashboard();
+      renderDashboardHeader();
+      renderSummaryBoxes();
+      renderReservationsTable();
     })
     .catch(err => {
       console.error("❌ Error loading report:", err);
       reservationsData = [];
-      renderOwnerDashboard();
+      renderDashboardHeader();
+      renderSummaryBoxes();
+      renderReservationsTable();
     });
 }
+
 function parseGuestyTable(html) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const rows = doc.querySelectorAll('table tbody tr');
   reservationsData = [];
-
   rows.forEach(row => {
     const cells = row.querySelectorAll('td');
     if (cells.length > 0) {
