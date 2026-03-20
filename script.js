@@ -203,7 +203,7 @@ function mapGuestyReservation(r) {
     status: pickText(r.status, r.reservationStatus, r["STATUS"], r["reservationStatus"]),
     listingNickname: pickText(r["listing.nickname"], r.listingNickname, r.listing?.nickname, r.listing),
     platform: pickText(r["integration.platform"], r.platform, r.integration?.platform, r.integration),
-    confirmationCode: pickText(r["confirmationCode"], r.code, r.reservationCode),
+    confirmationCode: (pickText(r["confirmationCode"], r.code, r.reservationCode) || "").toUpperCase(),
     checkIn: r["checkInDate"]?.value || "",
     checkOut: r["checkOutDate"]?.value || "",
     totalPayout: pickNumber(r["money.hostPayout"]?.value, r.hostPayout, r.totalPayout),
@@ -245,7 +245,11 @@ function renderSummaryBoxes() {
       <div class="summary-value">${formatMoney(totalOwnerPayout)}</div>
     </div>
   `;
+ summaryBoxes.style.textAlign = "center";
+  summaryBoxes.style.display = "flex";
+  summaryBoxes.style.justifyContent = "center";
 }
+
 function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
   if (!tbody) return;
