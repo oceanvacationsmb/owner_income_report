@@ -355,16 +355,16 @@ function loadOwnerReport() {
       return r.json();
     })
     .then(payload => {
-      const rows = Array.isArray(payload) ? payload : (payload.results || payload.data || []);
-      reservationsData = rows
-        .map(mapGuestyReservation)
-        .filter(res => {
-          const status = String(res.status || '').toLowerCase();
-          return status !== 'cancel' && status !== 'cancelled' && status !== 'canceled';
-        });
-      renderDashboardHeader();
-      renderSummaryBoxes();
-      renderReservationsTable();
+      const rows = Array.isArray(payload)
+        ? payload
+        : (payload.results || payload.data || []);
+      
+      // <<--- ADD THIS LINE HERE!
+      console.log("RAW reservation row example:", rows[0]);
+      
+      // ... you may now map/filter as before ...
+      const mappedRows = rows.map(mapGuestyReservation);
+      // etc.
     })
     .catch(err => {
       console.error("Error loading report:", err);
