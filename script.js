@@ -34,7 +34,6 @@ const OWNERS = {
     guestyApiKey: "1a58fc1af3815f9023a08e09c590a05f3f3d1c73dbc3ab2e19985ecfe0003aa87acc7e264983e31d5b10a98cf4fd9b4789de3cb864daf2031e42aae6266c92f5",
     cleaningFee: 250
   },
-    
   "11315@yahoo.com": {
     password: "1234",
     ownerName: "ZACK 2",
@@ -44,7 +43,7 @@ const OWNERS = {
     guestyApiKey: "bbbab438244300805daaf5485d3b516cbeee616fba7e640fc3b80d0b648c01d13e3f70a2bde2abaf9deb3b661aabf1c17453fd4e6d799f380cfd059df66cf01e",
     cleaningFee: 350
   },
-   "11313@yahoo.com": {
+  "11313@yahoo.com": {
     password: "1234",
     ownerName: "CARL",
     propertyName: "113B 13th Ave North. Surfside Beach SC 29575",
@@ -52,7 +51,7 @@ const OWNERS = {
     pmcPercent: 12,
     guestyApiKey: "d6ab951850fef54399e2206f36f4e79fb1b425a8e5c891076036b11f50da8870613a226021487307c8c5f51eae997a08dd7e112d013ef683728ad1d9220ee0b7",
     cleaningFee: 350
-  },
+  }
 };
 
 let reservationsData = [];
@@ -249,6 +248,12 @@ function mapGuestyReservation(r) {
     confirmationCode: (pickText(r["confirmationCode"], r.code, r.reservationCode) || "").toUpperCase(),
     checkIn: r["checkInDate"]?.value || "",
     checkOut: r["checkOutDate"]?.value || "",
+    ownerStay:
+      r["guest.fullName"] &&
+      r["guest.fullName"].children &&
+      r["guest.fullName"].children.toUpperCase().includes("OWNER STAY")
+        ? "OWNER STAY"
+        : "",
     totalPayout: pickNumber(r["money.hostPayout"]?.value, r.hostPayout, r.totalPayout),
     accommodationFare: calculatedAccommodation,
     baseAccommodation,
@@ -288,7 +293,7 @@ function renderSummaryBoxes() {
       <div class="summary-value">${formatMoney(totalOwnerPayout)}</div>
     </div>
   `;
- summaryBoxes.style.textAlign = "center";
+  summaryBoxes.style.textAlign = "center";
   summaryBoxes.style.display = "flex";
   summaryBoxes.style.justifyContent = "center";
 }
@@ -310,9 +315,13 @@ function renderReservationsTable() {
     const pmc = accommodation * (currentOwner.pmcPercent / 100);
     const ownerPayout = accommodation - pmc;
     const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
+
+    // Show "OWNER STAY" if that flag is present, otherwise show the confirmation code
+    const codeToShow = reservation.ownerStay ? reservation.ownerStay : reservation.confirmationCode;
+
     tbody.innerHTML += `
       <tr>
-        <td>${reservation.confirmationCode || ""}</td>
+        <td>${codeToShow}</td>
         <td>${reservation.platform || ""}</td>
         <td>${reservation.checkIn || ""}</td>
         <td>${reservation.checkOut || ""}</td>
