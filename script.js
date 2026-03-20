@@ -379,9 +379,17 @@ function loadOwnerReport() {
 }
 
 function parseGuestyTable(html) {
+  console.log("RAW HTML START:", html.substring(0, 2000));
+
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
+
+  console.log("PAGE TITLE:", doc.title);
+  console.log("TABLE COUNT:", doc.querySelectorAll("table").length);
+  console.log("BODY TEXT START:", doc.body.innerText.substring(0, 1000));
+
   const rows = doc.querySelectorAll("table tbody tr");
+  console.log("ROW COUNT:", rows.length);
 
   reservationsData = [];
 
@@ -400,4 +408,6 @@ function parseGuestyTable(html) {
       });
     }
   });
+
+  console.log("PARSED RESERVATIONS:", reservationsData);
 }
