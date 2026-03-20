@@ -2,49 +2,95 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ocean Vacations Owner Portal</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@2.6.4/dist/email.min.js"></script>
 </head>
 <body>
-  <h1>Ocean Vacations Owner Portal</h1>
-  <div id="results"></div>
-  <script>
-    // SET YOUR GUESTY REPORT URL HERE
-    const currentOwner = {
-      guestyReportUrl: 'https://report.guesty.com/apps/reservations?apiKey=1a58fc1af3815f9023a08e09c590a05f3f3d1c73dbc3ab2e19985ecfe0003aa87acc7e264983e31d5b10a98cf4fd9b4789de3cb864daf2031e42aae6266c92f5'
-    };
 
-    document.addEventListener('DOMContentLoaded', () => {
-      console.log("JS loaded!");
+  <header class="topbar">
+    <div class="brand">OCEAN VACATIONS</div>
+    <div class="subtitle">Owner Portal</div>
+  </header>
 
-      if (!currentOwner || !currentOwner.guestyReportUrl) {
-        console.error("No owner or Guesty URL configured");
-        return;
-      }
+  <div class="container">
 
-      fetch(currentOwner.guestyReportUrl)
-        .then(response => response.text())
-        .then(html => {
-          console.log("GUESTY HTML:", html);
+    <!-- Modal: Management Request -->
+    <div id="requestModal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <span class="close-modal" id="closeModal">&times;</span>
+        <h3>Send a Request</h3>
+        <form id="ownerRequestForm">
+          <label>Subject
+            <select id="subject" name="subject" required>
+              <option value="">Select an option</option>
+              <option value="Request Owner Stay">Request Owner Stay</option>
+              <option value="Inquiry about Payout">Inquiry about Payout</option>
+              <option value="Inquiry about Reservation">Inquiry about Specific Reservation</option>
+            </select>
+          </label>
 
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(html, "text/html");
-          const rows = doc.querySelectorAll("table tr");
-          console.log("TABLE row count:", rows.length);
+          <div id="dateFields" style="display:none;">
+            <label>Check-in Date <input type="date" id="checkInDate" name="checkInDate"></label>
+            <label>Check-out Date <input type="date" id="checkOutDate" name="checkOutDate"></label>
+            <div id="cleaningAgreement"></div>
+          </div>
 
-          if (rows.length === 0) {
-            document.getElementById('results').innerText = "No reservation table found in Guesty HTML.";
-          } else {
-            let output = "";
-            rows.forEach(row => {
-              output += row.innerText + "<br>";
-            });
-            document.getElementById('results').innerHTML = output;
-          }
-        })
-        .catch(err => {
-          console.error("Fetch failed:", err);
-        });
-    });
-  </script>
+          <div id="reservationField" style="display:none;">
+            <label>Reservation
+              <select id="reservationSelect" name="reservationSelect"></select>
+            </label>
+          </div>
+
+          <label>More information<br>
+            <textarea id="extraInfo" name="extraInfo" rows="3" style="width:98%;"></textarea>
+          </label>
+          <button class="send-btn" type="submit">Send Request</button>
+          <div id="ownerReqStatus"></div>
+        </form>
+      </div>
+    </div>
+    
+    <div id="ownerPortal" style="display:block;">
+      <div class="summary-header-flex">
+        <div class="summary-header-left">
+          <h2 id="greeting"></h2>
+          <div class="property-address" id="propertyAddress"></div>
+        </div>
+        <div class="summary-header-right">
+          <div id="weatherBox"></div>
+          <button id="openRequestBox" class="request-btn">Contact Management</button>
+        </div>
+      </div>
+
+      <div class="summary-boxes" id="summaryBoxes"></div>
+
+      <div class="card">
+        <h3>Reservations</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Reservation Code</th>
+                <th>Platform</th>
+                <th>Check In</th>
+                <th>Check Out</th>
+                <th>Accommodation</th>
+                <th>PMC</th>
+                <th>Owner Payout</th>
+                <th>Expected Payout</th>
+              </tr>
+            </thead>
+            <tbody id="reservationsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
