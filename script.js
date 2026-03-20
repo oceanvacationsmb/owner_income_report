@@ -1,5 +1,5 @@
 const OWNERS = {
-  "ti3155@yahoo.com": {
+  "oceanvacationsmb@gmail.com": {
     password: "1234",
     ownerName: "ZACK TEST",
     propertyName: "1463 Basin Trail, Murrells Inlet, SC 29576",
@@ -10,14 +10,13 @@ const OWNERS = {
   }
 };
 
-let currentOwner = OWNERS["ti3155@yahoo.com"];
+let currentOwner = OWNERS["oceanvacationsmb@gmail.com"];
 let reservationsData = [];
 
-// ====== FILLED IN WITH YOUR EMAILJS INFO ======
+// ====== CORRECT EMAILJS INFO ======
 const EMAILJS_USER_ID = "RVbPQAAmTWI11KaIk";
 const EMAILJS_SERVICE_ID = "service_06c56l2";
 const EMAILJS_TEMPLATE_ID = "template_91j57r4";
-// ==============================================
 (function(){
   emailjs.init(EMAILJS_USER_ID);
 })();
@@ -30,16 +29,14 @@ function getTimeBasedGreeting() {
 }
 
 // --------- WEATHER 5-DAY FORECAST ---------
-// This will use free OWM 5-day/3-hour forecast and pick "midday" (12:00) for each day
 function renderWeather(zip) {
-  const apiKey = "301c3846b1ed5b804976f73bd010175a"; // <<-- your OWM key!
+  const apiKey = "301c3846b1ed5b804976f73bd010175a";
   const weatherBox = document.getElementById("weatherBox");
   if (!zip || !weatherBox) {
     console.log('No zip or no weatherBox found');
     return;
   }
   weatherBox.innerHTML = '<div class="weather-loading">Loading weather...</div>';
-
   fetch(`https://api.openweathermap.org/data/2.5/forecast?zip=${zip},US&appid=${apiKey}&units=imperial`)
     .then(res => res.json())
     .then(data => {
@@ -85,7 +82,6 @@ function formatMoney(v) {
 function toNumber(v) {
   return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0;
 }
-
 // --------- DATE FIELDS: Only allow selection from tomorrow forward ---------
 function setDateFieldsMin() {
   const now = new Date();
@@ -149,7 +145,7 @@ function renderReservationsTable() {
     tbody.innerHTML += `
       <tr>
         <td>${reservation.confirmationCode}</td>
-        <td>${reservation.platform}</td>
+        <td>${reservation.platform || ""}</td>
         <td>${formatDateDisplay(reservation.checkIn)}</td>
         <td>${formatDateDisplay(reservation.checkOut)}</td>
         <td>${formatMoney(accommodation)}</td>
@@ -188,7 +184,7 @@ function fillReservationDropdown() {
   const select = document.getElementById("reservationSelect");
   select.innerHTML = '';
   reservationsData.forEach((res, i) => {
-    select.innerHTML += `<option value="${i}">${res.confirmationCode} (${res.platform}, ${res.checkIn} - ${res.checkOut})</option>`;
+    select.innerHTML += `<option value="${i}">${res.confirmationCode} (${formatDateDisplay(res.checkIn)} - ${formatDateDisplay(res.checkOut)})</option>`;
   });
 }
 
@@ -223,7 +219,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (showDates) setDateFieldsMin();
   });
 
-  // Form submit handler
   document.getElementById('ownerRequestForm').onsubmit = function(e) {
     e.preventDefault();
     const subject = document.getElementById('subject').value;
@@ -239,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(subject === "Inquiry about Reservation") {
       const idx = document.getElementById('reservationSelect').value;
       const res = reservationsData[idx];
-      message += `\nInquiry Reservation: ${res.confirmationCode}, ${res.platform}, ${res.checkIn} - ${res.checkOut}`;
+      message += `\nInquiry Reservation: ${res.confirmationCode}, ${formatDateDisplay(res.checkIn)} - ${formatDateDisplay(res.checkOut)}`;
     }
     const info = document.getElementById('extraInfo').value;
     message += `\nInfo/Notes: ${info}`;
@@ -258,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 });
 
-// ------- INITIAL DATA LOAD -------
+// ========== FETCH GUESTY DATA ==========
 function loadOwnerReport() {
   if (!currentOwner || !currentOwner.guestyReportUrl) {
     console.error("No owner or URL configured");
@@ -282,6 +277,7 @@ function loadOwnerReport() {
     });
 }
 
+// Parses the table in your Guesty URL (order matches your screenshot!)
 function parseGuestyTable(html) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
@@ -291,13 +287,13 @@ function parseGuestyTable(html) {
     const cells = row.querySelectorAll('td');
     if (cells.length > 0) {
       const reservation = {
-        listingNickname: cells[0]?.textContent.trim() || "",
-        platform: cells[1]?.textContent.trim() || "",
-        confirmationCode: cells[2]?.textContent.trim() || "",
-        checkIn: cells[3]?.textContent.trim() || "",
-        checkOut: cells[4]?.textContent.trim() || "",
-        totalPayout: toNumber(cells[5]?.textContent),
-        accommodationFare: toNumber(cells[6]?.textContent),
+        confirmationCode: cells[0]?.textContent.trim() || "",
+        checkIn: cells[1]?.textContent.trim() || "",
+        checkOut: cells[2]?.textContent.trim() || "",
+        totalPayout: toNumber(cells[3]?.textContent),
+        accommodationFare: toNumber(cells[4]?.textContent),
+        platform: '', // No platform column in your report, so blank
+        listingNickname: '' // No listing col, so blank
       };
       reservationsData.push(reservation);
     }
