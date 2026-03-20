@@ -35,7 +35,7 @@ function getTimeBasedGreeting() {
 }
 
 function renderWeather(zip) {
-  const apiKey = "YOUR_OPENWEATHERMAP_API_KEY"; // <-- put your API key here!
+  const apiKey = "301c3846b1ed5b804976f73bd010175a"; // <--- YOUR key!
   const weatherBox = document.getElementById("weatherBox");
   if (!zip || !weatherBox) return;
   weatherBox.innerHTML = '<div class="weather-loading">Loading weather...</div>';
