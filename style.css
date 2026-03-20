@@ -124,6 +124,7 @@ body {
   gap: 1.3rem;
   margin-bottom: 1.6rem;
   margin-top: 0.3rem;
+  justify-content: center;
 }
 .summary-box {
   background: #f5f8fb;
