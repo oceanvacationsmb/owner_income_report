@@ -253,7 +253,6 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('ownerReqStatus').innerText = "Failed to send. Please try again.";
     });
   };
-});
 
 // ========== FETCH GUESTY DATA ==========
 function loadOwnerReport() {
