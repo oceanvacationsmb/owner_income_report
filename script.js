@@ -1,3 +1,30 @@
+let currentOwner = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("ownerPortal").style.display = "none";
+  document.getElementById("loginBox").style.display = "block";
+
+  document.getElementById("loginBtn").onclick = function() {
+    const email = (document.getElementById("ownerEmail").value || "").trim().toLowerCase();
+    const pw = (document.getElementById("ownerPassword").value || "");
+    const loginStatus = document.getElementById("loginStatus");
+    if(email !== "ti3155@yahoo.com") {
+      loginStatus.innerText = "Email not found.";
+      return;
+    }
+    if(pw !== "1234") {
+      loginStatus.innerText = "Password incorrect.";
+      return;
+    }
+    currentOwner = OWNERS[email];
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("ownerPortal").style.display = "";
+    loginStatus.innerText = "";
+    loadOwnerReport();
+  };
+});
+
+
 // === OWNER CONFIGURATION ===
 const OWNERS = {
   "ti3155@yahoo.com": {
@@ -11,7 +38,6 @@ const OWNERS = {
   }
 };
 
-let currentOwner = OWNERS["ti3155@yahoo.com"];
 let reservationsData = [];
 
 // === EMAILJS CONFIGURATION ===
