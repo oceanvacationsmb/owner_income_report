@@ -32,15 +32,11 @@ function getTimeBasedGreeting() {
   return "Good evening";
 }
 
-// --------- WEATHER 5-DAY FORECAST ---------
 function renderWeather(zip) {
   const apiKey = "301c3846b1ed5b804976f73bd010175a";
   const weatherBox = document.getElementById("weatherBox");
 
-  if (!zip || !weatherBox) {
-    console.log("No zip or no weatherBox found");
-    return;
-  }
+  if (!zip || !weatherBox) return;
 
   weatherBox.innerHTML = '<div class="weather-loading">Loading weather...</div>';
 
@@ -86,13 +82,11 @@ function renderWeather(zip) {
 
       weatherBox.innerHTML = html;
     })
-    .catch(err => {
+    .catch(() => {
       weatherBox.innerHTML = `<div class="weather-box">Weather unavailable</div>`;
-      console.log("Weather Fetch Error:", err);
     });
 }
 
-// --------- SUMMARY BOXES ---------
 function formatMoney(v) {
   return `$${Number(v || 0).toFixed(2)}`;
 }
@@ -101,7 +95,6 @@ function toNumber(v) {
   return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0;
 }
 
-// --------- DATE FIELDS ---------
 function setDateFieldsMin() {
   const now = new Date();
   now.setDate(now.getDate() + 1);
@@ -202,7 +195,6 @@ function renderReservationsTable() {
   });
 }
 
-// ------- UTILITIES -------
 function formatDateDisplay(dateStr) {
   if (!dateStr) return "";
   const date = new Date(dateStr);
@@ -217,7 +209,6 @@ function getExpectedPayoutDate(checkOutDate) {
   return payoutDate.toLocaleDateString("en-US");
 }
 
-// ------- CONTACT MODAL / EMAILJS -------
 function getCleaningFee() {
   return currentOwner.cleaningFee ? Number(currentOwner.cleaningFee) : 0;
 }
@@ -350,7 +341,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// ------- INITIAL DATA LOAD -------
 function loadOwnerReport() {
   if (!currentOwner || !currentOwner.guestyReportUrl) {
     console.error("No owner or URL configured");
@@ -361,53 +351,9 @@ function loadOwnerReport() {
     return;
   }
 
-  fetch(currentOwner.guestyReportUrl)
-    .then(r => r.text())
-    .then(html => {
-      parseGuestyTable(html);
-      renderDashboardHeader();
-      renderSummaryBoxes();
-      renderReservationsTable();
-    })
-    .catch(err => {
-      console.error("Error loading report:", err);
-      reservationsData = [];
-      renderDashboardHeader();
-      renderSummaryBoxes();
-      renderReservationsTable();
-    });
-}
-
-function parseGuestyTable(html) {
-  console.log("RAW HTML START:", html.substring(0, 2000));
-
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
-
-  console.log("PAGE TITLE:", doc.title);
-  console.log("TABLE COUNT:", doc.querySelectorAll("table").length);
-  console.log("BODY TEXT START:", doc.body.innerText.substring(0, 1000));
-
-  const rows = doc.querySelectorAll("table tbody tr");
-  console.log("ROW COUNT:", rows.length);
-
+  console.log("Guesty shared report URL returns only the app shell, not reservation table HTML.");
   reservationsData = [];
-
-  rows.forEach(row => {
-    const cells = row.querySelectorAll("td");
-
-    if (cells.length > 0) {
-      reservationsData.push({
-        listingNickname: cells[0]?.textContent.trim() || "",
-        platform: cells[1]?.textContent.trim() || "",
-        confirmationCode: cells[2]?.textContent.trim() || "",
-        checkIn: cells[3]?.textContent.trim() || "",
-        checkOut: cells[4]?.textContent.trim() || "",
-        totalPayout: toNumber(cells[5]?.textContent),
-        accommodationFare: toNumber(cells[6]?.textContent)
-      });
-    }
-  });
-
-  console.log("PARSED RESERVATIONS:", reservationsData);
+  renderDashboardHeader();
+  renderSummaryBoxes();
+  renderReservationsTable();
 }
