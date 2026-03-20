@@ -187,11 +187,10 @@ function mapGuestyReservation(r) {
     r["ACCOMMODATION FARE"], r["fareAccommodation"], r["money.fareAccommodation"],
     r.accommodationFare, r.fareAccommodation, pickDeep(r, "money.fareAccommodation.value")
   );
-  // Use MAR as Markup
+  // This will find the MAR field, even if it's a string
   const markup = pickNumber(
     r.markupAmount, r.markup, r["MARKUP"],
     pickDeep(r, "money.markup.value"), pickDeep(r, "markup.value"),
-    // <-- Add this line:
     pickDeep(r, "money.invoiceItems.MAR.value")
   );
   const lengthOfStayDiscount = pickNumber(
@@ -199,6 +198,12 @@ function mapGuestyReservation(r) {
     pickDeep(r, "money.lengthOfStayDiscount.value"), pickDeep(r, "lengthOfStayDiscount.value")
   );
   const calculatedAccommodation = baseAccommodation - markup - lengthOfStayDiscount;
+
+  // Debug log
+  if (markup !== 0) {
+    console.log('Markup detected:', markup, 'from', pickDeep(r, "money.invoiceItems.MAR.value"));
+    console.log('Accommodation calculation:', baseAccommodation, '-', markup, '-', lengthOfStayDiscount, '=', calculatedAccommodation);
+  }
 
   return {
     status: pickText(r.status, r.reservationStatus, r["STATUS"], r["reservationStatus"]),
@@ -209,7 +214,7 @@ function mapGuestyReservation(r) {
     checkOut: pickDate(r["CHECK-OUT DATE"], r.checkOutDate, r.checkOut, r.endDate),
     totalPayout: pickNumber(r["TOTAL PAYOUT"], r["money.hostPayout"], r.hostPayout, r.totalPayout),
     accommodationFare: calculatedAccommodation,
-    baseAccommodation, markup, lengthOfStayDiscount // (optional debug)
+    baseAccommodation, markup, lengthOfStayDiscount // (debug; NOT shown in UI)
   };
 }
 
