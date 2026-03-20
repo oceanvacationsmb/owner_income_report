@@ -5,7 +5,7 @@ const OWNERS = {
     propertyName: "1463 Basin Trail, Murrells Inlet, SC 29576",
     postalCode: "29576",
     pmcPercent: 12,
-    guestyReportUrl: "https://report.guesty.com/apps/reservations?apiKey=1a58fc1af3815f9023a08e09c590a05f3f3d1c73dbc3ab2e19985ecfe0003aa87acc7e264983e31d5b10a98cf4fd9b4789de3cb864daf2031e42aae6266c92f5",
+    guestyApiKey: "1a58fc1af3815f9023a08e09c590a05f3f3d1c73dbc3ab2e19985ecfe0003aa87acc7e264983e31d5b10a98cf4fd9b4789de3cb864daf2031e42aae6266c92f5",
     cleaningFee: 250
   }
 };
@@ -32,14 +32,11 @@ function getTimeBasedGreeting() {
   return "Good evening";
 }
 
-// --------- WEATHER 5-DAY FORECAST ---------
 function renderWeather(zip) {
   const apiKey = "301c3846b1ed5b804976f73bd010175a";
   const weatherBox = document.getElementById("weatherBox");
 
-  if (!zip || !weatherBox) {
-    return;
-  }
+  if (!zip || !weatherBox) return;
 
   weatherBox.innerHTML = '<div class="weather-loading">Loading weather...</div>';
 
@@ -91,7 +88,6 @@ function renderWeather(zip) {
     });
 }
 
-// --------- SUMMARY BOXES ---------
 function formatMoney(v) {
   return `$${Number(v || 0).toFixed(2)}`;
 }
@@ -100,7 +96,6 @@ function toNumber(v) {
   return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0;
 }
 
-// --------- DATE FIELDS ---------
 function setDateFieldsMin() {
   const now = new Date();
   now.setDate(now.getDate() + 1);
@@ -201,7 +196,6 @@ function renderReservationsTable() {
   });
 }
 
-// ------- UTILITIES -------
 function formatDateDisplay(dateStr) {
   if (!dateStr) return "";
   const date = new Date(dateStr);
@@ -216,7 +210,6 @@ function getExpectedPayoutDate(checkOutDate) {
   return payoutDate.toLocaleDateString("en-US");
 }
 
-// ------- CONTACT MODAL / EMAILJS -------
 function getCleaningFee() {
   return currentOwner.cleaningFee ? Number(currentOwner.cleaningFee) : 0;
 }
@@ -229,6 +222,69 @@ function fillReservationDropdown() {
   reservationsData.forEach((res, i) => {
     select.innerHTML += `<option value="${i}">${res.confirmationCode || ""} (${res.platform || ""}, ${res.checkIn || ""} - ${res.checkOut || ""})</option>`;
   });
+}
+
+function mapGuestyReservation(r) {
+  return {
+    listingNickname: r["listing.nickname"] || r.listingNickname || r.listing?.nickname || "",
+    platform: r["integration.platform"] || r.platform || r.integration?.platform || "",
+    confirmationCode: r.confirmationCode || r.code || r["confirmationCode"] || "",
+    checkIn: r["checkInDate"] || r.checkIn || r.checkInDate || "",
+    checkOut: r["checkOutDate"] || r.checkOut || r.checkOutDate || "",
+    totalPayout: toNumber(
+      r["money.hostPayout"]?.value ||
+      r.hostPayout ||
+      r.totalPayout ||
+      0
+    ),
+    accommodationFare: toNumber(
+      r["money.fareAccommodation"]?.value ||
+      r.accommodationFare ||
+      r.fareAccommodation ||
+      0
+    )
+  };
+}
+
+function loadOwnerReport() {
+  if (!currentOwner || !currentOwner.guestyApiKey) {
+    console.error("No owner or API key configured");
+    reservationsData = [];
+    renderDashboardHeader();
+    renderSummaryBoxes();
+    renderReservationsTable();
+    return;
+  }
+
+  const apiKey = currentOwner.guestyApiKey;
+  const reportUrl = "https://report.guesty.com/api/shared-reservations-reports?timezone=America/New_York&skip=0&limit=1000";
+
+  fetch(reportUrl, {
+    headers: {
+      "accept": "*/*",
+      "authorization": apiKey,
+      "content-type": "application/json"
+    }
+  })
+    .then(r => {
+      if (!r.ok) throw new Error("Guesty fetch failed: " + r.status);
+      return r.json();
+    })
+    .then(payload => {
+      const rows = Array.isArray(payload) ? payload : (payload.results || payload.data || []);
+      reservationsData = rows.map(mapGuestyReservation);
+      console.log("Reservations loaded:", reservationsData.length);
+      renderDashboardHeader();
+      renderSummaryBoxes();
+      renderReservationsTable();
+    })
+    .catch(err => {
+      console.error("Error loading report:", err);
+      reservationsData = [];
+      renderDashboardHeader();
+      renderSummaryBoxes();
+      renderReservationsTable();
+    });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -348,48 +404,3 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 });
-
-// ------- INITIAL DATA LOAD -------
-function loadOwnerReport() {
-  if (!currentOwner || !currentOwner.guestyReportUrl) {
-    console.error("No owner or URL configured");
-    reservationsData = [];
-    renderDashboardHeader();
-    renderSummaryBoxes();
-    renderReservationsTable();
-    return;
-  }
-
-  fetch(currentOwner.guestyReportUrl)
-    .then(r => r.text())
-    .then(html => {
-      parseGuestyTable(html);
-      renderDashboardHeader();
-      renderSummaryBoxes();
-      renderReservationsTable();
-    })
-    .catch(err => {
-      console.error("Error loading report:", err);
-      reservationsData = [];
-      renderDashboardHeader();
-      renderSummaryBoxes();
-      renderReservationsTable();
-    });
-}
-
-function loadOwnerReport() {
-  if (!currentOwner || !currentOwner.guestyReportUrl) {
-    console.error("No owner or URL configured");
-    reservationsData = [];
-    renderDashboardHeader();
-    renderSummaryBoxes();
-    renderReservationsTable();
-    return;
-  }
-
-  console.log("Guesty shared report URL returns only app shell HTML, not reservation data.");
-  reservationsData = [];
-  renderDashboardHeader();
-  renderSummaryBoxes();
-  renderReservationsTable();
-}
