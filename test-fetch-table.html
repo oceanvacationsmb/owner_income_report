@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fetch Table Test</title>
+</head>
+<body>
+  <h1>Remote Table Fetch Test</h1>
+  <pre id="output"></pre>
+  <script>
+    // Fetch the remote static HTML page with your table
+    fetch('https://oceanvacationsmb.github.io/reports/index.html')
+      .then(response => response.text())
+      .then(html => {
+        // Parse the HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        // Find all rows from the first table
+        const table = doc.querySelector('table');
+        let output = '';
+        if (table) {
+          const rows = table.querySelectorAll('tr');
+          output += `Found table with ${rows.length} rows:\n\n`;
+          rows.forEach(row => {
+            // Collect and print each cell's text
+            const cells = Array.from(row.querySelectorAll('th,td')).map(cell => cell.innerText.trim());
+            output += cells.join(' | ') + '\n';
+            console.log(cells.join(' | '));
+          });
+        } else {
+          output = 'No table found in the remote HTML.';
+          console.log(output);
+        }
+        document.getElementById('output').textContent = output;
+      })
+      .catch(err => {
+        const errMsg = 'Fetch error: ' + err;
+        document.getElementById('output').textContent = errMsg;
+        console.error(errMsg);
+      });
+  </script>
+</body>
+</html>
