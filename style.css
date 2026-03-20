@@ -41,7 +41,6 @@ body {
   padding: 2rem 2.2rem;
 }
 
-/* SUMMARY HEADER FLEX */
 .owner-header-flex {
   display: flex;
   flex-wrap: wrap;
@@ -54,14 +53,12 @@ body {
   display: flex;
   flex-direction: column;
 }
-
 .owner-header-flex h2 {
   margin: 0 0 0.3rem 0;
   color: #123053;
   font-size: 2rem;
   font-weight: bold;
 }
-
 .property-address {
   font-size: 1.15rem;
   color: #37506a;
@@ -93,7 +90,6 @@ body {
   display: flex;
   align-items: center;
 }
-
 .request-btn:hover, .send-btn:hover {
   background: #264e6a;
 }
