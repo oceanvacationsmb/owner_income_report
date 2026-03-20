@@ -35,7 +35,8 @@ const OWNERS = {
     pmcPercent: 12,
     guestyApiKey: "1a58fc1af3815f9023a08e09c590a05f3f3d1c73dbc3ab2e19985ecfe0003aa87acc7e264983e31d5b10a98cf4fd9b4789de3cb864daf2031e42aae6266c92f5",
     cleaningFee: 250
-  }
+  },
+    
   "user@yahoo.com": {
     password: "1234",
     ownerName: "ZACK 2",
