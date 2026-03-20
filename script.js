@@ -19,14 +19,13 @@ const EMAILJS_USER_ID = "ti3155";
 const EMAILJS_SERVICE_ID = "service_06c56l2";
 const EMAILJS_TEMPLATE_ID = "template_91j57r4";
 
-// === INIT EMAILJS (safe check) ===
 (function () {
   if (typeof emailjs !== "undefined") {
     emailjs.init(EMAILJS_USER_ID);
   }
 })();
 
-// === HELPER: Deep Property Getter ===
+// --- FIELD PICKERS ---
 function pickDeep(obj, ...paths) {
   for (const path of paths) {
     if (!obj) continue;
@@ -41,7 +40,6 @@ function pickDeep(obj, ...paths) {
   return undefined;
 }
 
-// === GENERIC GETTERS ===
 function pickText(...args) {
   for (const v of args) {
     if (v == null) continue;
@@ -61,7 +59,6 @@ function pickText(...args) {
   }
   return "";
 }
-
 function pickNumber(...args) {
   for (const v of args) {
     if (v == null) continue;
@@ -86,7 +83,6 @@ function pickNumber(...args) {
   }
   return 0;
 }
-
 function pickDate(...args) {
   for (const v of args) {
     if (v == null) continue;
@@ -102,18 +98,16 @@ function pickDate(...args) {
   return "";
 }
 
-// === WEATHER DISPLAY ===
+// --- WEATHER ---
 function renderWeather(zip) {
   const apiKey = "301c3846b1ed5b804976f73bd010175a";
   const weatherBox = document.getElementById("weatherBox");
   if (!zip || !weatherBox) return;
   weatherBox.innerHTML = '<div class="weather-loading">Loading weather...</div>';
-
   fetch(`https://api.openweathermap.org/data/2.5/forecast?zip=${zip},US&appid=${apiKey}&units=imperial`)
     .then(res => res.json())
     .then(data => {
       if (!data.list || !data.city) throw new Error("Weather unavailable");
-
       const daily = {};
       data.list.forEach(item => {
         const day = item.dt_txt.split(" ")[0];
@@ -155,41 +149,10 @@ function renderWeather(zip) {
     });
 }
 
-// === SUMMARY VALUE FORMATTING ===
 function formatMoney(v) { return `$${Number(v || 0).toFixed(2)}`; }
 function toNumber(v) { return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0; }
 
-// === MIN DATES ON MODAL FORM ===
-function setDateFieldsMin() {
-  const now = new Date();
-  now.setDate(now.getDate() + 1);
-  const yyyy = now.getFullYear();
-  const mm = String(now.getMonth() + 1).padStart(2, "0");
-  const dd = String(now.getDate()).padStart(2, "0");
-  const minDate = `${yyyy}-${mm}-${dd}`;
-  const checkIn = document.getElementById("checkInDate");
-  const checkOut = document.getElementById("checkOutDate");
-  if (checkIn) checkIn.setAttribute("min", minDate);
-  if (checkOut) checkOut.setAttribute("min", minDate);
-}
-
-// === PAGE HEADER RENDER ===
-function getTimeBasedGreeting() {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
-}
-
-function renderDashboardHeader() {
-  const greeting = document.getElementById("greeting");
-  const propertyAddress = document.getElementById("propertyAddress");
-  if (greeting) greeting.innerText = `${getTimeBasedGreeting()} ${currentOwner.ownerName}`;
-  if (propertyAddress) propertyAddress.innerText = currentOwner.propertyName;
-  renderWeather(currentOwner.postalCode);
-}
-
-// === SUMMARY BOXES ===
+// === FORMULAS AND TABLES ===
 function renderSummaryBoxes() {
   const summaryBoxes = document.getElementById("summaryBoxes");
   if (!summaryBoxes) return;
@@ -222,7 +185,6 @@ function renderSummaryBoxes() {
   `;
 }
 
-// === RESERVATIONS TABLE ===
 function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
   if (!tbody) return;
@@ -255,7 +217,6 @@ function renderReservationsTable() {
   });
 }
 
-// === UTILITIES ===
 function formatDateDisplay(dateStr) {
   if (!dateStr) return "";
   const date = new Date(dateStr);
@@ -280,54 +241,34 @@ function fillReservationDropdown() {
   });
 }
 
-// === GUESTY RESERVATION MAPPING LOGIC WITH ACCOMMODATION FORMULA & STATUS ===
+// === MAPPING FUNCTION WITH DEBUG LOGS ===
 function mapGuestyReservation(r) {
-  // baseAccommodation
+  // Attempt to pull all possible field names and nests for base/markup/discount
   const baseAccommodation = pickNumber(
-    r["ACCOMMODATION FARE"], r["fareAccommodation"], r["money.fareAccommodation"],
-    r.accommodationFare, r.fareAccommodation, pickDeep(r, "money.fareAccommodation.value")
+    r["ACCOMMODATION FARE"], r["fareAccommodation"], r["money.fareAccommodation"], r.accommodationFare, r.fareAccommodation,
+    pickDeep(r,"money.fareAccommodation.value"), pickDeep(r,"fareAccommodation.value")
   );
-  // markup
   const markup = pickNumber(
     r.markupAmount, r.markup, r["MARKUP"], r["money.markup"],
-    pickDeep(r, "money.markup.value"), pickDeep(r, "markup.value")
+    pickDeep(r,"money.markup.value"), pickDeep(r,"markup.value")
   );
-  // lengthOfStayDiscount
   const lengthOfStayDiscount = pickNumber(
-    r.lengthOfStayDiscount, r.lengthOfStayDiscountAmount, r["LENGTH OF STAY DISCOUNT"],
-    r["money.lengthOfStayDiscount"], pickDeep(r, "money.lengthOfStayDiscount.value"),
-    pickDeep(r, "lengthOfStayDiscount.value")
+    r.lengthOfStayDiscount, r.lengthOfStayDiscountAmount, r["LENGTH OF STAY DISCOUNT"], r["money.lengthOfStayDiscount"],
+    pickDeep(r,"money.lengthOfStayDiscount.value"), pickDeep(r,"lengthOfStayDiscount.value")
   );
-  // accommodation net calculation
   const calculatedAccommodation = baseAccommodation - markup - lengthOfStayDiscount;
 
+  // Debug output
   return {
-    status: pickText(
-      r.status, r.reservationStatus, r["STATUS"], r["reservationStatus"]
-    ),
-    listingNickname: pickText(
-      r["LISTING'S NICKNAME"], r["listing.nickname"], r.listingNickname, r.listing?.nickname, r.listing
-    ),
-    platform: pickText(
-      r["PLATFORM"], r["integration.platform"], r.platform, r.integration?.platform, r.integration
-    ),
-    confirmationCode: pickText(
-      r["CONFIRMATION CODE"], r.confirmationCode, r.code, r.reservationCode
-    ),
-    checkIn: pickDate(
-      r["CHECK-IN DATE"], r.checkInDate, r.checkIn, r.startDate
-    ),
-    checkOut: pickDate(
-      r["CHECK-OUT DATE"], r.checkOutDate, r.checkOut, r.endDate
-    ),
-    totalPayout: pickNumber(
-      r["TOTAL PAYOUT"], r["money.hostPayout"], r.hostPayout, r.totalPayout
-    ),
+    status: pickText(r.status, r.reservationStatus, r["STATUS"], r["reservationStatus"]),
+    listingNickname: pickText(r["LISTING'S NICKNAME"], r["listing.nickname"], r.listingNickname, r.listing?.nickname, r.listing),
+    platform: pickText(r["PLATFORM"], r["integration.platform"], r.platform, r.integration?.platform, r.integration),
+    confirmationCode: pickText(r["CONFIRMATION CODE"], r.confirmationCode, r.code, r.reservationCode),
+    checkIn: pickDate(r["CHECK-IN DATE"], r.checkInDate, r.checkIn, r.startDate),
+    checkOut: pickDate(r["CHECK-OUT DATE"], r.checkOutDate, r.checkOut, r.endDate),
+    totalPayout: pickNumber(r["TOTAL PAYOUT"], r["money.hostPayout"], r.hostPayout, r.totalPayout),
     accommodationFare: calculatedAccommodation,
-    // Optionally, keep for debugging:
-    baseAccommodation,
-    markup,
-    lengthOfStayDiscount
+    baseAccommodation, markup, lengthOfStayDiscount
   };
 }
 
@@ -355,16 +296,24 @@ function loadOwnerReport() {
       return r.json();
     })
     .then(payload => {
-      const rows = Array.isArray(payload)
-        ? payload
-        : (payload.results || payload.data || []);
-      
-      // <<--- ADD THIS LINE HERE!
-      console.log("RAW reservation row example:", rows[0]);
-      
-      // ... you may now map/filter as before ...
+      const rows = Array.isArray(payload) ? payload : (payload.results || payload.data || []);
+      if (rows.length) {
+        console.log("RAW reservation row example:", rows[0]); // PASTE THIS ROW HERE IF STILL PROBLEMS
+      }
       const mappedRows = rows.map(mapGuestyReservation);
-      // etc.
+      if (mappedRows.length) {
+        console.log("Sample mapped row:", mappedRows[0]); // SEE THE VALUES FOUND!
+      }
+      reservationsData = mappedRows.filter(res => {
+        const status = String(res.status || '').toLowerCase();
+        return (
+          status !== 'cancel' && status !== 'cancelled' && status !== 'canceled' &&
+          toNumber(res.accommodationFare) > 0
+        );
+      });
+      renderDashboardHeader();
+      renderSummaryBoxes();
+      renderReservationsTable();
     })
     .catch(err => {
       console.error("Error loading report:", err);
@@ -375,11 +324,7 @@ function loadOwnerReport() {
     });
 }
 
-// === CONTACT MODAL & EMAILJS ETC (no change needed) ===
-// ... your modal + emailjs code goes here (unchanged) ...
-
-// === LOAD ON DOM READY ===
+// === DOM READY ===
 document.addEventListener("DOMContentLoaded", () => {
   loadOwnerReport();
-  // ...modal etc init as before...
 });
