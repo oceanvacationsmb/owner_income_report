@@ -269,6 +269,32 @@ function getTotalBookedNights() {
   return Object.keys(bookedMap).length;
 }
 
+function getTotalOwnerStayNights() {
+  const ownerMap = {};
+
+  ownerStaysData.forEach(stay => {
+    const start = parseLocalDate(stay.checkIn || stay.checkInDate);
+    const end = parseLocalDate(stay.checkOut || stay.checkOutDate);
+    if (!start || !end) return;
+
+    const current = new Date(start);
+    while (current < end) {
+      ownerMap[toDateKey(current)] = true;
+      current.setDate(current.getDate() + 1);
+    }
+  });
+
+  return Object.keys(ownerMap).length;
+}
+
+function renderNightTotals(targetEl) {
+  if (!targetEl) return;
+  targetEl.innerHTML = `
+    <div>Total Booked Nights: ${getTotalBookedNights()}</div>
+    <div style="margin-top:4px;">Total Owner Stay Nights: ${getTotalOwnerStayNights()}</div>
+  `;
+}
+
 function getCellStyleForDate(dayInfo) {
   if (!dayInfo) {
     return {
@@ -348,7 +374,7 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
     year: "numeric"
   });
 
-  nightsLabel.innerText = `Total Booked Nights: ${getTotalBookedNights()}`;
+  renderNightTotals(nightsLabel);
 
   grid.innerHTML = "";
 
@@ -460,7 +486,7 @@ function setupCalendarButtons() {
   }
 
   if (summary) {
-    summary.innerText = `Total Booked Nights: ${getTotalBookedNights()}`;
+    renderNightTotals(summary);
   }
 
   if (!calendarResizeBound) {
@@ -477,13 +503,13 @@ function refreshCalendarUI() {
   const nightsLabel = document.getElementById("calendarBookedNights");
 
   if (summary) {
-    summary.innerText = `Total Booked Nights: ${getTotalBookedNights()}`;
+    renderNightTotals(summary);
   }
 
   if (panel && panel.style.display !== "none") {
     renderCalendar("calendarGrid", "calendarMonthLabel", "calendarBookedNights", calendarCurrentDate, false);
   } else if (nightsLabel) {
-    nightsLabel.innerText = `Total Booked Nights: ${getTotalBookedNights()}`;
+    renderNightTotals(nightsLabel);
   }
 }
 
