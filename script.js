@@ -201,19 +201,26 @@ function toDateKey(dateObj) {
 
 function getAllCalendarBlocks() {
   const reservationBlocks = reservationsData.map(reservation => {
-    const sourceText = String(reservation.source || reservation.platform || "").toUpperCase();
+    const platformText = String(reservation.platform || "").trim();
+    const sourceText = String(reservation.source || platformText || "").toUpperCase();
     const isVrbo = sourceText.includes("VRBO") || sourceText.includes("MANUAL_VRBO");
+    const platformLabel = isVrbo
+      ? "VRBO"
+      : String(platformText || reservation.source || "BOOKED").trim().toUpperCase();
+
     return {
       checkIn: reservation.checkIn,
       checkOut: reservation.checkOut,
-      type: isVrbo ? "vrbo" : "reservation"
+      type: isVrbo ? "vrbo" : "reservation",
+      platformLabel
     };
   });
 
   const ownerBlocks = ownerStaysData.map(stay => ({
     checkIn: stay.checkIn || stay.checkInDate,
     checkOut: stay.checkOut || stay.checkOutDate,
-    type: "owner"
+    type: "owner",
+    platformLabel: "OWNER"
   }));
 
   return reservationBlocks.concat(ownerBlocks);
@@ -231,9 +238,12 @@ function getReservedDateMap() {
     while (current < end) {
       const key = toDateKey(current);
       if (!reservedMap[key]) {
-        reservedMap[key] = { reservation: false, vrbo: false, owner: false };
+        reservedMap[key] = { reservation: false, vrbo: false, owner: false, platforms: {} };
       }
       reservedMap[key][block.type] = true;
+      if (block.platformLabel) {
+        reservedMap[key].platforms[block.platformLabel] = true;
+      }
       current.setDate(current.getDate() + 1);
     }
   });
@@ -274,8 +284,33 @@ function getCellStyleForDate(dayInfo) {
   return {
     background: "#dcecff",
     border: "2px solid #2f78b7",
-    badge: "BOOKED"
+    badge: getPlatformLabelForDay(dayInfo)
   };
+}
+
+function getPlatformLabelForDay(dayInfo) {
+  if (!dayInfo) return "";
+
+  const platformLabels = Object.keys(dayInfo.platforms || {}).filter(label => label !== "OWNER");
+  const nonVrboLabels = platformLabels.filter(label => label !== "VRBO");
+
+  if (dayInfo.owner) return "OWNER";
+  if (dayInfo.vrbo && !dayInfo.reservation) return "VRBO";
+  if (nonVrboLabels.length === 1 && !dayInfo.vrbo) return nonVrboLabels[0];
+  if (nonVrboLabels.length === 1 && dayInfo.vrbo) return nonVrboLabels[0];
+  if (platformLabels.length === 1) return platformLabels[0];
+  if (platformLabels.length > 1) return "MULTI";
+  if (dayInfo.vrbo) return "VRBO";
+  return "BOOKED";
+}
+
+function getCompactBadgeText(badgeText) {
+  if (!badgeText) return "";
+  const upper = String(badgeText).toUpperCase();
+  if (upper === "OWNER") return "O";
+  if (upper === "VRBO") return "V";
+  if (upper === "MULTI") return "M";
+  return upper.substring(0, 1);
 }
 
 function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
@@ -290,11 +325,6 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
   const smallCellMinHeight = isCompact ? "40px" : "50px";
   const smallDayFont = isCompact ? "11px" : "12px";
   const smallBadgeFont = isCompact ? "8px" : "9px";
-  const compactBadgeMap = {
-    BOOKED: "B",
-    VRBO: "V",
-    OWNER: "O"
-  };
 
   const reservedMap = getReservedDateMap();
   const year = currentMonthDate.getFullYear();
@@ -345,7 +375,7 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
     const dateKey = toDateKey(currentDate);
     const dayInfo = reservedMap[dateKey];
     const cellStyle = getCellStyleForDate(dayInfo);
-    const badgeText = dayInfo ? (isCompact ? compactBadgeMap[cellStyle.badge] : cellStyle.badge) : "";
+    const badgeText = dayInfo ? (isCompact ? getCompactBadgeText(cellStyle.badge) : cellStyle.badge) : "";
 
     grid.innerHTML += `
       <div style="
