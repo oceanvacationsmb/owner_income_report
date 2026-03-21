@@ -1,56 +1,46 @@
 let currentOwner = null;
+let currentSessionToken = "";
+const API_BASE = "http://localhost:3001/api";
 
-document.getElementById("loginBtn").onclick = function() {
+document.getElementById("loginBtn").onclick = async function() {
   const email = (document.getElementById("ownerEmail").value || "").trim().toLowerCase();
   const pw = (document.getElementById("ownerPassword").value || "");
   const loginStatus = document.getElementById("loginStatus");
 
-  if (!OWNERS[email]) {
-    loginStatus.innerText = "Email not found.";
-    return;
-  }
-  if (OWNERS[email].password !== pw) {
-    loginStatus.innerText = "Password incorrect.";
+  if (!email || !pw) {
+    loginStatus.innerText = "Enter email and password.";
     return;
   }
 
-  currentOwner = OWNERS[email];
-  document.getElementById("loginBox").style.display = "none";
-  document.getElementById("ownerPortal").style.display = "";
-  loginStatus.innerText = "";
+  loginStatus.innerText = "Signing in...";
 
-  loadOwnerReport();
-};
+  try {
+    const response = await fetch(`${API_BASE}/login`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({ email, password: pw })
+    });
 
-// === OWNER CONFIGURATION ===
-const OWNERS = {
-  "1463@yahoo.com": {
-    password: "1234",
-    ownerName: "Nicole",
-    propertyName: "1463 Basin Trail, Murrells Inlet, SC 29576",
-    postalCode: "29576",
-    pmcPercent: 12,
-    guestyApiKey: "1a58fc1af3815f9023a08e09c590a05f3f3d1c73dbc3ab2e19985ecfe0003aa87acc7e264983e31d5b10a98cf4fd9b4789de3cb864daf2031e42aae6266c92f5",
-    cleaningFee: 250
-  },
-  "11315@yahoo.com": {
-    password: "1234",
-    ownerName: "Matt",
-    propertyName: "113B 15th Avenue South, Surfside Beach SC 29575",
-    postalCode: "29575",
-    pmcPercent: 12,
-    guestyApiKey: "bbbab438244300805daaf5485d3b516cbeee616fba7e640fc3b80d0b648c01d13e3f70a2bde2abaf9deb3b661aabf1c17453fd4e6d799f380cfd059df66cf01e",
-    cleaningFee: 350
-  },
-  "11313@yahoo.com": {
-    password: "1234",
-    ownerName: "Carl",
-    propertyName: "113B 13th Ave North. Surfside Beach SC 29575",
-    postalCode: "29575",
-    pmcPercent: 12,
-    guestyApiKey: "d6ab951850fef54399e2206f36f4e79fb1b425a8e5c891076036b11f50da8870613a226021487307c8c5f51eae997a08dd7e112d013ef683728ad1d9220ee0b7",
-    cleaningFee: 350
-  },
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      loginStatus.innerText = data?.message || "Login failed.";
+      return;
+    }
+
+    currentOwner = data.owner;
+    currentSessionToken = data.token || "";
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("ownerPortal").style.display = "";
+    loginStatus.innerText = "";
+
+    loadOwnerReport();
+  } catch (err) {
+    console.error("Login error", err);
+    loginStatus.innerText = "Unable to reach secure login service.";
+  }
 };
 
 let reservationsData = [];
@@ -886,8 +876,8 @@ function loadOwnerReport() {
   setupCalendarButtons();
   refreshCalendarUI();
 
-  if (!currentOwner || !currentOwner.guestyApiKey) {
-    console.error("No owner or API key configured");
+  if (!currentOwner || !currentOwner.email) {
+    console.error("No authenticated owner configured");
     reservationsData = [];
     renderDashboardHeader();
     renderSummaryBoxes();
@@ -897,17 +887,13 @@ function loadOwnerReport() {
     return;
   }
 
-  const reportUrl = "https://report.guesty.com/api/shared-reservations-reports?timezone=America/New_York&skip=0&limit=1000";
-
-  fetch(reportUrl, {
+  fetch(`${API_BASE}/reservations?email=${encodeURIComponent(currentOwner.email)}`, {
     headers: {
-      accept: "*/*",
-      authorization: currentOwner.guestyApiKey,
-      "content-type": "application/json"
+      authorization: `Bearer ${currentSessionToken}`
     }
   })
     .then(r => {
-      if (!r.ok) throw new Error("Guesty fetch failed: " + r.status);
+      if (!r.ok) throw new Error("Secure reservations fetch failed: " + r.status);
       return r.json();
     })
     .then(payload => {

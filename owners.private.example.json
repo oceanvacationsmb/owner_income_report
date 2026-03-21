@@ -1,0 +1,11 @@
+{
+  "owner@email.com": {
+    "password": "replace-with-strong-password",
+    "ownerName": "Owner Name",
+    "propertyName": "123 Main St, City ST 00000",
+    "postalCode": "00000",
+    "pmcPercent": 12,
+    "guestyApiKey": "replace-with-guesty-api-key",
+    "cleaningFee": 350
+  }
+}
