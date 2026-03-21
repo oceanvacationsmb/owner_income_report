@@ -310,9 +310,10 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
 }
 
 function setupCalendarButtons() {
-  const prevBtn = document.getElementById("calendarPrevBtn");
-  const nextBtn = document.getElementById("calendarNextBtn");
-  const expandBtn = document.getElementById("calendarExpandBtn");
+const prevBtn = null;
+const nextBtn = null;
+const expandBtn = document.getElementById("showCalendarBtn");
+const topCalendarBox = document.getElementById("topCalendarBox");
 
   const modalPrevBtn = document.getElementById("calendarModalPrevBtn");
   const modalNextBtn = document.getElementById("calendarModalNextBtn");
@@ -334,15 +335,19 @@ function setupCalendarButtons() {
     };
   }
 
-  if (expandBtn && !expandBtn.dataset.bound) {
-    expandBtn.dataset.bound = "1";
-    prevBtn.onclick = function () {
-      const modal = document.getElementById("calendarModal");
-      calendarModalCurrentDate = new Date(calendarCurrentDate);
-      if (modal) modal.style.display = "flex";
-      renderCalendar("calendarModalGrid", "calendarModalMonthLabel", "calendarModalBookedNights", calendarModalCurrentDate, true);
-    };
-  }
+  function openCalendarModal() {
+  const modal = document.getElementById("calendarModal");
+  calendarModalCurrentDate = new Date(calendarCurrentDate);
+  if (modal) modal.style.display = "flex";
+  renderCalendar("calendarModalGrid", "calendarModalMonthLabel", "calendarModalBookedNights", calendarModalCurrentDate, true);
+}
+
+if (expandBtn && !expandBtn.dataset.bound) {
+  expandBtn.dataset.bound = "1";
+  expandBtn.onclick = function () {
+    openCalendarModal();
+  };
+}
 
   if (modalPrevBtn && !modalPrevBtn.dataset.bound) {
     modalPrevBtn.dataset.bound = "1";
