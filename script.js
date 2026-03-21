@@ -415,7 +415,7 @@ function renderReservationsTable() {
     const ownerTable = document.createElement("div");
     ownerTable.id = "ownerStaysTable";
     ownerTable.innerHTML = `
-      <h3 class="section-title" style="margin-top:40px;">Upcoming Owner Stays</h3>
+      <h3 class="section-title" style="margin-top:40px; text-align:center;">Upcoming Owner Stays</h3>
       <div class="table-wrap">
         <table>
           <thead>
@@ -468,7 +468,10 @@ function renderReservationsTable() {
     const vrboManualTable = document.createElement("div");
     vrboManualTable.id = "vrboManualTable";
     vrboManualTable.innerHTML = `
-  <h3 class="section-title" style="margin-top:40px;">Booking Channel Paid To Owner Bank Account</h3>
+  <div style="margin-top:40px; text-align:center;">
+  <h3 class="section-title" style="margin:0;">Booking Channel Paid To Owner Bank Account</h3>
+  <div style="font-size:14px; margin-top:6px;">(channel will process 3-5 business days after check-in)</div>
+</div>
   <div class="table-wrap">
     <table>
       <thead>
