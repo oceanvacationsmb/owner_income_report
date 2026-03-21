@@ -518,17 +518,23 @@ function renderSummaryBoxes() {
   if (!summaryBoxes) return;
 
   let totalAccommodation = 0;
-  let totalPMC = 0;
-  let totalOwnerPayout = 0;
+let totalPMC = 0;
+let totalOwnerPayout = 0;
 
-  reservationsData.forEach(reservation => {
-    const accommodation = toNumber(reservation.accommodationFare);
-    const pmc = accommodation * (currentOwner.pmcPercent / 100);
-    const ownerPayout = accommodation - pmc;
-    totalAccommodation += accommodation;
-    totalPMC += pmc;
-    totalOwnerPayout += ownerPayout;
-  });
+reservationsData.forEach(reservation => {
+  const accommodation = toNumber(reservation.accommodationFare);
+  const pmc = accommodation * (currentOwner.pmcPercent / 100);
+  const ownerPayout = accommodation - pmc;
+  totalAccommodation += accommodation;
+  totalPMC += pmc;
+  totalOwnerPayout += ownerPayout;
+});
+
+const vrboAccommodationTotal = reservationsData
+  .filter(res => String(res.source || "").toUpperCase() === "MANUAL_VRBO")
+  .reduce((sum, res) => sum + toNumber(res.accommodationFare), 0);
+
+totalAccommodation += vrboAccommodationTotal;
 
   summaryBoxes.innerHTML = `
     <div class="summary-box">
