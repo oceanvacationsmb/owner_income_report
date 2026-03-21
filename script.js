@@ -703,69 +703,22 @@ function renderReservationsTable() {
     oldVrboManualTable.parentNode.removeChild(oldVrboManualTable);
   }
 
-  if (ownerStaysData.length) {
-    const tableWraps = document.getElementsByClassName("table-wrap");
-    let container = null;
-
-    if (tableWraps.length > 0) {
-      container = tableWraps[0].parentNode;
-    } else {
-      container = document.body;
-    }
-
-    const ownerTable = document.createElement("div");
-    ownerTable.id = "ownerStaysTable";
-    ownerTable.innerHTML = `
-      <h3 class="section-title" style="margin-top:40px; text-align:center;">Upcoming Owner Stays</h3>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="text-align:center;">Check-In</th>
-              <th style="text-align:center;">Check-Out</th>
-              <th style="text-align:center;">Cleaning Fee</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${ownerStaysData.map(res => `
-              <tr>
-                <td style="text-align:center;">${formatDateDisplay(res.checkIn || res.checkInDate || "")}</td>
-                <td style="text-align:center;">${formatDateDisplay(res.checkOut || res.checkOutDate || "")}</td>
-                <td style="text-align:center;">${formatMoney(getCleaningFee())}</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      </div>
-    `;
-
-    if (tableWraps.length > 0 && tableWraps[0].parentNode) {
-      if (tableWraps[0].nextSibling) {
-        container.insertBefore(ownerTable, tableWraps[0].nextSibling);
-      } else {
-        container.appendChild(ownerTable);
-      }
-    } else {
-      container.appendChild(ownerTable);
-    }
-  }
-
   const vrboManualRows = reservationsData.filter(res => {
     const source = String(res.source || "").toUpperCase();
     const payout = toNumber(res.totalPayout);
     return source === "MANUAL_VRBO" && payout > 0;
   });
 
+  const tableWraps = document.getElementsByClassName("table-wrap");
+  let container = null;
+
+  if (tableWraps.length > 0) {
+    container = tableWraps[0].parentNode;
+  } else {
+    container = document.body;
+  }
+
   if (vrboManualRows.length) {
-    const tableWraps = document.getElementsByClassName("table-wrap");
-    let container = null;
-
-    if (tableWraps.length > 0) {
-      container = tableWraps[0].parentNode;
-    } else {
-      container = document.body;
-    }
-
     const vrboManualTable = document.createElement("div");
     vrboManualTable.id = "vrboManualTable";
     vrboManualTable.innerHTML = `
@@ -817,6 +770,36 @@ function renderReservationsTable() {
     `;
 
     container.appendChild(vrboManualTable);
+  }
+
+  if (ownerStaysData.length) {
+    const ownerTable = document.createElement("div");
+    ownerTable.id = "ownerStaysTable";
+    ownerTable.innerHTML = `
+      <h3 class="section-title" style="margin-top:40px; text-align:center;">Upcoming Owner Stays</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align:center;">Check-In</th>
+              <th style="text-align:center;">Check-Out</th>
+              <th style="text-align:center;">Cleaning Fee</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${ownerStaysData.map(res => `
+              <tr>
+                <td style="text-align:center;">${formatDateDisplay(res.checkIn || res.checkInDate || "")}</td>
+                <td style="text-align:center;">${formatDateDisplay(res.checkOut || res.checkOutDate || "")}</td>
+                <td style="text-align:center;">${formatMoney(getCleaningFee())}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    container.appendChild(ownerTable);
   }
 }
 
