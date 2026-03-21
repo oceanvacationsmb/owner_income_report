@@ -55,6 +55,8 @@ const OWNERS = {
 
 let reservationsData = [];
 let ownerStaysData = [];
+let calendarCurrentDate = new Date();
+let calendarModalCurrentDate = new Date();
 
 // === EMAILJS CONFIGURATION ===
 const EMAILJS_USER_ID = "ti3155";
@@ -177,6 +179,182 @@ function getCleaningFee() {
   return Math.round(diffMs / (1000 * 60 * 60 * 24));
 }
   return currentOwner.cleaningFee ? Number(currentOwner.cleaningFee) : 0;
+}
+
+function parseLocalDate(dateStr) {
+  if (!dateStr) return null;
+  const parts = String(dateStr).split("-");
+  if (parts.length !== 3) return null;
+  const year = Number(parts[0]);
+  const month = Number(parts[1]) - 1;
+  const day = Number(parts[2]);
+  const d = new Date(year, month, day);
+  return isNaN(d) ? null : d;
+}
+
+function toDateKey(dateObj) {
+  const y = dateObj.getFullYear();
+  const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const d = String(dateObj.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function getReservedDateMap() {
+  const reservedMap = {};
+
+  reservationsData.forEach(reservation => {
+    const start = parseLocalDate(reservation.checkIn);
+    const end = parseLocalDate(reservation.checkOut);
+    if (!start || !end) return;
+
+    const current = new Date(start);
+    while (current < end) {
+      reservedMap[toDateKey(current)] = true;
+      current.setDate(current.getDate() + 1);
+    }
+  });
+
+  return reservedMap;
+}
+
+function getTotalBookedNights() {
+  return reservationsData.reduce((sum, reservation) => {
+    return sum + toNumber(reservation.numberOfNights);
+  }, 0);
+}
+
+function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
+  const grid = document.getElementById(gridId);
+  const monthLabel = document.getElementById(labelId);
+  const nightsLabel = document.getElementById(nightsId);
+  if (!grid || !monthLabel || !nightsLabel) return;
+
+  const reservedMap = getReservedDateMap();
+  const year = currentMonthDate.getFullYear();
+  const month = currentMonthDate.getMonth();
+
+  monthLabel.innerText = new Date(year, month, 1).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric"
+  });
+
+  nightsLabel.innerText = `Total Booked Nights: ${getTotalBookedNights()}`;
+
+  grid.innerHTML = "";
+
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  dayNames.forEach(day => {
+    grid.innerHTML += `
+      <div style="text-align:center; font-weight:700; padding:6px 0;">
+        ${day}
+      </div>
+    `;
+  });
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const startOffset = firstDay.getDay();
+  const totalDays = lastDay.getDate();
+  const prevMonthLastDay = new Date(year, month, 0).getDate();
+
+  for (let i = 0; i < startOffset; i++) {
+    const dayNum = prevMonthLastDay - startOffset + i + 1;
+    grid.innerHTML += `
+      <div style="min-height:${isLarge ? "90px" : "62px"}; opacity:.35; background:#fff; border-radius:10px; padding:6px; border:1px solid #d9e6f2;">
+        <div style="font-weight:700;">${dayNum}</div>
+      </div>
+    `;
+  }
+
+  for (let day = 1; day <= totalDays; day++) {
+    const currentDate = new Date(year, month, day);
+    const dateKey = toDateKey(currentDate);
+    const isReserved = !!reservedMap[dateKey];
+
+    grid.innerHTML += `
+      <div style="
+        min-height:${isLarge ? "90px" : "62px"};
+        background:${isReserved ? "#dcecff" : "#fff"};
+        border-radius:10px;
+        padding:6px;
+        border:${isReserved ? "2px solid #2f78b7" : "1px solid #d9e6f2"};
+      ">
+        <div style="font-weight:700;">${day}</div>
+        ${isReserved ? `<div style="margin-top:6px; font-size:${isLarge ? "12px" : "10px"}; font-weight:700; color:#2f78b7;">RESERVED</div>` : ``}
+      </div>
+    `;
+  }
+
+  const totalCellsUsed = startOffset + totalDays;
+  const endFill = (7 - (totalCellsUsed % 7)) % 7;
+
+  for (let i = 1; i <= endFill; i++) {
+    grid.innerHTML += `
+      <div style="min-height:${isLarge ? "90px" : "62px"}; opacity:.35; background:#fff; border-radius:10px; padding:6px; border:1px solid #d9e6f2;">
+        <div style="font-weight:700;">${i}</div>
+      </div>
+    `;
+  }
+}
+
+function setupCalendarButtons() {
+  const prevBtn = document.getElementById("calendarPrevBtn");
+  const nextBtn = document.getElementById("calendarNextBtn");
+  const expandBtn = document.getElementById("calendarExpandBtn");
+
+  const modalPrevBtn = document.getElementById("calendarModalPrevBtn");
+  const modalNextBtn = document.getElementById("calendarModalNextBtn");
+  const modalCloseBtn = document.getElementById("calendarModalCloseBtn");
+
+  if (prevBtn && !prevBtn.dataset.bound) {
+    prevBtn.dataset.bound = "1";
+    prevBtn.onclick = function () {
+      calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() - 1);
+      renderCalendar("calendarGrid", "calendarMonthLabel", "calendarBookedNights", calendarCurrentDate, false);
+    };
+  }
+
+  if (nextBtn && !nextBtn.dataset.bound) {
+    nextBtn.dataset.bound = "1";
+    nextBtn.onclick = function () {
+      calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + 1);
+      renderCalendar("calendarGrid", "calendarMonthLabel", "calendarBookedNights", calendarCurrentDate, false);
+    };
+  }
+
+  if (expandBtn && !expandBtn.dataset.bound) {
+    expandBtn.dataset.bound = "1";
+    expandBtn.onclick = function () {
+      const modal = document.getElementById("calendarModal");
+      calendarModalCurrentDate = new Date(calendarCurrentDate);
+      if (modal) modal.style.display = "flex";
+      renderCalendar("calendarModalGrid", "calendarModalMonthLabel", "calendarModalBookedNights", calendarModalCurrentDate, true);
+    };
+  }
+
+  if (modalPrevBtn && !modalPrevBtn.dataset.bound) {
+    modalPrevBtn.dataset.bound = "1";
+    modalPrevBtn.onclick = function () {
+      calendarModalCurrentDate.setMonth(calendarModalCurrentDate.getMonth() - 1);
+      renderCalendar("calendarModalGrid", "calendarModalMonthLabel", "calendarModalBookedNights", calendarModalCurrentDate, true);
+    };
+  }
+
+  if (modalNextBtn && !modalNextBtn.dataset.bound) {
+    modalNextBtn.dataset.bound = "1";
+    modalNextBtn.onclick = function () {
+      calendarModalCurrentDate.setMonth(calendarModalCurrentDate.getMonth() + 1);
+      renderCalendar("calendarModalGrid", "calendarModalMonthLabel", "calendarModalBookedNights", calendarModalCurrentDate, true);
+    };
+  }
+
+  if (modalCloseBtn && !modalCloseBtn.dataset.bound) {
+    modalCloseBtn.dataset.bound = "1";
+    modalCloseBtn.onclick = function () {
+      const modal = document.getElementById("calendarModal");
+      if (modal) modal.style.display = "none";
+    };
+  }
 }
 
 // === DASHBOARD + WEATHER ===
@@ -548,8 +726,10 @@ function loadOwnerReport() {
     console.error("No owner or API key configured");
     reservationsData = [];
     renderDashboardHeader();
-    renderSummaryBoxes();
-    renderReservationsTable();
+renderSummaryBoxes();
+renderReservationsTable();
+setupCalendarButtons();
+renderCalendar("calendarGrid", "calendarMonthLabel", "calendarBookedNights", calendarCurrentDate, false);
     return;
   }
 
@@ -588,15 +768,19 @@ function loadOwnerReport() {
       });
 
       renderDashboardHeader();
-      renderSummaryBoxes();
-      renderReservationsTable();
+renderSummaryBoxes();
+renderReservationsTable();
+setupCalendarButtons();
+renderCalendar("calendarGrid", "calendarMonthLabel", "calendarBookedNights", calendarCurrentDate, false);
     })
     .catch(err => {
       console.error("Error loading report:", err);
       reservationsData = [];
       renderDashboardHeader();
-      renderSummaryBoxes();
-      renderReservationsTable();
+renderSummaryBoxes();
+renderReservationsTable();
+setupCalendarButtons();
+renderCalendar("calendarGrid", "calendarMonthLabel", "calendarBookedNights", calendarCurrentDate, false);
     });
 }
 
