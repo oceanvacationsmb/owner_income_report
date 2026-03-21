@@ -287,7 +287,13 @@ function mapGuestyReservation(r) {
     r.hostPayout,
     r.totalPayout
   );
-
+const numberOfNightsValue = pickNumber(
+  r["numberOfNights"]?.children,
+  r.numberOfNights?.children,
+  r["numberOfNights"]?.value,
+  r.numberOfNights?.value,
+  r.numberOfNights
+);
   const cleaningFareValue = pickNumber(
     r["money.fareCleaning"]?.value,
     r.money?.fareCleaning?.value,
@@ -303,6 +309,7 @@ function mapGuestyReservation(r) {
     confirmationCode: (pickText(r["confirmationCode"], r.code, r.reservationCode) || "").toUpperCase(),
     checkIn: r["checkInDate"]?.value || "",
     checkOut: r["checkOutDate"]?.value || "",
+    numberOfNights: numberOfNightsValue,
     totalPayout: totalPayoutValue,
     cleaningFare: cleaningFareValue,
     accommodationFare: calculatedAccommodation,
@@ -379,26 +386,26 @@ function renderReservationsTable() {
     `;
   } else {
     reservationsData.forEach(reservation => {
-      const accommodation = toNumber(reservation.accommodationFare);
-      const pmc = accommodation * (currentOwner.pmcPercent / 100);
-      const ownerPayout = accommodation - pmc;
-      const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
-      const nights = getNightCount(reservation.checkIn, reservation.checkOut);
+  const accommodation = toNumber(reservation.accommodationFare);
+  const pmc = accommodation * (currentOwner.pmcPercent / 100);
+  const ownerPayout = accommodation - pmc;
+  const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
+  const nights = toNumber(reservation.numberOfNights);
 
-      tbody.innerHTML += `
-  <tr>
-    <td>${reservation.confirmationCode || ""}</td>
-    <td style="text-align:center;">${reservation.platform || ""}</td>
-    <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
-    <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
-    <td style="text-align:center;">${nights}</td>
-    <td style="text-align:center;">${nights}</td>
-    <td style="text-align:center;">${formatMoney(pmc)}</td>
-    <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
-    <td style="text-align:center;">${expectedPayoutDate}</td>
-  </tr>
-`;
-    });
+  tbody.innerHTML += `
+    <tr>
+      <td>${reservation.confirmationCode || ""}</td>
+      <td style="text-align:center;">${reservation.platform || ""}</td>
+      <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
+      <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
+      <td style="text-align:center;">${nights}</td>
+      <td style="text-align:center;">${formatMoney(accommodation)}</td>
+      <td style="text-align:center;">${formatMoney(pmc)}</td>
+      <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
+      <td style="text-align:center;">${expectedPayoutDate}</td>
+    </tr>
+  `;
+});
   }
 
   let oldOwnerTable = document.getElementById("ownerStaysTable");
