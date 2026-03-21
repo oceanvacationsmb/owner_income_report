@@ -100,6 +100,7 @@ function pickText(...args) {
   }
   return "";
 }
+
 function pickNumber(...args) {
   for (const v of args) {
     if (v == null) continue;
@@ -124,6 +125,7 @@ function pickNumber(...args) {
   }
   return 0;
 }
+
 function pickDate(...args) {
   for (const v of args) {
     if (v == null) continue;
@@ -138,20 +140,24 @@ function pickDate(...args) {
   }
   return "";
 }
+
 function formatMoney(v) {
-  return `$${Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `$${Number(v || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
-function toNumber(v) { return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0; }
+
+function toNumber(v) {
+  return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0;
+}
+
 function formatDateDisplay(dateStr) {
   if (!dateStr) return "";
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    // If it's 'YYYY-MM-DD' (typical from your source), just reformat with no date parsing
     const [yyyy, mm, dd] = dateStr.split("-");
     return `${mm}/${dd}/${yyyy}`;
   }
-  // Otherwise fallback to original method (for odd cases)
   return dateStr;
 }
+
 function getExpectedPayoutDate(checkOutDate) {
   const d = new Date(checkOutDate);
   if (isNaN(d)) return "";
@@ -161,6 +167,7 @@ function getExpectedPayoutDate(checkOutDate) {
   const yyyy = payoutDate.getFullYear();
   return `${mm}/${dd}/${yyyy}`;
 }
+
 function getCleaningFee() {
   return currentOwner.cleaningFee ? Number(currentOwner.cleaningFee) : 0;
 }
@@ -172,6 +179,7 @@ function getTimeBasedGreeting() {
   if (hour < 18) return "Good afternoon";
   return "Good evening";
 }
+
 function renderDashboardHeader() {
   const greeting = document.getElementById("greeting");
   const propertyAddress = document.getElementById("propertyAddress");
@@ -179,15 +187,19 @@ function renderDashboardHeader() {
   if (propertyAddress) propertyAddress.innerText = currentOwner.propertyName;
   renderWeather(currentOwner.postalCode);
 }
+
 function renderWeather(zip) {
   const apiKey = "301c3846b1ed5b804976f73bd010175a";
   const weatherBox = document.getElementById("weatherBox");
   if (!zip || !weatherBox) return;
+
   weatherBox.innerHTML = '<div class="weather-loading">Loading weather...</div>';
+
   fetch(`https://api.openweathermap.org/data/2.5/forecast?zip=${zip},US&appid=${apiKey}&units=imperial`)
     .then(res => res.json())
     .then(data => {
       if (!data.list || !data.city) throw new Error("Weather unavailable");
+
       const daily = {};
       data.list.forEach(item => {
         const day = item.dt_txt.split(" ")[0];
@@ -196,10 +208,19 @@ function renderWeather(zip) {
           daily[day] = item;
         }
       });
-      const today = new Date(); today.setHours(0, 0, 0, 0);
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
       const forecast = Object.keys(daily)
-        .filter(day => { const d = new Date(day); d.setHours(0, 0, 0, 0); return d >= today; })
-        .slice(0, 5).map(day => daily[day]);
+        .filter(day => {
+          const d = new Date(day);
+          d.setHours(0, 0, 0, 0);
+          return d >= today;
+        })
+        .slice(0, 5)
+        .map(day => daily[day]);
+
       let html = '<div class="weather-forecast">';
       forecast.forEach(day => {
         const dateObj = new Date(day.dt_txt);
@@ -215,7 +236,9 @@ function renderWeather(zip) {
       html += "</div>";
       weatherBox.innerHTML = html;
     })
-    .catch(() => { weatherBox.innerHTML = `<div class="weather-box">Weather unavailable</div>`; });
+    .catch(() => {
+      weatherBox.innerHTML = `<div class="weather-box">Weather unavailable</div>`;
+    });
 }
 
 // === MODAL FORM ===
@@ -233,31 +256,40 @@ function setDateFieldsMin() {
 }
 
 function mapGuestyReservation(r) {
-  // 1. Get base accommodation fare
   const baseAccommodation = pickNumber(r["money.fareAccommodation"]?.value);
 
-  // 2. Get markup (as a number, default 0)
   const markup = pickNumber(
     r["money.invoiceItems.MAR"]?.value
   );
 
-  // 3. Get length of stay discount (replace/expand the field as needed)
-  // Placeholder: set to 0 unless you confirm the correct field
   const lengthOfStayDiscount = 0;
-  // EXAMPLE if it's available as "money.invoiceItems.LSD.value", otherwise leave as 0:
-  // const lengthOfStayDiscount = pickNumber(r["money.invoiceItems.LSD"]?.value);
 
-  // 4. Final calculation
   const calculatedAccommodation = baseAccommodation - markup + lengthOfStayDiscount;
+
+  const sourceValue = pickText(
+    r.source,
+    r["source"],
+    r["integration.source"],
+    r.integration?.source,
+    r.channel,
+    r["channel"]
+  );
+
+  const totalPayoutValue = pickNumber(
+    r["money.hostPayout"]?.value,
+    r.hostPayout,
+    r.totalPayout
+  );
 
   return {
     status: pickText(r.status, r.reservationStatus, r["STATUS"], r["reservationStatus"]),
     listingNickname: pickText(r["listing.nickname"], r.listingNickname, r.listing?.nickname, r.listing),
     platform: pickText(r["integration.platform"], r.platform, r.integration?.platform, r.integration),
+    source: sourceValue,
     confirmationCode: (pickText(r["confirmationCode"], r.code, r.reservationCode) || "").toUpperCase(),
     checkIn: r["checkInDate"]?.value || "",
     checkOut: r["checkOutDate"]?.value || "",
-    totalPayout: pickNumber(r["money.hostPayout"]?.value, r.hostPayout, r.totalPayout),
+    totalPayout: totalPayoutValue,
     accommodationFare: calculatedAccommodation,
     baseAccommodation,
     markup,
@@ -270,7 +302,11 @@ function mapGuestyReservation(r) {
 function renderSummaryBoxes() {
   const summaryBoxes = document.getElementById("summaryBoxes");
   if (!summaryBoxes) return;
-  let totalAccommodation = 0, totalPMC = 0, totalOwnerPayout = 0;
+
+  let totalAccommodation = 0;
+  let totalPMC = 0;
+  let totalOwnerPayout = 0;
+
   reservationsData.forEach(reservation => {
     const accommodation = toNumber(reservation.accommodationFare);
     const pmc = accommodation * (currentOwner.pmcPercent / 100);
@@ -279,6 +315,7 @@ function renderSummaryBoxes() {
     totalPMC += pmc;
     totalOwnerPayout += ownerPayout;
   });
+
   summaryBoxes.innerHTML = `
     <div class="summary-box">
       <div class="summary-label">PMC %</div>
@@ -298,8 +335,7 @@ function renderSummaryBoxes() {
     </div>
   `;
 
-  // Add Owner Cleaning Fee summary box after above
-  const ownerCleaningFee = (ownerStaysData.length * getCleaningFee());
+  const ownerCleaningFee = ownerStaysData.length * getCleaningFee();
   summaryBoxes.innerHTML += `
     <div class="summary-box" style="background:#e6f2ff;">
       <div class="summary-label">Owner Cleaning Fee</div>
@@ -313,14 +349,13 @@ function renderSummaryBoxes() {
 }
 
 /**
- * --- MAIN: Render reservations table and SEPARATE owner stays table right under it ---
+ * --- MAIN: Render reservations table and separate owner stays table right under it ---
  */
 function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  // Main reservations table rows
   if (!reservationsData.length) {
     tbody.innerHTML = `
       <tr>
@@ -333,6 +368,7 @@ function renderReservationsTable() {
       const pmc = accommodation * (currentOwner.pmcPercent / 100);
       const ownerPayout = accommodation - pmc;
       const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
+
       tbody.innerHTML += `
         <tr>
           <td>${reservation.confirmationCode || ""}</td>
@@ -348,26 +384,27 @@ function renderReservationsTable() {
     });
   }
 
-  // === OWNER STAYS SEPARATE TABLE, IMMEDIATELY BELOW MAIN TABLE ===
-  // Remove any old table (if present)
   let oldOwnerTable = document.getElementById("ownerStaysTable");
   if (oldOwnerTable && oldOwnerTable.parentNode) {
     oldOwnerTable.parentNode.removeChild(oldOwnerTable);
   }
 
-  // Only if owner stays present, render new table
+  let oldVrboManualTable = document.getElementById("vrboManualTable");
+  if (oldVrboManualTable && oldVrboManualTable.parentNode) {
+    oldVrboManualTable.parentNode.removeChild(oldVrboManualTable);
+  }
+
   if (ownerStaysData.length) {
-    // Find the main table's wrapper div and insert after it
-    const tableWraps = document.getElementsByClassName('table-wrap');
+    const tableWraps = document.getElementsByClassName("table-wrap");
     let container = null;
+
     if (tableWraps.length > 0) {
       container = tableWraps[0].parentNode;
     } else {
       container = document.body;
     }
 
-    // Build the owner stays table
-    const ownerTable = document.createElement('div');
+    const ownerTable = document.createElement("div");
     ownerTable.id = "ownerStaysTable";
     ownerTable.innerHTML = `
       <h3 class="section-title" style="margin-top:40px;">Upcoming Owner Stays</h3>
@@ -387,11 +424,12 @@ function renderReservationsTable() {
                 <td style="text-align:center;">${formatDateDisplay(res.checkOut || res.checkOutDate || "")}</td>
                 <td style="text-align:center;">${formatMoney(getCleaningFee())}</td>
               </tr>
-            `).join('')}
+            `).join("")}
           </tbody>
         </table>
       </div>
     `;
+
     if (tableWraps.length > 0 && tableWraps[0].parentNode) {
       if (tableWraps[0].nextSibling) {
         container.insertBefore(ownerTable, tableWraps[0].nextSibling);
@@ -401,6 +439,65 @@ function renderReservationsTable() {
     } else {
       container.appendChild(ownerTable);
     }
+  }
+
+  const vrboManualRows = reservationsData.filter(res => {
+    const source = String(res.source || "").toUpperCase();
+    const payout = toNumber(res.totalPayout);
+    return source === "MANUAL_VRBO" && payout > 0;
+  });
+
+  if (vrboManualRows.length) {
+    const tableWraps = document.getElementsByClassName("table-wrap");
+    let container = null;
+
+    if (tableWraps.length > 0) {
+      container = tableWraps[0].parentNode;
+    } else {
+      container = document.body;
+    }
+
+    const vrboManualTable = document.createElement("div");
+    vrboManualTable.id = "vrboManualTable";
+    vrboManualTable.innerHTML = `
+      <h3 class="section-title" style="margin-top:40px;">VRBO Manual Reservations</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align:center;">Platform</th>
+              <th style="text-align:center;">Owner Paid by VRBO</th>
+              <th style="text-align:center;">Accommodation</th>
+              <th style="text-align:center;">Cleaning Fee</th>
+              <th style="text-align:center;">PMC</th>
+              <th style="text-align:center;">Due to Management</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${vrboManualRows.map(reservation => {
+              const accommodation = toNumber(reservation.accommodationFare);
+              const cleaningFee = getCleaningFee();
+              const pmc = accommodation * (currentOwner.pmcPercent / 100);
+              const dueToManagement = pmc;
+              const ownerPaidByVrbo = toNumber(reservation.totalPayout);
+
+              return `
+                <tr>
+                  <td style="text-align:center;">VRBO</td>
+                  <td style="text-align:center;">${formatMoney(ownerPaidByVrbo)}</td>
+                  <td style="text-align:center;">${formatMoney(accommodation)}</td>
+                  <td style="text-align:center;">${formatMoney(cleaningFee)}</td>
+                  <td style="text-align:center;">${formatMoney(pmc)}</td>
+                  <td style="text-align:center;">${formatMoney(dueToManagement)}</td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    container.appendChild(vrboManualTable);
   }
 }
 
@@ -423,7 +520,9 @@ function loadOwnerReport() {
     renderReservationsTable();
     return;
   }
+
   const reportUrl = "https://report.guesty.com/api/shared-reservations-reports?timezone=America/New_York&skip=0&limit=1000";
+
   fetch(reportUrl, {
     headers: {
       accept: "*/*",
@@ -439,16 +538,23 @@ function loadOwnerReport() {
       const rows = Array.isArray(payload) ? payload : (payload.results || payload.data || []);
       const mappedRows = rows.map(mapGuestyReservation);
 
-      // FILTER OWNER STAYS
-      ownerStaysData = mappedRows.filter(res => String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY") &&
-        String(res.status || '').toLowerCase() !== 'cancel' &&
-        String(res.status || '').toLowerCase() !== 'cancelled' &&
-        String(res.status || '').toLowerCase() !== 'canceled');
+      ownerStaysData = mappedRows.filter(res =>
+        String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY") &&
+        String(res.status || "").toLowerCase() !== "cancel" &&
+        String(res.status || "").toLowerCase() !== "cancelled" &&
+        String(res.status || "").toLowerCase() !== "canceled"
+      );
+
       reservationsData = mappedRows.filter(res => {
-        const status = String(res.status || '').toLowerCase();
+        const status = String(res.status || "").toLowerCase();
         const isOwnerStay = String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY");
-        return (!isOwnerStay && status !== 'cancel' && status !== 'cancelled' && status !== 'canceled' && toNumber(res.accommodationFare) > 0);
+        return !isOwnerStay &&
+          status !== "cancel" &&
+          status !== "cancelled" &&
+          status !== "canceled" &&
+          toNumber(res.accommodationFare) > 0;
       });
+
       renderDashboardHeader();
       renderSummaryBoxes();
       renderReservationsTable();
@@ -463,4 +569,4 @@ function loadOwnerReport() {
 }
 
 // === CONTACT MODAL AND EMAILJS HANDLERS ===
-// ... (rest of your unchanged code)
+// ... keep the rest of your unchanged code here
