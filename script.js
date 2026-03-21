@@ -24,8 +24,8 @@ document.getElementById("loginBtn").onclick = function() {
 
 // === OWNER CONFIGURATION ===
 const OWNERS = {
-  "1463@yahoo.com": {
-    password: "1234",
+  "nwood112@gmail.com": {
+    password: "4251$!",
     ownerName: "Nicole",
     propertyName: "1463 Basin Trail, Murrells Inlet, SC 29576",
     postalCode: "29576",
@@ -33,23 +33,104 @@ const OWNERS = {
     guestyApiKey: "1a58fc1af3815f9023a08e09c590a05f3f3d1c73dbc3ab2e19985ecfe0003aa87acc7e264983e31d5b10a98cf4fd9b4789de3cb864daf2031e42aae6266c92f5",
     cleaningFee: 250
   },
-  "11315@yahoo.com": {
-    password: "1234",
-    ownerName: "Matt",
+  "mbiddington@aol.com": {
+    password: "7511$!",
+    ownerName: "Matthew",
     propertyName: "113B 15th Avenue South, Surfside Beach SC 29575",
     postalCode: "29575",
     pmcPercent: 12,
     guestyApiKey: "bbbab438244300805daaf5485d3b516cbeee616fba7e640fc3b80d0b648c01d13e3f70a2bde2abaf9deb3b661aabf1c17453fd4e6d799f380cfd059df66cf01e",
     cleaningFee: 350
   },
-  "11313@yahoo.com": {
-    password: "1234",
+  "chrpfd@verizon.net": {
+    password: "7491$!",
     ownerName: "Carl",
     propertyName: "113B 13th Ave North. Surfside Beach SC 29575",
     postalCode: "29575",
     pmcPercent: 12,
     guestyApiKey: "d6ab951850fef54399e2206f36f4e79fb1b425a8e5c891076036b11f50da8870613a226021487307c8c5f51eae997a08dd7e112d013ef683728ad1d9220ee0b7",
     cleaningFee: 350
+  },
+  "adahabani@gmail.com": {
+    password: "2667$!",
+    ownerName: "Assaf",
+    propertyName: "469C White River Drive, Myrtle Beach SC 29577",
+    postalCode: "29577",
+    pmcPercent: 12,
+    guestyApiKey: "cf0997316ba50ce76dc77eb8f00b10dd266167ccbe9462d205edea9215afb74a0038d0e73a05af9f858c3f626d54c1cf5f2e6e3b14107d533ce4af7994465781",
+    cleaningFee: 150
+  },
+"beachsmyles@gmail.com": {
+    password: "2838$!",
+    ownerName: "Chris",
+    propertyName: "115C 15th Ave North. Surfside Beach SC 29575",
+    postalCode: "29575",
+    pmcPercent: 12,
+    guestyApiKey: "0542d3c012e0c4bb62fe31f35ba940d1e7ee42da5c24e73cedc34d7fd794e256804ae48b3386d18beb91471e751355ca50ebef2512b865d769ea84debeba8ec7",
+    cleaningFee: 350
+  },
+"maron.eran@gmail.com": {
+    password: "3507$!",
+    ownerName: "Eran",
+    propertyName: "",
+    postalCode: "29575",
+    pmcPercent: 12,
+    guestyApiKey: "8a32863cba1cd5066ef2c40ddd064ccb591c4111d70c650b75bcff6f6bab955c7504394415775586795e2f7408cb61b12277841485f5dc0b65b22b32a31ce7c3",
+    cleaningFee: 0
+  },
+"liatedri18@gmail.com": {
+    password: "6357$!",
+    ownerName: "Liat",
+    propertyName: "GHO REVOCABLE TRUST",
+    postalCode: "29575",
+    pmcPercent: 10,
+    guestyApiKey: "05b79c86c4688c3409154f48ac9fde1fc59cc31c03126566cc8bfc55813fa89e01619ee48fd16a30476eb01ef6cb77ad9dbeca35b7ca188678462e8278c65022",
+    cleaningFee: 0
+  },
+"office@rodriguezlc.com": {
+    password: "5574$!",
+    ownerName: "Liat",
+    propertyName: "2131 Sanibel Ct. Myrtle Beach SC 29577",
+    postalCode: "29577",
+    pmcPercent: 12,
+    guestyApiKey: "e30ca84498f8e9ef64c9ff7ed2f0b40312a0e1df2a2e07044a86518a1233cd332d79595d24282bab03cf63c1d96b5237ba9ca14d35fd450c952b5f36f03eb5a1",
+    cleaningFee: 300
+  },
+"zilkerinvestments@gmail.com": {
+    password: "7920$!",
+    ownerName: "Tal Zilker - GTI Group LLC",
+    propertyName: "214 2nd Ave S. North Myrtle Beach SC 29582",
+    postalCode: "29582",
+    pmcPercent: 12,
+    guestyApiKey: "796af50d38fbbedbcec1df5bdd790355a574f67e21a823ba64f9a26cda86cc4d6d7c71552d7c02889a32557ed6185d44de44820881f74e128d66dacd57a70017",
+    cleaningFee: 300
+  },
+"kobiswisa26@gmail.com": {
+    password: "9646$!",
+    ownerName: "Tal Zilker - GTI Group LLC",
+    propertyName: "508 3rd Avenue S. North Myrtle Beach SC 29582 unit 1-2",
+    postalCode: "29582",
+    pmcPercent: 15,
+    guestyApiKey: "386c28f3e370968e7efe7e756ef8315d2eb420606a662909377be671d9e966c0271af42d1a8a61d5621646d6d5a2f59bc8e621743bd7fc4c5994d695b4c870e8",
+    cleaningFee: 250
+  },
+"tristate1391@gmail.com": {
+    password: "6474$!",
+    ownerName: "Suzan",
+    propertyName: "1552 Elizabeth Ln. Myrtle Beach SC 29577",
+    postalCode: "29577",
+    pmcPercent: 15,
+    guestyApiKey: "9512389c04f387d631c31f5eb901ae89d56d646ebe156166da68e78502c1c64d6a8bab54753942cc5be2ab33ce8523e5902e9ddfd24285efb4786c2de32225d6",
+    cleaningFee: 200
+  },
+"pleasechange@email.com": {
+    password: "8589$!",
+    ownerName: "Moran",
+    propertyName: "4679 Wild Iris Drive Myrtle Beach SC 29577",
+    postalCode: "29577",
+    pmcPercent: 12,
+    guestyApiKey: "22265c7b0f6a3a9ec499fe6571adaccc43bda8300ac343b0964ed4b0594856f376ef2593f8519135bf9d31be6c887e9fb68dd10cbfc8c0efe47ce2c91f626213",
+    cleaningFee: 200
   },
 };
 
