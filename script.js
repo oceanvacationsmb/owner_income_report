@@ -315,7 +315,7 @@ function renderSummaryBoxes() {
 /**
  * --- MAIN: Render reservations table and SEPARATE owner stays table right under it ---
  */
-function renderReservationsTable() {
+function renderReservationsTable() {function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
   if (!tbody) return;
   tbody.innerHTML = "";
@@ -333,18 +333,20 @@ function renderReservationsTable() {
       const pmc = accommodation * (currentOwner.pmcPercent / 100);
       const ownerPayout = accommodation - pmc;
       const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
-       tbody.innerHTML += `
-      <tr>
-        <td style="text-align:center;">${reservation.confirmationCode || ""}</td>
-        <td style="text-align:center;">${reservation.platform || ""}</td>
-        <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
-        <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
-        <td style="text-align:center;">${formatMoney(accommodation)}</td>
-        <td style="text-align:center;">${formatMoney(pmc)}</td>
-        <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
-        <td style="text-align:center;">${expectedPayoutDate}</td>
-      </tr>
-    `;
+      tbody.innerHTML += `
+        <tr>
+          <td style="text-align:center;">${reservation.confirmationCode || ""}</td>
+          <td style="text-align:center;">${reservation.platform || ""}</td>
+          <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
+          <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
+          <td style="text-align:center;">${formatMoney(accommodation)}</td>
+          <td style="text-align:center;">${formatMoney(pmc)}</td>
+          <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
+          <td style="text-align:center;">${expectedPayoutDate}</td>
+        </tr>
+      `;
+    });
+  }
 
   // === OWNER STAYS SEPARATE TABLE, IMMEDIATELY BELOW MAIN TABLE ===
   // Remove any old table (if present)
@@ -358,7 +360,7 @@ function renderReservationsTable() {
     // Find the main table's wrapper div and insert after it
     const tableWraps = document.getElementsByClassName('table-wrap');
     let container = null;
-    if(tableWraps.length > 0) {
+    if (tableWraps.length > 0) {
       container = tableWraps[0].parentNode;
     } else {
       container = document.body;
@@ -373,24 +375,23 @@ function renderReservationsTable() {
         <table>
           <thead>
             <tr>
-              <th>Check-In</th>
-              <th>Check-Out</th>
-              <th>Cleaning Fee</th>
+              <th style="text-align:center;">Check-In</th>
+              <th style="text-align:center;">Check-Out</th>
+              <th style="text-align:center;">Cleaning Fee</th>
             </tr>
           </thead>
           <tbody>
-  ${ownerStaysData.map(res => `
-    <tr>
-      <td style="text-align:center;">${formatDateDisplay(res.checkIn || res.checkInDate || "")}</td>
-      <td style="text-align:center;">${formatDateDisplay(res.checkOut || res.checkOutDate || "")}</td>
-      <td style="text-align:center;">${formatMoney(getCleaningFee())}</td>
-    </tr>
-  `).join('')}
-</tbody>
+            ${ownerStaysData.map(res => `
+              <tr>
+                <td style="text-align:center;">${formatDateDisplay(res.checkIn || res.checkInDate || "")}</td>
+                <td style="text-align:center;">${formatDateDisplay(res.checkOut || res.checkOutDate || "")}</td>
+                <td style="text-align:center;">${formatMoney(getCleaningFee())}</td>
+              </tr>
+            `).join('')}
+          </tbody>
         </table>
       </div>
     `;
-    // Insert after first table-wrap
     if (tableWraps.length > 0 && tableWraps[0].parentNode) {
       if (tableWraps[0].nextSibling) {
         container.insertBefore(ownerTable, tableWraps[0].nextSibling);
@@ -401,6 +402,7 @@ function renderReservationsTable() {
       container.appendChild(ownerTable);
     }
   }
+}
 
 function fillReservationDropdown() {
   const select = document.getElementById("reservationSelect");
