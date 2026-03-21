@@ -139,19 +139,27 @@ function pickDate(...args) {
   }
   return "";
 }
-function formatMoney(v) { return `$${Number(v || 0).toFixed(2)}`; }
+function formatMoney(v) {
+  return `$${Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
 function toNumber(v) { return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0; }
 function formatDateDisplay(dateStr) {
   if (!dateStr) return "";
   const date = new Date(dateStr);
   if (isNaN(date)) return dateStr;
-  return date.toLocaleDateString("en-US");
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  const yyyy = date.getFullYear();
+  return `${mm}/${dd}/${yyyy}`;
 }
 function getExpectedPayoutDate(checkOutDate) {
   const d = new Date(checkOutDate);
   if (isNaN(d)) return "";
   const payoutDate = new Date(d.getFullYear(), d.getMonth() + 1, 5);
-  return payoutDate.toLocaleDateString("en-US");
+  const mm = String(payoutDate.getMonth() + 1).padStart(2, "0");
+  const dd = String(payoutDate.getDate()).padStart(2, "0");
+  const yyyy = payoutDate.getFullYear();
+  return `${mm}/${dd}/${yyyy}`;
 }
 function getCleaningFee() {
   return currentOwner.cleaningFee ? Number(currentOwner.cleaningFee) : 0;
@@ -314,8 +322,8 @@ function renderReservationsTable() {
       <tr>
         <td>${reservation.confirmationCode || ""}</td>
         <td>${reservation.platform || ""}</td>
-        <td>${reservation.checkIn || ""}</td>
-        <td>${reservation.checkOut || ""}</td>
+        <td>${formatDateDisplay(reservation.checkIn) || ""}</td>
+        <td>${formatDateDisplay(reservation.checkOut) || ""}</td>
         <td>${formatMoney(accommodation)}</td>
         <td>${formatMoney(pmc)}</td>
         <td>${formatMoney(ownerPayout)}</td>
