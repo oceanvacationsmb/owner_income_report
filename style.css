@@ -126,9 +126,34 @@ tr:last-child td { border-bottom: none; }
 }
 .summary-label { font-size: .98em; color:#3282b8; }
 .summary-value { font-size: 1.25em; font-weight: 700; margin-top: 8px;}
+
+#calendarPanel {
+  animation: fadeSlideIn 0.2s ease;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width:600px) {
   .login-inner { min-width:99vw; border-radius:0; padding: 24px 8px;}
   .container { padding:10px 1vw;}
   table { font-size: .93em;}
   .summary-box { min-width:100px;}
+
+  #greetingContainer > div {
+    flex-wrap: wrap;
+  }
+
+  #topCalendarBox {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
 }

@@ -56,7 +56,6 @@ const OWNERS = {
 let reservationsData = [];
 let ownerStaysData = [];
 let calendarCurrentDate = new Date();
-let calendarModalCurrentDate = new Date();
 
 // === EMAILJS CONFIGURATION ===
 const EMAILJS_USER_ID = "ti3155";
@@ -199,17 +198,41 @@ function toDateKey(dateObj) {
   return `${y}-${m}-${d}`;
 }
 
+function getAllCalendarBlocks() {
+  const reservationBlocks = reservationsData.map(reservation => {
+    const sourceText = String(reservation.source || reservation.platform || "").toUpperCase();
+    const isVrbo = sourceText.includes("VRBO") || sourceText.includes("MANUAL_VRBO");
+    return {
+      checkIn: reservation.checkIn,
+      checkOut: reservation.checkOut,
+      type: isVrbo ? "vrbo" : "reservation"
+    };
+  });
+
+  const ownerBlocks = ownerStaysData.map(stay => ({
+    checkIn: stay.checkIn || stay.checkInDate,
+    checkOut: stay.checkOut || stay.checkOutDate,
+    type: "owner"
+  }));
+
+  return reservationBlocks.concat(ownerBlocks);
+}
+
 function getReservedDateMap() {
   const reservedMap = {};
 
-  reservationsData.forEach(reservation => {
-    const start = parseLocalDate(reservation.checkIn);
-    const end = parseLocalDate(reservation.checkOut);
+  getAllCalendarBlocks().forEach(block => {
+    const start = parseLocalDate(block.checkIn);
+    const end = parseLocalDate(block.checkOut);
     if (!start || !end) return;
 
     const current = new Date(start);
     while (current < end) {
-      reservedMap[toDateKey(current)] = true;
+      const key = toDateKey(current);
+      if (!reservedMap[key]) {
+        reservedMap[key] = { reservation: false, vrbo: false, owner: false };
+      }
+      reservedMap[key][block.type] = true;
       current.setDate(current.getDate() + 1);
     }
   });
@@ -218,9 +241,40 @@ function getReservedDateMap() {
 }
 
 function getTotalBookedNights() {
-  return reservationsData.reduce((sum, reservation) => {
-    return sum + toNumber(reservation.numberOfNights);
-  }, 0);
+  const reservedMap = getReservedDateMap();
+  return Object.keys(reservedMap).length;
+}
+
+function getCellStyleForDate(dayInfo) {
+  if (!dayInfo) {
+    return {
+      background: "#fff",
+      border: "1px solid #d9e6f2",
+      badge: ""
+    };
+  }
+
+  if (dayInfo.owner) {
+    return {
+      background: "#ffe7d1",
+      border: "2px solid #9a4d0a",
+      badge: "OWNER"
+    };
+  }
+
+  if (dayInfo.vrbo) {
+    return {
+      background: "#ddf7ee",
+      border: "2px solid #0d8a63",
+      badge: "VRBO"
+    };
+  }
+
+  return {
+    background: "#dcecff",
+    border: "2px solid #2f78b7",
+    badge: "BOOKED"
+  };
 }
 
 function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
@@ -257,36 +311,38 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
   const totalDays = lastDay.getDate();
   const prevMonthLastDay = new Date(year, month, 0).getDate();
 
- for (let i = 0; i < startOffset; i++) {
-  const dayNum = prevMonthLastDay - startOffset + i + 1;
-  grid.innerHTML += `
-    <div style="
-      min-height:${isLarge ? "90px" : "28px"};
-      background:#fff;
-      border-radius:8px;
-      padding:2px;
-      border:1px solid #d9e6f2;
-    ">
-      <div style="font-weight:700;">${dayNum}</div>
-    </div>
-  `;
-}
+  for (let i = 0; i < startOffset; i++) {
+    const dayNum = prevMonthLastDay - startOffset + i + 1;
+    grid.innerHTML += `
+      <div style="
+        min-height:${isLarge ? "90px" : "50px"};
+        background:#fff;
+        border-radius:8px;
+        padding:4px;
+        border:1px solid #d9e6f2;
+        opacity:0.55;
+      ">
+        <div style="font-weight:700; font-size:${isLarge ? "16px" : "12px"};">${dayNum}</div>
+      </div>
+    `;
+  }
 
   for (let day = 1; day <= totalDays; day++) {
     const currentDate = new Date(year, month, day);
     const dateKey = toDateKey(currentDate);
-    const isReserved = !!reservedMap[dateKey];
+    const dayInfo = reservedMap[dateKey];
+    const cellStyle = getCellStyleForDate(dayInfo);
 
     grid.innerHTML += `
       <div style="
-        min-height:${isLarge ? "90px" : "46px"};
-        background:${isReserved ? "#dcecff" : "#fff"};
+        min-height:${isLarge ? "90px" : "50px"};
+        background:${cellStyle.background};
         border-radius:10px;
         padding:4px;
-        border:${isReserved ? "2px solid #2f78b7" : "1px solid #d9e6f2"};
+        border:${cellStyle.border};
       ">
         <div style="font-weight:700; font-size:${isLarge ? "16px" : "10px"};">${day}</div>
-        ${isReserved ? `<div style="margin-top:6px; font-size:${isLarge ? "12px" : "0px"}; font-weight:700; color:#2f78b7;">RESERVED</div>` : ``}
+        ${dayInfo ? `<div style="margin-top:6px; font-size:${isLarge ? "12px" : "9px"}; font-weight:700; color:#1f3552;">${cellStyle.badge}</div>` : ``}
       </div>
     `;
   }
@@ -295,29 +351,27 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
   const endFill = (7 - (totalCellsUsed % 7)) % 7;
 
   for (let i = 1; i <= endFill; i++) {
-  grid.innerHTML += `
-    <div style="
-      min-height:${isLarge ? "90px" : "28px"};
-      background:#fff;
-      border-radius:8px;
-      padding:2px;
-      border:1px solid #d9e6f2;
-    ">
-      <div style="font-weight:700;">${i}</div>
-    </div>
-  `;
-}
+    grid.innerHTML += `
+      <div style="
+        min-height:${isLarge ? "90px" : "50px"};
+        background:#fff;
+        border-radius:8px;
+        padding:4px;
+        border:1px solid #d9e6f2;
+        opacity:0.55;
+      ">
+        <div style="font-weight:700; font-size:${isLarge ? "16px" : "12px"};">${i}</div>
+      </div>
+    `;
+  }
 }
 
 function setupCalendarButtons() {
-const prevBtn = null;
-const nextBtn = null;
-const expandBtn = document.getElementById("showCalendarBtn");
-const topCalendarBox = document.getElementById("topCalendarBox");
-
-  const modalPrevBtn = document.getElementById("calendarModalPrevBtn");
-  const modalNextBtn = document.getElementById("calendarModalNextBtn");
-  const modalCloseBtn = document.getElementById("calendarModalCloseBtn");
+  const prevBtn = document.getElementById("calendarPrevBtn");
+  const nextBtn = document.getElementById("calendarNextBtn");
+  const expandBtn = document.getElementById("showCalendarBtn");
+  const panel = document.getElementById("calendarPanel");
+  const summary = document.getElementById("calendarToggleSummary");
 
   if (prevBtn && !prevBtn.dataset.bound) {
     prevBtn.dataset.bound = "1";
@@ -335,45 +389,37 @@ const topCalendarBox = document.getElementById("topCalendarBox");
     };
   }
 
-  function openCalendarModal() {
-  const modal = document.getElementById("calendarModal");
-  calendarModalCurrentDate = new Date(calendarCurrentDate);
-  if (modal) modal.style.display = "flex";
-  renderCalendar("calendarModalGrid", "calendarModalMonthLabel", "calendarModalBookedNights", calendarModalCurrentDate, true);
-}
-
-if (expandBtn && !expandBtn.dataset.bound) {
-  expandBtn.dataset.bound = "1";
-  expandBtn.onclick = function () {
-    openCalendarModal();
-  };
-}
-  if (topCalendarBox) {
-  topCalendarBox.style.cursor = "default";
-}
-
-  if (modalPrevBtn && !modalPrevBtn.dataset.bound) {
-    modalPrevBtn.dataset.bound = "1";
-    modalPrevBtn.onclick = function () {
-      calendarModalCurrentDate.setMonth(calendarModalCurrentDate.getMonth() - 1);
-      renderCalendar("calendarModalGrid", "calendarModalMonthLabel", "calendarModalBookedNights", calendarModalCurrentDate, true);
+  if (expandBtn && !expandBtn.dataset.bound) {
+    expandBtn.dataset.bound = "1";
+    expandBtn.onclick = function () {
+      if (!panel) return;
+      const opening = panel.style.display === "none" || !panel.style.display;
+      panel.style.display = opening ? "block" : "none";
+      expandBtn.innerText = opening ? "Hide Calendar" : "Show Calendar";
+      if (opening) {
+        renderCalendar("calendarGrid", "calendarMonthLabel", "calendarBookedNights", calendarCurrentDate, false);
+      }
     };
   }
 
-  if (modalNextBtn && !modalNextBtn.dataset.bound) {
-    modalNextBtn.dataset.bound = "1";
-    modalNextBtn.onclick = function () {
-      calendarModalCurrentDate.setMonth(calendarModalCurrentDate.getMonth() + 1);
-      renderCalendar("calendarModalGrid", "calendarModalMonthLabel", "calendarModalBookedNights", calendarModalCurrentDate, true);
-    };
+  if (summary) {
+    summary.innerText = `Total Booked Nights: ${getTotalBookedNights()}`;
+  }
+}
+
+function refreshCalendarUI() {
+  const panel = document.getElementById("calendarPanel");
+  const summary = document.getElementById("calendarToggleSummary");
+  const nightsLabel = document.getElementById("calendarBookedNights");
+
+  if (summary) {
+    summary.innerText = `Total Booked Nights: ${getTotalBookedNights()}`;
   }
 
-  if (modalCloseBtn && !modalCloseBtn.dataset.bound) {
-    modalCloseBtn.dataset.bound = "1";
-    modalCloseBtn.onclick = function () {
-      const modal = document.getElementById("calendarModal");
-      if (modal) modal.style.display = "none";
-    };
+  if (panel && panel.style.display !== "none") {
+    renderCalendar("calendarGrid", "calendarMonthLabel", "calendarBookedNights", calendarCurrentDate, false);
+  } else if (nightsLabel) {
+    nightsLabel.innerText = `Total Booked Nights: ${getTotalBookedNights()}`;
   }
 }
 
@@ -764,14 +810,17 @@ function fillReservationDropdown() {
 
 // === LOAD AND FILTER RESERVATIONS ===
 function loadOwnerReport() {
+  setupCalendarButtons();
+  refreshCalendarUI();
+
   if (!currentOwner || !currentOwner.guestyApiKey) {
     console.error("No owner or API key configured");
     reservationsData = [];
     renderDashboardHeader();
-renderSummaryBoxes();
-renderReservationsTable();
-setupCalendarButtons();
-document.getElementById("calendarBookedNights").innerText = `Total Booked Nights: ${getTotalBookedNights()}`;
+    renderSummaryBoxes();
+    renderReservationsTable();
+    setupCalendarButtons();
+    refreshCalendarUI();
     return;
   }
 
@@ -811,6 +860,8 @@ document.getElementById("calendarBookedNights").innerText = `Total Booked Nights
       renderDashboardHeader();
       renderSummaryBoxes();
       renderReservationsTable();
+      setupCalendarButtons();
+      refreshCalendarUI();
     })
     .catch(err => {
       console.error("Error loading report:", err);
@@ -818,6 +869,8 @@ document.getElementById("calendarBookedNights").innerText = `Total Booked Nights
       renderDashboardHeader();
       renderSummaryBoxes();
       renderReservationsTable();
+      setupCalendarButtons();
+      refreshCalendarUI();
     });
 }
 

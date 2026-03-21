@@ -40,12 +40,27 @@
   <button id="showCalendarBtn" type="button" style="padding:10px 16px; border:none; border-radius:10px; cursor:pointer; font-size:14px; font-weight:700;">
     Show Calendar
   </button>
-  <div id="calendarBookedNights" style="text-align:center; margin-top:10px; font-weight:700; font-size:12px;"></div>
+  <div id="calendarToggleSummary" style="text-align:center; margin-top:10px; font-weight:700; font-size:12px;"></div>
 </div>
           </div>
 
-          <div id="calendarGrid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:2px;"></div>
-          <div id="calendarBookedNights" style="text-align:center; margin-top:10px; font-weight:700;"></div>
+          <div id="calendarPanel" style="display:none; margin-top:16px; border:1px solid #d9e6f2; border-radius:14px; padding:12px; background:#f8fbff;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:8px;">
+              <button id="calendarPrevBtn" type="button" style="padding:8px 12px; border:none; border-radius:8px; cursor:pointer;">&#8249;</button>
+              <div id="calendarMonthLabel" style="font-size:18px; font-weight:700; text-align:center; flex:1;">Calendar</div>
+              <button id="calendarNextBtn" type="button" style="padding:8px 12px; border:none; border-radius:8px; cursor:pointer;">&#8250;</button>
+            </div>
+
+            <div id="calendarGrid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:6px;"></div>
+
+            <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-top:10px; font-size:12px;">
+              <span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#2f78b7; margin-right:4px;"></span>Reservation</span>
+              <span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#0d8a63; margin-right:4px;"></span>VRBO</span>
+              <span><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#9a4d0a; margin-right:4px;"></span>Owner Stay</span>
+            </div>
+
+            <div id="calendarBookedNights" style="text-align:center; margin-top:10px; font-weight:700;"></div>
+          </div>
         </div>
 
       </div>
@@ -78,24 +93,6 @@
 
       <!-- Owner Stay Table (shows only if owner stays) -->
       <div id="ownerStaysTableContainer"></div>
-    </div>
-  </div>
-
-  <div id="calendarModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:9999; align-items:center; justify-content:center; padding:24px;">
-    <div style="background:#fff; width:min(1100px, 95vw); border-radius:18px; padding:18px;">
-      
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <button id="calendarModalPrevBtn" type="button" style="padding:8px 12px; border:none; border-radius:8px; cursor:pointer;">&#8249;</button>
-        <div id="calendarModalMonthLabel" style="font-size:24px; font-weight:700; text-align:center; flex:1;">Calendar</div>
-        <div style="display:flex; gap:8px;">
-          <button id="calendarModalCloseBtn" type="button" style="padding:8px 12px; border:none; border-radius:8px; cursor:pointer;">Close</button>
-          <button id="calendarModalNextBtn" type="button" style="padding:8px 12px; border:none; border-radius:8px; cursor:pointer;">&#8250;</button>
-        </div>
-      </div>
-
-      <div id="calendarModalGrid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:6px;"></div>
-      <div id="calendarModalBookedNights" style="text-align:center; margin-top:12px; font-weight:700; font-size:18px;"></div>
-
     </div>
   </div>
 
