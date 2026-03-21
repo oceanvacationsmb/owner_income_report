@@ -127,6 +127,26 @@ tr:last-child td { border-bottom: none; }
 .summary-label { font-size: .98em; color:#3282b8; }
 .summary-value { font-size: 1.25em; font-weight: 700; margin-top: 8px;}
 
+#showCalendarBtn,
+#calendarPrevBtn,
+#calendarNextBtn {
+  background: #e8f1f9;
+  color: #1f3552;
+  font-weight: 700;
+}
+
+#showCalendarBtn {
+  width: 100%;
+}
+
+#calendarPanel {
+  overflow-x: auto;
+}
+
+#calendarGrid {
+  min-width: 560px;
+}
+
 #calendarPanel {
   animation: fadeSlideIn 0.2s ease;
 }
@@ -142,18 +162,75 @@ tr:last-child td { border-bottom: none; }
   }
 }
 
-@media (max-width:600px) {
-  .login-inner { min-width:99vw; border-radius:0; padding: 24px 8px;}
-  .container { padding:10px 1vw;}
-  table { font-size: .93em;}
-  .summary-box { min-width:100px;}
+@media (max-width:900px) {
+  .container {
+    margin: 18px 12px;
+    padding: 22px 14px 28px 14px;
+  }
 
-  #greetingContainer > div {
+  .greeting-row {
     flex-wrap: wrap;
+    gap: 14px !important;
   }
 
   #topCalendarBox {
     width: 100% !important;
     min-width: 0 !important;
+  }
+
+  #greeting {
+    font-size: 1.9rem;
+    line-height: 1.15;
+  }
+
+  #propertyAddress {
+    font-size: 1rem !important;
+    line-height: 1.3;
+  }
+}
+
+@media (max-width:600px) {
+  .login-inner { min-width:99vw; border-radius:0; padding: 24px 8px;}
+  .container { padding:12px 10px;}
+  table { font-size: .93em;}
+  .summary-box { min-width:100px;}
+
+  .brand {
+    font-size: 1.45rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  #greeting {
+    font-size: 1.55rem;
+  }
+
+  #calendarPanel {
+    padding: 10px !important;
+  }
+
+  .calendar-panel-header {
+    gap: 6px !important;
+  }
+
+  #calendarMonthLabel {
+    font-size: 1rem !important;
+  }
+
+  #calendarPrevBtn,
+  #calendarNextBtn {
+    min-width: 34px;
+    padding: 8px 10px !important;
+  }
+
+  .calendar-legend {
+    font-size: 11px !important;
+    gap: 8px !important;
+  }
+
+  #calendarGrid {
+    min-width: 430px;
   }
 }

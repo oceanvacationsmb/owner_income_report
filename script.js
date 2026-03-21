@@ -56,6 +56,7 @@ const OWNERS = {
 let reservationsData = [];
 let ownerStaysData = [];
 let calendarCurrentDate = new Date();
+let calendarResizeBound = false;
 
 // === EMAILJS CONFIGURATION ===
 const EMAILJS_USER_ID = "ti3155";
@@ -283,6 +284,18 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
   const nightsLabel = document.getElementById(nightsId);
   if (!grid || !monthLabel || !nightsLabel) return;
 
+  const isCompact = !isLarge && window.innerWidth <= 600;
+  const dayHeaderFontSize = isLarge ? "14px" : (isCompact ? "10px" : "11px");
+  const dayShort = isCompact ? 2 : 3;
+  const smallCellMinHeight = isCompact ? "40px" : "50px";
+  const smallDayFont = isCompact ? "11px" : "12px";
+  const smallBadgeFont = isCompact ? "8px" : "9px";
+  const compactBadgeMap = {
+    BOOKED: "B",
+    VRBO: "V",
+    OWNER: "O"
+  };
+
   const reservedMap = getReservedDateMap();
   const year = currentMonthDate.getFullYear();
   const month = currentMonthDate.getMonth();
@@ -299,8 +312,8 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   dayNames.forEach(day => {
     grid.innerHTML += `
-      <div style="text-align:center; font-weight:700; padding:2px 0; font-size:${isLarge ? "14px" : "9px"}; overflow:hidden;">
-        ${isLarge ? day : day.substring(0, 1)}
+      <div style="text-align:center; font-weight:700; padding:2px 0; font-size:${dayHeaderFontSize}; overflow:hidden;">
+        ${isLarge ? day : day.substring(0, dayShort)}
       </div>
     `;
   });
@@ -315,14 +328,14 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
     const dayNum = prevMonthLastDay - startOffset + i + 1;
     grid.innerHTML += `
       <div style="
-        min-height:${isLarge ? "90px" : "50px"};
+        min-height:${isLarge ? "90px" : smallCellMinHeight};
         background:#fff;
         border-radius:8px;
         padding:4px;
         border:1px solid #d9e6f2;
         opacity:0.55;
       ">
-        <div style="font-weight:700; font-size:${isLarge ? "16px" : "12px"};">${dayNum}</div>
+        <div style="font-weight:700; font-size:${isLarge ? "16px" : smallDayFont};">${dayNum}</div>
       </div>
     `;
   }
@@ -332,17 +345,18 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
     const dateKey = toDateKey(currentDate);
     const dayInfo = reservedMap[dateKey];
     const cellStyle = getCellStyleForDate(dayInfo);
+    const badgeText = dayInfo ? (isCompact ? compactBadgeMap[cellStyle.badge] : cellStyle.badge) : "";
 
     grid.innerHTML += `
       <div style="
-        min-height:${isLarge ? "90px" : "50px"};
+        min-height:${isLarge ? "90px" : smallCellMinHeight};
         background:${cellStyle.background};
         border-radius:10px;
         padding:4px;
         border:${cellStyle.border};
       ">
         <div style="font-weight:700; font-size:${isLarge ? "16px" : "10px"};">${day}</div>
-        ${dayInfo ? `<div style="margin-top:6px; font-size:${isLarge ? "12px" : "9px"}; font-weight:700; color:#1f3552;">${cellStyle.badge}</div>` : ``}
+        ${dayInfo ? `<div style="margin-top:6px; font-size:${isLarge ? "12px" : smallBadgeFont}; font-weight:700; color:#1f3552;">${badgeText}</div>` : ``}
       </div>
     `;
   }
@@ -353,14 +367,14 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
   for (let i = 1; i <= endFill; i++) {
     grid.innerHTML += `
       <div style="
-        min-height:${isLarge ? "90px" : "50px"};
+        min-height:${isLarge ? "90px" : smallCellMinHeight};
         background:#fff;
         border-radius:8px;
         padding:4px;
         border:1px solid #d9e6f2;
         opacity:0.55;
       ">
-        <div style="font-weight:700; font-size:${isLarge ? "16px" : "12px"};">${i}</div>
+        <div style="font-weight:700; font-size:${isLarge ? "16px" : smallDayFont};">${i}</div>
       </div>
     `;
   }
@@ -404,6 +418,13 @@ function setupCalendarButtons() {
 
   if (summary) {
     summary.innerText = `Total Booked Nights: ${getTotalBookedNights()}`;
+  }
+
+  if (!calendarResizeBound) {
+    calendarResizeBound = true;
+    window.addEventListener("resize", () => {
+      refreshCalendarUI();
+    });
   }
 }
 
