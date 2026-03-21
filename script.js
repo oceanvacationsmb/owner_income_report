@@ -770,14 +770,13 @@ renderCalendar("calendarGrid", "calendarMonthLabel", "calendarBookedNights", cal
       );
 
       reservationsData = mappedRows.filter(res => {
-        const status = String(res.status || "").toLowerCase();
-        const isOwnerStay = String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY");
-        return !isOwnerStay &&
-          status !== "cancel" &&
-          status !== "cancelled" &&
-          status !== "canceled" &&
-          toNumber(res.accommodationFare) > 0;
-      });
+  const status = String(res.status || "").toLowerCase();
+  const isOwnerStay = String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY");
+  return !isOwnerStay &&
+    status !== "cancel" &&
+    status !== "cancelled" &&
+    status !== "canceled";
+});
 
       renderDashboardHeader();
 renderSummaryBoxes();
