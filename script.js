@@ -401,7 +401,6 @@ function renderReservationsTable() {
       container.appendChild(ownerTable);
     }
   }
-}
 
 function fillReservationDropdown() {
   const select = document.getElementById("reservationSelect");
