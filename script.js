@@ -315,7 +315,7 @@ function renderSummaryBoxes() {
 /**
  * --- MAIN: Render reservations table and SEPARATE owner stays table right under it ---
  */
-function renderReservationsTable() {function renderReservationsTable() {
+function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
   if (!tbody) return;
   tbody.innerHTML = "";
