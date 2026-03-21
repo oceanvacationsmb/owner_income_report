@@ -335,7 +335,7 @@ function renderReservationsTable() {
       const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
       tbody.innerHTML += `
         <tr>
-          <td style="text-align:center;">${reservation.confirmationCode || ""}</td>
+          <td>${reservation.confirmationCode || ""}</td>
           <td style="text-align:center;">${reservation.platform || ""}</td>
           <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
           <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
