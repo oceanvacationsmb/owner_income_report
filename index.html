@@ -5,69 +5,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ocean Vacations Owner Portal</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
 <body>
-  <!-- Login Box -->
-  <div id="loginBox" class="login-container">
-    <div class="login-inner">
-      <div class="login-header">Ocean Vacations<br><span>Owner Portal</span></div>
-      <input type="email" id="ownerEmail" class="login-input" placeholder="Email" autocomplete="username">
-      <div style="position:relative;">
-        <input type="password" id="ownerPassword" class="login-input" placeholder="Password" autocomplete="current-password">
-        <span id="showPwd" class="show-password">👁️</span>
-      </div>
-      <button id="loginBtn" class="login-btn">Login</button>
-      <div id="loginStatus" class="login-status"></div>
+
+  <header class="topbar">
+    <div class="brand">OCEAN VACATIONS</div>
+    <div class="subtitle">Owner Portal</div>
+  </header>
+
+  <div class="container">
+
+    <div id="loginBox" class="card login-card" style="display: none;">
+      <h2>Owner Login</h2>
+      <input id="email" type="email" placeholder="Email">
+      <input id="password" type="password" placeholder="Password">
+      <button onclick="loginOwner()">Login</button>
+      <div id="loginError" class="error"></div>
     </div>
+    
+    <div id="ownerPortal" style="display:block;">
+      <div class="card">
+        <h2 id="portalTitle">Owner Statement</h2>
+        <div id="summary"></div>
+      </div>
+
+      <div class="card">
+        <h3>Reservations</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Reservation Code</th>
+                <th>Platform</th>
+                <th>Check In</th>
+                <th>Check Out</th>
+                <th>Accommodation</th>
+                <th>PMC</th>
+                <th>Owner Payout</th>
+                <th>Expected Payout</th>
+              </tr>
+            </thead>
+            <tbody id="reservationsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
-  <div id="ownerPortal" style="display:none;">
-    <header class="topbar">
-      <div class="brand">OCEAN VACATIONS</div>
-      <div class="subtitle">Owner Portal</div>
-    </header>
-    <div class="container" id="greetingContainer">
-      <h2 id="greeting" style="margin-bottom:5px;"></h2>
-      <div id="propertyAddress" style="font-size:1.13em;color:#3282b8;font-weight:bold;"></div>
-      <div id="weatherBox" style="margin-top:16px;"></div>
-    </div>
-    <div class="container">
-      <div class="summary-boxes" id="summaryBoxes"></div>
-      <!-- Owner Cleaning Fee Summary -->
-      <div class="summary-boxes" id="ownerCleaningFeeSummary"></div>
-      <h3 class="section-title">Reservations</h3>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Code</th>
-              <th>Platform</th>
-              <th>Check In</th>
-              <th>Check Out</th>
-              <th>Accommodation</th>
-              <th>PMC</th>
-              <th>Owner Payout</th>
-              <th>Expected Payout</th>
-            </tr>
-          </thead>
-          <tbody id="reservationsBody"></tbody>
-        </table>
-      </div>
-      <h3 class="section-title">Owner Stays</h3>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Check In</th>
-              <th>Check Out</th>
-              <th>Accommodation</th>
-              <th>Cleaning Fee</th>
-            </tr>
-          </thead>
-          <tbody id="ownerStaysBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
