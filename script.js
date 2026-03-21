@@ -172,12 +172,12 @@ function getExpectedPayoutDate(checkOutDate) {
 
 function getCleaningFee() {
   function getNightCount(checkIn, checkOut) {
-  const start = new Date(checkIn);
-  const end = new Date(checkOut);
-  if (isNaN(start) || isNaN(end)) return 0;
-  const diffMs = end - start;
-  return Math.round(diffMs / (1000 * 60 * 60 * 24));
-}
+    const start = new Date(checkIn);
+    const end = new Date(checkOut);
+    if (isNaN(start) || isNaN(end)) return 0;
+    const diffMs = end - start;
+    return Math.round(diffMs / (1000 * 60 * 60 * 24));
+  }
   return currentOwner.cleaningFee ? Number(currentOwner.cleaningFee) : 0;
 }
 
@@ -243,13 +243,13 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
   grid.innerHTML = "";
 
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
- dayNames.forEach(day => {
-  grid.innerHTML += `
+  dayNames.forEach(day => {
+    grid.innerHTML += `
       <div style="text-align:center; font-weight:700; padding:2px 0; font-size:${isLarge ? "14px" : "9px"}; overflow:hidden;">
         ${isLarge ? day : day.substring(0, 1)}
       </div>
     `;
-});
+  });
 
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
@@ -262,10 +262,10 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
     grid.innerHTML += `
       <div style="
         min-height:${isLarge ? "90px" : "28px"};
-        background:${isReserved ? "#dcecff" : "#fff"};
+        background:#fff;
         border-radius:8px;
         padding:2px;
-        border:${isReserved ? "2px solid #2f78b7" : "1px solid #d9e6f2"};
+        border:1px solid #d9e6f2;
       ">
         <div style="font-weight:700;">${dayNum}</div>
       </div>
@@ -298,10 +298,10 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
     grid.innerHTML += `
       <div style="
         min-height:${isLarge ? "90px" : "28px"};
-        background:${isReserved ? "#dcecff" : "#fff"};
+        background:#fff;
         border-radius:8px;
         padding:2px;
-        border:${isReserved ? "2px solid #2f78b7" : "1px solid #d9e6f2"};
+        border:1px solid #d9e6f2;
       ">
         <div style="font-weight:700;">${i}</div>
       </div>
@@ -336,7 +336,7 @@ function setupCalendarButtons() {
 
   if (expandBtn && !expandBtn.dataset.bound) {
     expandBtn.dataset.bound = "1";
-    expandBtn.onclick = function () {
+    prevBtn.onclick = function () {
       const modal = document.getElementById("calendarModal");
       calendarModalCurrentDate = new Date(calendarCurrentDate);
       if (modal) modal.style.display = "flex";
@@ -477,13 +477,15 @@ function mapGuestyReservation(r) {
     r.hostPayout,
     r.totalPayout
   );
-const numberOfNightsValue = pickNumber(
-  r["numberOfNights"]?.children,
-  r.numberOfNights?.children,
-  r["numberOfNights"]?.value,
-  r.numberOfNights?.value,
-  r.numberOfNights
-);
+
+  const numberOfNightsValue = pickNumber(
+    r["numberOfNights"]?.children,
+    r.numberOfNights?.children,
+    r["numberOfNights"]?.value,
+    r.numberOfNights?.value,
+    r.numberOfNights
+  );
+
   const cleaningFareValue = pickNumber(
     r["money.fareCleaning"]?.value,
     r.money?.fareCleaning?.value,
@@ -576,26 +578,26 @@ function renderReservationsTable() {
     `;
   } else {
     reservationsData.forEach(reservation => {
-  const accommodation = toNumber(reservation.accommodationFare);
-  const pmc = accommodation * (currentOwner.pmcPercent / 100);
-  const ownerPayout = accommodation - pmc;
-  const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
-  const nights = toNumber(reservation.numberOfNights);
+      const accommodation = toNumber(reservation.accommodationFare);
+      const pmc = accommodation * (currentOwner.pmcPercent / 100);
+      const ownerPayout = accommodation - pmc;
+      const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
+      const nights = toNumber(reservation.numberOfNights);
 
-  tbody.innerHTML += `
-    <tr>
-      <td>${reservation.confirmationCode || ""}</td>
-      <td style="text-align:center;">${reservation.platform || ""}</td>
-      <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
-      <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
-      <td style="text-align:center;">${nights}</td>
-      <td style="text-align:center;">${formatMoney(accommodation)}</td>
-      <td style="text-align:center;">${formatMoney(pmc)}</td>
-      <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
-      <td style="text-align:center;">${expectedPayoutDate}</td>
-    </tr>
-  `;
-});
+      tbody.innerHTML += `
+        <tr>
+          <td>${reservation.confirmationCode || ""}</td>
+          <td style="text-align:center;">${reservation.platform || ""}</td>
+          <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
+          <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
+          <td style="text-align:center;">${nights}</td>
+          <td style="text-align:center;">${formatMoney(accommodation)}</td>
+          <td style="text-align:center;">${formatMoney(pmc)}</td>
+          <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
+          <td style="text-align:center;">${expectedPayoutDate}</td>
+        </tr>
+      `;
+    });
   }
 
   let oldOwnerTable = document.getElementById("ownerStaysTable");
@@ -674,50 +676,50 @@ function renderReservationsTable() {
     const vrboManualTable = document.createElement("div");
     vrboManualTable.id = "vrboManualTable";
     vrboManualTable.innerHTML = `
-  <div style="margin-top:40px; text-align:center;">
-  <h3 class="section-title" style="margin:0;">Booking Channel Paid To Owner Bank Account</h3>
-  <div style="font-size:14px; margin-top:6px;">(channel will process 3-5 business days after check-in)</div>
-</div>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th style="text-align:center;">Platform</th>
-          <th style="text-align:center;">Check-In</th>
-          <th style="text-align:center;">Check-Out</th>
-          <th style="text-align:center;">Nights</th>
-          <th style="text-align:center;">Owner Paid by VRBO</th>
-          <th style="text-align:center;">Accommodation</th>
-          <th style="text-align:center;">Cleaning Fee</th>
-          <th style="text-align:center;">PMC</th>
-          <th style="text-align:center;">Due to Management</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${vrboManualRows.map(reservation => {
-          const accommodation = toNumber(reservation.accommodationFare);
-          const cleaningFee = toNumber(reservation.cleaningFare);
-          const pmc = accommodation * (currentOwner.pmcPercent / 100);
-          const dueToManagement = cleaningFee + pmc;
-          const ownerPaidByVrbo = toNumber(reservation.totalPayout);
-
-          return `
+      <div style="margin-top:40px; text-align:center;">
+        <h3 class="section-title" style="margin:0;">Booking Channel Paid To Owner Bank Account</h3>
+        <div style="font-size:14px; margin-top:6px;">(channel will process 3-5 business days after check-in)</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
             <tr>
-              <td style="text-align:center;">VRBO</td>
-              <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
-              <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
-              <td style="text-align:center;">${formatMoney(ownerPaidByVrbo)}</td>
-              <td style="text-align:center;">${formatMoney(accommodation)}</td>
-              <td style="text-align:center;">${formatMoney(cleaningFee)}</td>
-              <td style="text-align:center;">${formatMoney(pmc)}</td>
-              <td style="text-align:center;">${formatMoney(dueToManagement)}</td>
+              <th style="text-align:center;">Platform</th>
+              <th style="text-align:center;">Check-In</th>
+              <th style="text-align:center;">Check-Out</th>
+              <th style="text-align:center;">Nights</th>
+              <th style="text-align:center;">Owner Paid by VRBO</th>
+              <th style="text-align:center;">Accommodation</th>
+              <th style="text-align:center;">Cleaning Fee</th>
+              <th style="text-align:center;">PMC</th>
+              <th style="text-align:center;">Due to Management</th>
             </tr>
-          `;
-        }).join("")}
-      </tbody>
-    </table>
-  </div>
-`;
+          </thead>
+          <tbody>
+            ${vrboManualRows.map(reservation => {
+              const accommodation = toNumber(reservation.accommodationFare);
+              const cleaningFee = toNumber(reservation.cleaningFare);
+              const pmc = accommodation * (currentOwner.pmcPercent / 100);
+              const dueToManagement = cleaningFee + pmc;
+              const ownerPaidByVrbo = toNumber(reservation.totalPayout);
+
+              return `
+                <tr>
+                  <td style="text-align:center;">VRBO</td>
+                  <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
+                  <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
+                  <td style="text-align:center;">${formatMoney(ownerPaidByVrbo)}</td>
+                  <td style="text-align:center;">${formatMoney(accommodation)}</td>
+                  <td style="text-align:center;">${formatMoney(cleaningFee)}</td>
+                  <td style="text-align:center;">${formatMoney(pmc)}</td>
+                  <td style="text-align:center;">${formatMoney(dueToManagement)}</td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
 
     container.appendChild(vrboManualTable);
   }
@@ -738,10 +740,8 @@ function loadOwnerReport() {
     console.error("No owner or API key configured");
     reservationsData = [];
     renderDashboardHeader();
-renderDashboardHeader();
-renderSummaryBoxes();
-renderReservationsTable();
-renderCalendar("calendarGrid", "calendarMonthLabel", "calendarBookedNights", calendarCurrentDate, false);
+    renderSummaryBoxes();
+    renderReservationsTable();
     return;
   }
 
@@ -770,27 +770,24 @@ renderCalendar("calendarGrid", "calendarMonthLabel", "calendarBookedNights", cal
       );
 
       reservationsData = mappedRows.filter(res => {
-  const status = String(res.status || "").toLowerCase();
-  const isOwnerStay = String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY");
-  return !isOwnerStay &&
-    status !== "cancel" &&
-    status !== "cancelled" &&
-    status !== "canceled";
-});
+        const status = String(res.status || "").toLowerCase();
+        const isOwnerStay = String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY");
+        return !isOwnerStay &&
+          status !== "cancel" &&
+          status !== "cancelled" &&
+          status !== "canceled";
+      });
 
       renderDashboardHeader();
-renderSummaryBoxes();
-renderReservationsTable();
-setupCalendarButtons();
-renderCalendar("calendarGrid", "calendarMonthLabel", "calendarBookedNights", calendarCurrentDate, false);
+      renderSummaryBoxes();
+      renderReservationsTable();
     })
     .catch(err => {
       console.error("Error loading report:", err);
       reservationsData = [];
       renderDashboardHeader();
-renderSummaryBoxes();
-renderReservationsTable();
-renderCalendar("calendarGrid", "calendarMonthLabel", "calendarBookedNights", calendarCurrentDate, false);
+      renderSummaryBoxes();
+      renderReservationsTable();
     });
 }
 
