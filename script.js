@@ -25,7 +25,7 @@ document.getElementById("loginBtn").onclick = function() {
 // === OWNER CONFIGURATION ===
 const OWNERS = {
   "nwood112@gmail.com": {
-    password: "4251$!",
+    password: "owner4251$$",
     ownerName: "Nicole",
     propertyName: "1463 Basin Trail, Murrells Inlet, SC 29576",
     postalCode: "29576",
@@ -34,7 +34,7 @@ const OWNERS = {
     cleaningFee: 250
   },
   "mbiddington@aol.com": {
-    password: "7511$!",
+    password: "owner7511$$",
     ownerName: "Matthew",
     propertyName: "113B 15th Avenue South, Surfside Beach SC 29575",
     postalCode: "29575",
@@ -43,7 +43,7 @@ const OWNERS = {
     cleaningFee: 350
   },
   "chrpfd@verizon.net": {
-    password: "7491$!",
+    password: "owner7491$$",
     ownerName: "Carl",
     propertyName: "113B 13th Ave North. Surfside Beach SC 29575",
     postalCode: "29575",
@@ -52,7 +52,7 @@ const OWNERS = {
     cleaningFee: 350
   },
   "adahabani@gmail.com": {
-    password: "2667$!",
+    password: "owner2667$$",
     ownerName: "Assaf",
     propertyName: "469C White River Drive, Myrtle Beach SC 29577",
     postalCode: "29577",
@@ -61,7 +61,7 @@ const OWNERS = {
     cleaningFee: 150
   },
 "beachsmyles@gmail.com": {
-    password: "2838$!",
+    password: "owner2838$$",
     ownerName: "Chris",
     propertyName: "115C 15th Ave North. Surfside Beach SC 29575",
     postalCode: "29575",
@@ -70,7 +70,7 @@ const OWNERS = {
     cleaningFee: 350
   },
 "maron.eran@gmail.com": {
-    password: "3507$!",
+    password: "owner3507$$",
     ownerName: "Eran",
     propertyName: "",
     postalCode: "29575",
@@ -79,7 +79,7 @@ const OWNERS = {
     cleaningFee: 0
   },
 "liatedri18@gmail.com": {
-    password: "6357$!",
+    password: "owner6357$$",
     ownerName: "Liat",
     propertyName: "GHO REVOCABLE TRUST",
     postalCode: "29575",
@@ -88,7 +88,7 @@ const OWNERS = {
     cleaningFee: 0
   },
 "office@rodriguezlc.com": {
-    password: "5574$!",
+    password: "owner5574$$",
     ownerName: "Liat",
     propertyName: "2131 Sanibel Ct. Myrtle Beach SC 29577",
     postalCode: "29577",
@@ -97,7 +97,7 @@ const OWNERS = {
     cleaningFee: 300
   },
 "zilkerinvestments@gmail.com": {
-    password: "7920$!",
+    password: "owner7920$$",
     ownerName: "Tal Zilker - GTI Group LLC",
     propertyName: "214 2nd Ave S. North Myrtle Beach SC 29582",
     postalCode: "29582",
@@ -106,7 +106,7 @@ const OWNERS = {
     cleaningFee: 300
   },
 "kobiswisa26@gmail.com": {
-    password: "9646$!",
+    password: "owner9646$$",
     ownerName: "Tal Zilker - GTI Group LLC",
     propertyName: "508 3rd Avenue S. North Myrtle Beach SC 29582 unit 1-2",
     postalCode: "29582",
@@ -115,7 +115,7 @@ const OWNERS = {
     cleaningFee: 250
   },
 "tristate1391@gmail.com": {
-    password: "6474$!",
+    password: "owner6474$$",
     ownerName: "Suzan",
     propertyName: "1552 Elizabeth Ln. Myrtle Beach SC 29577",
     postalCode: "29577",
@@ -124,7 +124,7 @@ const OWNERS = {
     cleaningFee: 200
   },
 "pleasechange@email.com": {
-    password: "8589$!",
+    password: "owner8589$$",
     ownerName: "Moran",
     propertyName: "4679 Wild Iris Drive Myrtle Beach SC 29577",
     postalCode: "29577",
