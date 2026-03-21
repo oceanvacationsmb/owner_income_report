@@ -530,11 +530,22 @@ reservationsData.forEach(reservation => {
   totalOwnerPayout += ownerPayout;
 });
 
-const vrboAccommodationTotal = reservationsData
-  .filter(res => String(res.source || "").toUpperCase() === "MANUAL_VRBO")
-  .reduce((sum, res) => sum + toNumber(res.accommodationFare), 0);
+const vrboManualRows = reservationsData.filter(
+  res => String(res.source || "").toUpperCase() === "MANUAL_VRBO"
+);
+
+const vrboAccommodationTotal = vrboManualRows.reduce(
+  (sum, res) => sum + toNumber(res.accommodationFare),
+  0
+);
+
+const vrboPmcTotal = vrboManualRows.reduce(
+  (sum, res) => sum + (toNumber(res.accommodationFare) * (currentOwner.pmcPercent / 100)),
+  0
+);
 
 totalAccommodation += vrboAccommodationTotal;
+totalPMC += vrboPmcTotal;
 
   summaryBoxes.innerHTML = `
     <div class="summary-box">
