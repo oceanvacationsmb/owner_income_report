@@ -348,6 +348,9 @@ if (expandBtn && !expandBtn.dataset.bound) {
     openCalendarModal();
   };
 }
+  if (topCalendarBox) {
+  topCalendarBox.style.cursor = "default";
+}
 
   if (modalPrevBtn && !modalPrevBtn.dataset.bound) {
     modalPrevBtn.dataset.bound = "1";
@@ -765,8 +768,10 @@ function loadOwnerReport() {
     console.error("No owner or API key configured");
     reservationsData = [];
     renderDashboardHeader();
-    renderSummaryBoxes();
-    renderReservationsTable();
+renderSummaryBoxes();
+renderReservationsTable();
+setupCalendarButtons();
+document.getElementById("calendarBookedNights").innerText = `Total Booked Nights: ${getTotalBookedNights()}`;
     return;
   }
 
