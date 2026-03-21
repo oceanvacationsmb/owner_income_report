@@ -546,6 +546,7 @@ const vrboPmcTotal = vrboManualRows.reduce(
 
 totalAccommodation += vrboAccommodationTotal;
 totalPMC += vrboPmcTotal;
+totalOwnerPayout = totalAccommodation - totalPMC;
 
   summaryBoxes.innerHTML = `
     <div class="summary-box">
