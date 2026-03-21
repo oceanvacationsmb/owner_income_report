@@ -27,7 +27,7 @@ document.getElementById("loginBtn").onclick = function() {
 const OWNERS = {
   "1463@yahoo.com": {
     password: "1234",
-    ownerName: "ZACK TEST",
+    ownerName: "Nicole",
     propertyName: "1463 Basin Trail, Murrells Inlet, SC 29576",
     postalCode: "29576",
     pmcPercent: 12,
@@ -36,16 +36,16 @@ const OWNERS = {
   },
   "11315@yahoo.com": {
     password: "1234",
-    ownerName: "ZACK 2",
-    propertyName: "Basin Trail, Murrells Inlet, SC 29576",
-    postalCode: "11418",
+    ownerName: "Matt",
+    propertyName: "113B 15th Avenue South, Surfside Beach SC 29575",
+    postalCode: "29575",
     pmcPercent: 15,
     guestyApiKey: "bbbab438244300805daaf5485d3b516cbeee616fba7e640fc3b80d0b648c01d13e3f70a2bde2abaf9deb3b661aabf1c17453fd4e6d799f380cfd059df66cf01e",
     cleaningFee: 350
   },
   "11313@yahoo.com": {
     password: "1234",
-    ownerName: "CARL",
+    ownerName: "Carl",
     propertyName: "113B 13th Ave North. Surfside Beach SC 29575",
     postalCode: "29575",
     pmcPercent: 12,
