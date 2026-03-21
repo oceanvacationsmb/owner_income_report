@@ -144,12 +144,13 @@ function formatMoney(v) {
 function toNumber(v) { return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0; }
 function formatDateDisplay(dateStr) {
   if (!dateStr) return "";
-  const date = new Date(dateStr);
-  if (isNaN(date)) return dateStr;
-  const mm = String(date.getMonth() + 1).padStart(2, "0");
-  const dd = String(date.getDate()).padStart(2, "0");
-  const yyyy = date.getFullYear();
-  return `${mm}/${dd}/${yyyy}`;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    // If it's 'YYYY-MM-DD' (typical from your source), just reformat with no date parsing
+    const [yyyy, mm, dd] = dateStr.split("-");
+    return `${mm}/${dd}/${yyyy}`;
+  }
+  // Otherwise fallback to original method (for odd cases)
+  return dateStr;
 }
 function getExpectedPayoutDate(checkOutDate) {
   const d = new Date(checkOutDate);
@@ -332,20 +333,18 @@ function renderReservationsTable() {
       const pmc = accommodation * (currentOwner.pmcPercent / 100);
       const ownerPayout = accommodation - pmc;
       const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
-      tbody.innerHTML += `
-        <tr>
-          <td>${reservation.confirmationCode || ""}</td>
-          <td>${reservation.platform || ""}</td>
-          <td>${formatDateDisplay(reservation.checkIn) || ""}</td>
-          <td>${formatDateDisplay(reservation.checkOut) || ""}</td>
-          <td>${formatMoney(accommodation)}</td>
-          <td>${formatMoney(pmc)}</td>
-          <td>${formatMoney(ownerPayout)}</td>
-          <td>${expectedPayoutDate}</td>
-        </tr>
-      `;
-    });
-  }
+       tbody.innerHTML += `
+      <tr>
+        <td style="text-align:center;">${reservation.confirmationCode || ""}</td>
+        <td style="text-align:center;">${reservation.platform || ""}</td>
+        <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
+        <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
+        <td style="text-align:center;">${formatMoney(accommodation)}</td>
+        <td style="text-align:center;">${formatMoney(pmc)}</td>
+        <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
+        <td style="text-align:center;">${expectedPayoutDate}</td>
+      </tr>
+    `;
 
   // === OWNER STAYS SEPARATE TABLE, IMMEDIATELY BELOW MAIN TABLE ===
   // Remove any old table (if present)
@@ -380,13 +379,14 @@ function renderReservationsTable() {
             </tr>
           </thead>
           <tbody>
-            ${ownerStaysData.map(res => `
-            <tr>
-              <td>${formatDateDisplay(res.checkIn || res.checkInDate || "")}</td>
-              <td>${formatDateDisplay(res.checkOut || res.checkOutDate || "")}</td>
-              <td>${formatMoney(getCleaningFee())}</td>
-            </tr>`).join('')}
-          </tbody>
+  ${ownerStaysData.map(res => `
+    <tr>
+      <td style="text-align:center;">${formatDateDisplay(res.checkIn || res.checkInDate || "")}</td>
+      <td style="text-align:center;">${formatDateDisplay(res.checkOut || res.checkOutDate || "")}</td>
+      <td style="text-align:center;">${formatMoney(getCleaningFee())}</td>
+    </tr>
+  `).join('')}
+</tbody>
         </table>
       </div>
     `;
