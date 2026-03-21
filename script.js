@@ -38,7 +38,7 @@ const OWNERS = {
     ownerName: "Matt",
     propertyName: "113B 15th Avenue South, Surfside Beach SC 29575",
     postalCode: "29575",
-    pmcPercent: 15,
+    pmcPercent: 12,
     guestyApiKey: "bbbab438244300805daaf5485d3b516cbeee616fba7e640fc3b80d0b648c01d13e3f70a2bde2abaf9deb3b661aabf1c17453fd4e6d799f380cfd059df66cf01e",
     cleaningFee: 350
   },
