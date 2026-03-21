@@ -738,9 +738,9 @@ function loadOwnerReport() {
     console.error("No owner or API key configured");
     reservationsData = [];
     renderDashboardHeader();
+renderDashboardHeader();
 renderSummaryBoxes();
 renderReservationsTable();
-setupCalendarButtons();
 renderCalendar("calendarGrid", "calendarMonthLabel", "calendarBookedNights", calendarCurrentDate, false);
     return;
   }
@@ -791,7 +791,6 @@ renderCalendar("calendarGrid", "calendarMonthLabel", "calendarBookedNights", cal
       renderDashboardHeader();
 renderSummaryBoxes();
 renderReservationsTable();
-setupCalendarButtons();
 renderCalendar("calendarGrid", "calendarMonthLabel", "calendarBookedNights", calendarCurrentDate, false);
     });
 }
