@@ -243,13 +243,13 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
   grid.innerHTML = "";
 
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  dayNames.forEach(day => {
-    grid.innerHTML += `
-      <div style="text-align:center; font-weight:700; padding:6px 0;">
-        ${day}
+ dayNames.forEach(day => {
+  grid.innerHTML += `
+      <div style="text-align:center; font-weight:700; padding:2px 0; font-size:${isLarge ? "14px" : "9px"}; overflow:hidden;">
+        ${isLarge ? day : day.substring(0, 1)}
       </div>
     `;
-  });
+});
 
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
@@ -260,7 +260,13 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
   for (let i = 0; i < startOffset; i++) {
     const dayNum = prevMonthLastDay - startOffset + i + 1;
     grid.innerHTML += `
-      <div style="min-height:${isLarge ? "90px" : "46px"}; opacity:.35; background:#fff; border-radius:10px; padding:4px; border:1px solid #d9e6f2;">
+      <div style="
+        min-height:${isLarge ? "90px" : "28px"};
+        background:${isReserved ? "#dcecff" : "#fff"};
+        border-radius:8px;
+        padding:2px;
+        border:${isReserved ? "2px solid #2f78b7" : "1px solid #d9e6f2"};
+      ">
         <div style="font-weight:700;">${dayNum}</div>
       </div>
     `;
@@ -279,8 +285,8 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
         padding:4px;
         border:${isReserved ? "2px solid #2f78b7" : "1px solid #d9e6f2"};
       ">
-        <div style="font-weight:700;">${day}</div>
-        ${isReserved ? `<div style="margin-top:6px; font-size:${isLarge ? "12px" : "8px"}; font-weight:700; color:#2f78b7;">RESERVED</div>` : ``}
+        <div style="font-weight:700; font-size:${isLarge ? "16px" : "10px"};">${day}</div>
+        ${isReserved ? `<div style="margin-top:6px; font-size:${isLarge ? "12px" : "0px"}; font-weight:700; color:#2f78b7;">RESERVED</div>` : ``}
       </div>
     `;
   }
@@ -290,7 +296,13 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
 
   for (let i = 1; i <= endFill; i++) {
     grid.innerHTML += `
-      <div style="min-height:${isLarge ? "90px" : "46px"}; opacity:.35; background:#fff; border-radius:10px; padding:4px; border:1px solid #d9e6f2;">
+      <div style="
+        min-height:${isLarge ? "90px" : "28px"};
+        background:${isReserved ? "#dcecff" : "#fff"};
+        border-radius:8px;
+        padding:2px;
+        border:${isReserved ? "2px solid #2f78b7" : "1px solid #d9e6f2"};
+      ">
         <div style="font-weight:700;">${i}</div>
       </div>
     `;
