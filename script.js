@@ -258,19 +258,19 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
   const prevMonthLastDay = new Date(year, month, 0).getDate();
 
   for (let i = 0; i < startOffset; i++) {
-    const dayNum = prevMonthLastDay - startOffset + i + 1;
-    grid.innerHTML += `
-      <div style="
-        min-height:${isLarge ? "90px" : "28px"};
-        background:#fff;
-        border-radius:8px;
-        padding:2px;
-        border:1px solid #d9e6f2;
-      ">
-        <div style="font-weight:700;">${dayNum}</div>
-      </div>
-    `;
-  }
+  const dayNum = prevMonthLastDay - startOffset + i + 1;
+  grid.innerHTML += `
+    <div style="
+      min-height:${isLarge ? "90px" : "28px"};
+      background:#fff;
+      border-radius:8px;
+      padding:2px;
+      border:1px solid #d9e6f2;
+    ">
+      <div style="font-weight:700;">${dayNum}</div>
+    </div>
+  `;
+}
 
   for (let day = 1; day <= totalDays; day++) {
     const currentDate = new Date(year, month, day);
@@ -295,17 +295,17 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
   const endFill = (7 - (totalCellsUsed % 7)) % 7;
 
   for (let i = 1; i <= endFill; i++) {
-    grid.innerHTML += `
-      <div style="
-        min-height:${isLarge ? "90px" : "28px"};
-        background:#fff;
-        border-radius:8px;
-        padding:2px;
-        border:1px solid #d9e6f2;
-      ">
-        <div style="font-weight:700;">${i}</div>
-      </div>
-    `;
+  grid.innerHTML += `
+    <div style="
+      min-height:${isLarge ? "90px" : "28px"};
+      background:#fff;
+      border-radius:8px;
+      padding:2px;
+      border:1px solid #d9e6f2;
+    ">
+      <div style="font-weight:700;">${i}</div>
+    </div>
+  `;
   }
 }
 
@@ -697,25 +697,27 @@ function renderReservationsTable() {
           </thead>
           <tbody>
             ${vrboManualRows.map(reservation => {
-              const accommodation = toNumber(reservation.accommodationFare);
-              const cleaningFee = toNumber(reservation.cleaningFare);
-              const pmc = accommodation * (currentOwner.pmcPercent / 100);
-              const dueToManagement = cleaningFee + pmc;
-              const ownerPaidByVrbo = toNumber(reservation.totalPayout);
+  const accommodation = toNumber(reservation.accommodationFare);
+  const cleaningFee = toNumber(reservation.cleaningFare);
+  const pmc = accommodation * (currentOwner.pmcPercent / 100);
+  const dueToManagement = cleaningFee + pmc;
+  const ownerPaidByVrbo = toNumber(reservation.totalPayout);
+  const nights = toNumber(reservation.numberOfNights);
 
-              return `
-                <tr>
-                  <td style="text-align:center;">VRBO</td>
-                  <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
-                  <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
-                  <td style="text-align:center;">${formatMoney(ownerPaidByVrbo)}</td>
-                  <td style="text-align:center;">${formatMoney(accommodation)}</td>
-                  <td style="text-align:center;">${formatMoney(cleaningFee)}</td>
-                  <td style="text-align:center;">${formatMoney(pmc)}</td>
-                  <td style="text-align:center;">${formatMoney(dueToManagement)}</td>
-                </tr>
-              `;
-            }).join("")}
+  return `
+    <tr>
+      <td style="text-align:center;">VRBO</td>
+      <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
+      <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
+      <td style="text-align:center;">${nights}</td>
+      <td style="text-align:center;">${formatMoney(ownerPaidByVrbo)}</td>
+      <td style="text-align:center;">${formatMoney(accommodation)}</td>
+      <td style="text-align:center;">${formatMoney(cleaningFee)}</td>
+      <td style="text-align:center;">${formatMoney(pmc)}</td>
+      <td style="text-align:center;">${formatMoney(dueToManagement)}</td>
+    </tr>
+  `;
+}).join("")}
           </tbody>
         </table>
       </div>
