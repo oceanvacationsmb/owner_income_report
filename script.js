@@ -392,7 +392,7 @@ function renderReservationsTable() {
     <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
     <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
     <td style="text-align:center;">${nights}</td>
-    <td style="text-align:center;">${formatMoney(accommodation)}</td>
+    <td style="text-align:center;">${nights}</td>
     <td style="text-align:center;">${formatMoney(pmc)}</td>
     <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
     <td style="text-align:center;">${expectedPayoutDate}</td>
