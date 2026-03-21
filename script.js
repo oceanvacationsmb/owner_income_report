@@ -281,6 +281,13 @@ function mapGuestyReservation(r) {
     r.totalPayout
   );
 
+  const cleaningFareValue = pickNumber(
+    r["money.fareCleaning"]?.value,
+    r.money?.fareCleaning?.value,
+    r.fareCleaning,
+    r.cleaningFee
+  );
+
   return {
     status: pickText(r.status, r.reservationStatus, r["STATUS"], r["reservationStatus"]),
     listingNickname: pickText(r["listing.nickname"], r.listingNickname, r.listing?.nickname, r.listing),
@@ -290,6 +297,7 @@ function mapGuestyReservation(r) {
     checkIn: r["checkInDate"]?.value || "",
     checkOut: r["checkOutDate"]?.value || "",
     totalPayout: totalPayoutValue,
+    cleaningFare: cleaningFareValue,
     accommodationFare: calculatedAccommodation,
     baseAccommodation,
     markup,
@@ -460,42 +468,46 @@ function renderReservationsTable() {
     const vrboManualTable = document.createElement("div");
     vrboManualTable.id = "vrboManualTable";
     vrboManualTable.innerHTML = `
-      <h3 class="section-title" style="margin-top:40px;">VRBO Manual Reservations</h3>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="text-align:center;">Platform</th>
-              <th style="text-align:center;">Owner Paid by VRBO</th>
-              <th style="text-align:center;">Accommodation</th>
-              <th style="text-align:center;">Cleaning Fee</th>
-              <th style="text-align:center;">PMC</th>
-              <th style="text-align:center;">Due to Management</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${vrboManualRows.map(reservation => {
-              const accommodation = toNumber(reservation.accommodationFare);
-              const cleaningFee = getCleaningFee();
-              const pmc = accommodation * (currentOwner.pmcPercent / 100);
-              const dueToManagement = pmc;
-              const ownerPaidByVrbo = toNumber(reservation.totalPayout);
+  <h3 class="section-title" style="margin-top:40px;">Booking Channel Paid To Owner Bank Account</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="text-align:center;">Platform</th>
+          <th style="text-align:center;">Check-In</th>
+          <th style="text-align:center;">Check-Out</th>
+          <th style="text-align:center;">Owner Paid by VRBO</th>
+          <th style="text-align:center;">Accommodation</th>
+          <th style="text-align:center;">Cleaning Fee</th>
+          <th style="text-align:center;">PMC</th>
+          <th style="text-align:center;">Due to Management</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${vrboManualRows.map(reservation => {
+          const accommodation = toNumber(reservation.accommodationFare);
+          const cleaningFee = toNumber(reservation.cleaningFare);
+          const pmc = accommodation * (currentOwner.pmcPercent / 100);
+          const dueToManagement = cleaningFee + pmc;
+          const ownerPaidByVrbo = toNumber(reservation.totalPayout);
 
-              return `
-                <tr>
-                  <td style="text-align:center;">VRBO</td>
-                  <td style="text-align:center;">${formatMoney(ownerPaidByVrbo)}</td>
-                  <td style="text-align:center;">${formatMoney(accommodation)}</td>
-                  <td style="text-align:center;">${formatMoney(cleaningFee)}</td>
-                  <td style="text-align:center;">${formatMoney(pmc)}</td>
-                  <td style="text-align:center;">${formatMoney(dueToManagement)}</td>
-                </tr>
-              `;
-            }).join("")}
-          </tbody>
-        </table>
-      </div>
-    `;
+          return `
+            <tr>
+              <td style="text-align:center;">VRBO</td>
+              <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
+              <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
+              <td style="text-align:center;">${formatMoney(ownerPaidByVrbo)}</td>
+              <td style="text-align:center;">${formatMoney(accommodation)}</td>
+              <td style="text-align:center;">${formatMoney(cleaningFee)}</td>
+              <td style="text-align:center;">${formatMoney(pmc)}</td>
+              <td style="text-align:center;">${formatMoney(dueToManagement)}</td>
+            </tr>
+          `;
+        }).join("")}
+      </tbody>
+    </table>
+  </div>
+`;
 
     container.appendChild(vrboManualTable);
   }
