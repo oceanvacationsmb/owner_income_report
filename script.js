@@ -169,6 +169,13 @@ function getExpectedPayoutDate(checkOutDate) {
 }
 
 function getCleaningFee() {
+  function getNightCount(checkIn, checkOut) {
+  const start = new Date(checkIn);
+  const end = new Date(checkOut);
+  if (isNaN(start) || isNaN(end)) return 0;
+  const diffMs = end - start;
+  return Math.round(diffMs / (1000 * 60 * 60 * 24));
+}
   return currentOwner.cleaningFee ? Number(currentOwner.cleaningFee) : 0;
 }
 
@@ -376,19 +383,21 @@ function renderReservationsTable() {
       const pmc = accommodation * (currentOwner.pmcPercent / 100);
       const ownerPayout = accommodation - pmc;
       const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
+      const nights = getNightCount(reservation.checkIn, reservation.checkOut);
 
       tbody.innerHTML += `
-        <tr>
-          <td>${reservation.confirmationCode || ""}</td>
-          <td style="text-align:center;">${reservation.platform || ""}</td>
-          <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
-          <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
-          <td style="text-align:center;">${formatMoney(accommodation)}</td>
-          <td style="text-align:center;">${formatMoney(pmc)}</td>
-          <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
-          <td style="text-align:center;">${expectedPayoutDate}</td>
-        </tr>
-      `;
+  <tr>
+    <td>${reservation.confirmationCode || ""}</td>
+    <td style="text-align:center;">${reservation.platform || ""}</td>
+    <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
+    <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
+    <td style="text-align:center;">${nights}</td>
+    <td style="text-align:center;">${formatMoney(accommodation)}</td>
+    <td style="text-align:center;">${formatMoney(pmc)}</td>
+    <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
+    <td style="text-align:center;">${expectedPayoutDate}</td>
+  </tr>
+`;
     });
   }
 
@@ -479,6 +488,7 @@ function renderReservationsTable() {
           <th style="text-align:center;">Platform</th>
           <th style="text-align:center;">Check-In</th>
           <th style="text-align:center;">Check-Out</th>
+          <th style="text-align:center;">Nights</th>
           <th style="text-align:center;">Owner Paid by VRBO</th>
           <th style="text-align:center;">Accommodation</th>
           <th style="text-align:center;">Cleaning Fee</th>
