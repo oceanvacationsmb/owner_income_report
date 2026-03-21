@@ -257,7 +257,7 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
   const totalDays = lastDay.getDate();
   const prevMonthLastDay = new Date(year, month, 0).getDate();
 
-  for (let i = 0; i < startOffset; i++) {
+ for (let i = 0; i < startOffset; i++) {
   const dayNum = prevMonthLastDay - startOffset + i + 1;
   grid.innerHTML += `
     <div style="
@@ -306,7 +306,7 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
       <div style="font-weight:700;">${i}</div>
     </div>
   `;
-  }
+}
 }
 
 function setupCalendarButtons() {
