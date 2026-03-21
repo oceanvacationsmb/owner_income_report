@@ -252,8 +252,21 @@ function getReservedDateMap() {
 }
 
 function getTotalBookedNights() {
-  const reservedMap = getReservedDateMap();
-  return Object.keys(reservedMap).length;
+  const bookedMap = {};
+
+  reservationsData.forEach(reservation => {
+    const start = parseLocalDate(reservation.checkIn);
+    const end = parseLocalDate(reservation.checkOut);
+    if (!start || !end) return;
+
+    const current = new Date(start);
+    while (current < end) {
+      bookedMap[toDateKey(current)] = true;
+      current.setDate(current.getDate() + 1);
+    }
+  });
+
+  return Object.keys(bookedMap).length;
 }
 
 function getCellStyleForDate(dayInfo) {
