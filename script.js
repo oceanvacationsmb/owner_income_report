@@ -260,7 +260,7 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
   for (let i = 0; i < startOffset; i++) {
     const dayNum = prevMonthLastDay - startOffset + i + 1;
     grid.innerHTML += `
-      <div style="min-height:${isLarge ? "90px" : "62px"}; opacity:.35; background:#fff; border-radius:10px; padding:6px; border:1px solid #d9e6f2;">
+      <div style="min-height:${isLarge ? "90px" : "46px"}; opacity:.35; background:#fff; border-radius:10px; padding:4px; border:1px solid #d9e6f2;">
         <div style="font-weight:700;">${dayNum}</div>
       </div>
     `;
@@ -273,14 +273,14 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
 
     grid.innerHTML += `
       <div style="
-        min-height:${isLarge ? "90px" : "62px"};
+        min-height:${isLarge ? "90px" : "46px"};
         background:${isReserved ? "#dcecff" : "#fff"};
         border-radius:10px;
-        padding:6px;
+        padding:4px;
         border:${isReserved ? "2px solid #2f78b7" : "1px solid #d9e6f2"};
       ">
         <div style="font-weight:700;">${day}</div>
-        ${isReserved ? `<div style="margin-top:6px; font-size:${isLarge ? "12px" : "10px"}; font-weight:700; color:#2f78b7;">RESERVED</div>` : ``}
+        ${isReserved ? `<div style="margin-top:6px; font-size:${isLarge ? "12px" : "8px"}; font-weight:700; color:#2f78b7;">RESERVED</div>` : ``}
       </div>
     `;
   }
@@ -290,7 +290,7 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
 
   for (let i = 1; i <= endFill; i++) {
     grid.innerHTML += `
-      <div style="min-height:${isLarge ? "90px" : "62px"}; opacity:.35; background:#fff; border-radius:10px; padding:6px; border:1px solid #d9e6f2;">
+      <div style="min-height:${isLarge ? "90px" : "46px"}; opacity:.35; background:#fff; border-radius:10px; padding:4px; border:1px solid #d9e6f2;">
         <div style="font-weight:700;">${i}</div>
       </div>
     `;
