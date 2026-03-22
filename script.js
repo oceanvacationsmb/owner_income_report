@@ -991,7 +991,7 @@ if (allowedAccommodation < standardAccommodation) {
 
     calculatedAccommodation = Math.max(0, netAccommodation);
   }
-}
+
 
   return {
     status: pickText(r.status, r.reservationStatus, r["STATUS"], r["reservationStatus"]),
