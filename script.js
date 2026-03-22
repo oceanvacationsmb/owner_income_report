@@ -901,7 +901,16 @@ const platformUpper = String(
   pickText(r["integration.platform"], r.platform, r.integration?.platform) || ""
 ).toUpperCase().trim();
 
-const isAirbnb = sourceUpper.includes("AIRBNB") || platformUpper.includes("AIRBNB");
+const platformUpper = String(
+  pickText(r["integration.platform"], r.platform, r.integration?.platform) || ""
+).toUpperCase().trim();
+
+const sourceUpper = String(sourceValue || "").toUpperCase().trim();
+
+const isAirbnb =
+  platformUpper.includes("AIRBNB") ||
+  sourceUpper.includes("AIRBNB2") ||
+  sourceUpper.includes("AIRBNB");
 
 const isSpecialSource = isVrboOrHomeAway || isWebsite || isDirect || isManual;
 
@@ -930,9 +939,9 @@ const triggerAccommodation = isAirbnb
   : standardAccommodation;
 
 if (totalPayoutValue < triggerAccommodation) {
-  if (isAirbnb) {
-    // Airbnb only: Payout - Cleaning - Airbnb Resolution Center
-    calculatedAccommodation = Math.max(0, totalPayoutValue - Math.max(0, cleaningFareValue) - Math.max(0, airbnbResolutionCenter));
+ if (isAirbnb) {
+  calculatedAccommodation = Math.max(0, totalPayoutValue - Math.max(0, cleaningFareValue));
+}
   } else if (isSpecialSource) {
     let netAccommodation = totalPayoutValue;
 
