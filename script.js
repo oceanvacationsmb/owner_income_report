@@ -947,11 +947,6 @@ function renderSummaryBoxes() {
   return sum + toNumber(reservation.numberOfNights);
 }, 0);
   
-summaryBoxes.innerHTML = `
-  <h2 style="text-align:center; width:100%; margin-bottom:12px;">SUMMARY</h2>
-  <div class="summary-box">
-    <div class="summary-label">PMC %</div>
-   summaryBoxes.innerHTML = `
     <h2 style="text-align:center; width:100%; margin-bottom:12px;">SUMMARY</h2>
     <div class="summary-box">
       <div class="summary-label">PMC %</div>
