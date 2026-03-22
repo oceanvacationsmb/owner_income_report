@@ -888,8 +888,63 @@ let calculatedAccommodation = standardAccommodation;
     r["money.invoiceItems.ARC"]?.value, r["money.invoiceItems.ARC"]?.amount, r.airbnbResolutionCenter, r.resolutionCenter
   );
 
-  if (totalPayoutValue < standardAccommodation) {
-  calculatedAccommodation = totalPayoutValue - taxesCombined + cleaningFareValue - airbnbResolutionCenter;
+  const sourceUpper = String(sourceValue || "").toUpperCase().trim();
+
+const isManualVrbo = sourceUpper.includes("MANUAL_VRBO") || sourceUpper.includes("VRBO_MANUAL");
+const isManualDirect = sourceUpper.includes("MANUAL_DIRECT");
+
+const isVrboOrHomeAway = (sourceUpper.includes("VRBO") || sourceUpper.includes("HOMEAWAY")) && !isManualVrbo;
+const isWebsite = sourceUpper.includes("WEBSITE");
+const isDirect = sourceUpper.includes("DIRECT") && !isManualDirect;
+const isManual = (sourceUpper === "MANUAL" || sourceUpper.includes("MANUAL")) && !isManualVrbo && !isManualDirect;
+const isAirbnb = sourceUpper.includes("AIRBNB");
+
+const isSpecialSource = isVrboOrHomeAway || isWebsite || isDirect || isManual;
+
+// Channel/booking commission (NOT Airbnb ARC)
+const channelCommission = pickNumber(
+  r["money.invoiceItems.BKF"]?.value,
+  r["money.invoiceItems.BOOKING_FEE"]?.value,
+  r["money.invoiceItems.channelCommission"]?.value,
+  r.money?.invoiceItems?.BKF?.value,
+  r.bookingFee,
+  r.channelCommission,
+  r["money.channelCommission"]?.value
+);
+
+// Optional explicit card processing fee from report
+const explicitCardProcessingFee = pickNumber(
+  r["money.invoiceItems.CCF"]?.value,
+  r["money.invoiceItems.CC"]?.value,
+  r["money.invoiceItems.creditCardProcessingFee"]?.value,
+  r.money?.invoiceItems?.CCF?.value,
+  r.creditCardProcessingFee
+);
+
+if (totalPayoutValue < standardAccommodation) {
+  if (isAirbnb) {
+    // Airbnb only: Payout - Cleaning - Airbnb Resolution Center
+    calculatedAccommodation = Math.max(0, totalPayoutValue - Math.max(0, cleaningFareValue) - Math.max(0, airbnbResolutionCenter));
+  } else if (isSpecialSource) {
+    let netAccommodation = totalPayoutValue;
+
+    // Always deduct taxes + cleaning
+    netAccommodation -= Math.max(0, taxesCombined);
+    netAccommodation -= Math.max(0, cleaningFareValue);
+
+    if (isVrboOrHomeAway) {
+      // VRBO/HOMEAWAY: deduct channel commission only
+      netAccommodation -= Math.max(0, channelCommission);
+    } else {
+      // WEBSITE / DIRECT / MANUAL
+      netAccommodation -= totalPayoutValue * 0.01;
+      const cardFeeToUse = explicitCardProcessingFee > 0 ? explicitCardProcessingFee : (totalPayoutValue * 0.04);
+      netAccommodation -= Math.max(0, cardFeeToUse);
+      netAccommodation -= Math.max(0, channelCommission);
+    }
+
+    calculatedAccommodation = Math.max(0, netAccommodation);
+  }
 }
 
   return {
