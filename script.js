@@ -1405,7 +1405,7 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
   const ownerTable = document.createElement("div");
   ownerTable.id = "ownerStaysTable";
   ownerTable.innerHTML = `
-    <h3 class="section-title" style="margin-top:40px; text-align:center;">Upcoming Owner Stays</h3>
+    <h3 class="section-title" style="margin-top:40px; text-align:center;" Owner Stays</h3>
     <div class="table-wrap">
       <table>
         <thead>
