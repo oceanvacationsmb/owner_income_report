@@ -990,9 +990,6 @@ const sortedReservations = [...getFilteredReservations()]
     return toSortableDate(a.checkIn) - toSortableDate(b.checkIn);
   });
   
-    return toSortableDate(a.checkIn) - toSortableDate(b.checkIn);
-  });
-
   if (tbody) {
   if (!sortedReservations.length) {
     tbody.innerHTML = `
