@@ -888,29 +888,33 @@ let calculatedAccommodation = standardAccommodation;
     r["money.invoiceItems.ARC"]?.value, r["money.invoiceItems.ARC"]?.amount, r.airbnbResolutionCenter, r.resolutionCenter
   );
 
-  const sourceUpper = String(sourceValue || "").toUpperCase().trim();
-
-const isManualVrbo = sourceUpper.includes("MANUAL_VRBO") || sourceUpper.includes("VRBO_MANUAL");
-const isManualDirect = sourceUpper.includes("MANUAL_DIRECT");
-
-const isVrboOrHomeAway = (sourceUpper.includes("VRBO") || sourceUpper.includes("HOMEAWAY")) && !isManualVrbo;
-const isWebsite = sourceUpper.includes("WEBSITE");
-const isDirect = sourceUpper.includes("DIRECT") && !isManualDirect;
-const isManual = (sourceUpper === "MANUAL" || sourceUpper.includes("MANUAL")) && !isManualVrbo && !isManualDirect;
-const platformUpper = String(
-  pickText(r["integration.platform"], r.platform, r.integration?.platform) || ""
-).toUpperCase().trim();
-
 const platformUpper = String(
   pickText(r["integration.platform"], r.platform, r.integration?.platform) || ""
 ).toUpperCase().trim();
 
 const sourceUpper = String(sourceValue || "").toUpperCase().trim();
 
+const isManualVrbo = sourceUpper.includes("MANUAL_VRBO") || sourceUpper.includes("VRBO_MANUAL");
+const isManualDirect = sourceUpper.includes("MANUAL_DIRECT");
+
 const isAirbnb =
   platformUpper.includes("AIRBNB") ||
   sourceUpper.includes("AIRBNB2") ||
   sourceUpper.includes("AIRBNB");
+
+const isVrboOrHomeAway =
+  (platformUpper.includes("VRBO") ||
+    platformUpper.includes("HOMEAWAY") ||
+    sourceUpper.includes("VRBO") ||
+    sourceUpper.includes("HOMEAWAY")) &&
+  !isManualVrbo;
+
+const isWebsite = sourceUpper.includes("WEBSITE");
+const isDirect = sourceUpper.includes("DIRECT") && !isManualDirect;
+const isManual =
+  (sourceUpper === "MANUAL" || sourceUpper.includes("MANUAL")) &&
+  !isManualVrbo &&
+  !isManualDirect;
 
 const isSpecialSource = isVrboOrHomeAway || isWebsite || isDirect || isManual;
 
@@ -938,11 +942,36 @@ const triggerAccommodation = isAirbnb
   ? Math.max(baseAccommodation, standardAccommodation)
   : standardAccommodation;
 
-if (totalPayoutValue < triggerAccommodation) {
- if (isAirbnb) {
-  calculatedAccommodation = Math.max(0, totalPayoutValue - Math.max(0, cleaningFareValue));
+let allowedAccommodation = standardAccommodation;
+
+if (isAirbnb) {
+  allowedAccommodation =
+    totalPayoutValue -
+    Math.max(0, cleaningFareValue);
+} else if (isVrboOrHomeAway) {
+  allowedAccommodation =
+    totalPayoutValue -
+    Math.max(0, cleaningFareValue) -
+    Math.max(0, taxesCombined) -
+    Math.max(0, channelCommission);
+} else if (isWebsite || isDirect || isManual) {
+  const cardFeeToUse =
+    explicitCardProcessingFee > 0
+      ? explicitCardProcessingFee
+      : (totalPayoutValue * 0.04);
+
+  allowedAccommodation =
+    totalPayoutValue -
+    Math.max(0, cleaningFareValue) -
+    Math.max(0, taxesCombined) -
+    Math.max(0, channelCommission) -
+    Math.max(0, totalPayoutValue * 0.01) -
+    Math.max(0, cardFeeToUse);
 }
-  } else if (isSpecialSource) {
+
+if (allowedAccommodation < standardAccommodation) {
+  calculatedAccommodation = Math.max(0, allowedAccommodation);
+}
     let netAccommodation = totalPayoutValue;
 
     // Always deduct taxes + cleaning
