@@ -946,13 +946,13 @@ function renderSummaryBoxes() {
  const bookedNightsCount = filteredReservations.reduce((sum, reservation) => {
   return sum + toNumber(reservation.numberOfNights);
 }, 0);
-  
+
+  summaryBoxes.innerHTML = `
     <h2 style="text-align:center; width:100%; margin-bottom:12px;">SUMMARY</h2>
     <div class="summary-box">
       <div class="summary-label">PMC %</div>
       <div class="summary-value">${currentOwner.pmcPercent}%</div>
     </div>
-    <div class="summary-box">
     <div class="summary-box">
       <div class="summary-label">Total Accommodation</div>
       <div class="summary-value">${formatMoney(totalAccommodation)}</div>
