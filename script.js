@@ -916,7 +916,12 @@ function renderSummaryBoxes() {
   let totalPMC = 0;
   let totalOwnerPayout = 0;
 
-  filteredReservations.forEach(reservation => {
+  filteredReservations
+  .filter(res => {
+    const source = String(res.source || "").toUpperCase();
+    return source !== "MANUAL_VRBO";
+  })
+  .forEach(reservation => {
     const accommodation = toNumber(reservation.accommodationFare);
     const pmc = accommodation * (currentOwner.pmcPercent / 100);
     const ownerPayout = accommodation - pmc;
