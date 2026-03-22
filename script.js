@@ -1003,7 +1003,7 @@ if (tbody) {
 
       tbody.innerHTML += `
         <tr>
-          <td>${reservation.confirmationCode || ""}</td>
+          <td>${reservation.confirmationCode || ""} ${String(reservation.status || "").toLowerCase().includes("cancel") ? '<span style="color:red; font-weight:700;">CANCELLED</span>' : ""}</td>
           <td style="text-align:center;">${reservation.platform || ""}</td>
           <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
           <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
@@ -1180,7 +1180,7 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
 
                   return `
                     <tr>
-                      <td>${reservation.confirmationCode || ""}</td>
+                      <td>${reservation.confirmationCode || ""} ${String(reservation.status || "").toLowerCase().includes("cancel") ? '<span style="color:red; font-weight:700;">CANCELLED</span>' : ""}</td>
                       <td style="text-align:center;">${reservation.platform || ""}</td>
                       <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
                       <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
@@ -1460,10 +1460,12 @@ function loadOwnerReport() {
       );
 
       reservationsData = mappedRows.filter(res => {
-        const status = String(res.status || "").toLowerCase();
-        const isOwnerStay = String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY");
-        return !isOwnerStay && status !== "cancel" && status !== "cancelled" && status !== "canceled";
-      });
+  const status = String(res.status || "").toLowerCase();
+  const isOwnerStay = String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY");
+  const accommodation = toNumber(res.accommodationFare);
+  // Include: not owner stay, AND (active OR (cancelled AND has accommodation))
+  return !isOwnerStay && (status !== "cancel" && status !== "cancelled" && status !== "canceled" || (status === "cancelled" || status === "cancel" || status === "canceled") && accommodation > 0);
+});
 
       renderDashboardHeader();
       renderFilterControls();
