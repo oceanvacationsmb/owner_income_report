@@ -943,20 +943,10 @@ function renderSummaryBoxes() {
   totalPMC += vrboPmcTotal;
   totalOwnerPayout = totalAccommodation - totalPMC;
 
-  const bookedNightsCount = (() => {
-    const bookedMap = {};
-    filteredReservations.forEach(reservation => {
-      const start = parseLocalDate(reservation.checkIn);
-      const end = parseLocalDate(reservation.checkOut);
-      if (!start || !end) return;
-      const current = new Date(start);
-      while (current < end) {
-        bookedMap[toDateKey(current)] = true;
-        current.setDate(current.getDate() + 1);
-      }
-    });
-    return Object.keys(bookedMap).length;
-  })();
+ const bookedNightsCount = filteredReservations.reduce((sum, reservation) => {
+  return sum + toNumber(reservation.numberOfNights);
+}, 0);
+  
 
   summaryBoxes.innerHTML = `
     <div class="summary-box">
