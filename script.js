@@ -1265,5 +1265,3 @@ function renderAdminPanel() {
 // === CONTACT MODAL AND EMAILJS HANDLERS ===
 // ... keep your remaining existing code below this line unchanged
 ```
-
-After pasting, if you still see an error, send only the new line number (`script.js:___`) and I’ll give one exact fix at a time.
