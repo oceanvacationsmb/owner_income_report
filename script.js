@@ -981,14 +981,6 @@ function renderSummaryBoxes() {
     </div>
   `;
 
-  const ownerCleaningFee = filteredOwnerStays.length * getCleaningFee();
-  summaryBoxes.innerHTML += `
-    <div class="summary-box" style="background:#e6f2ff;">
-      <div class="summary-label">Owner Cleaning Fee</div>
-      <div class="summary-value">${formatMoney(ownerCleaningFee)}</div>
-    </div>
-  `;
-
   summaryBoxes.style.textAlign = "center";
   summaryBoxes.style.display = "flex";
   summaryBoxes.style.justifyContent = "center";
@@ -1237,7 +1229,11 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
     container.appendChild(propertyWrap);
 
     propertyNames.forEach(propertyName => {
-      const rows = propertyGroups[propertyName].sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
+      const rows = propertyGroups[propertyName]
+  .filter(r => matchesFilters(r.checkIn))
+  .sort((a, b) => {
+    return toSortableDate(a.checkIn) - toSortableDate(b.checkIn);
+  });
       const propIdSafe = propertyName.replace(/\W+/g, "_").substring(0, 40);
 
       const overlayId = `calendarOverlay_${propIdSafe}`;
@@ -1303,7 +1299,7 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
     });
   }
 
- if (ownerStaysData.length) {
+ if (getFilteredOwnerStays().length) {
   const tableWraps = document.getElementsByClassName("table-wrap");
   let container = null;
 
@@ -1328,7 +1324,7 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
           </tr>
         </thead>
         <tbody>
-          ${ownerStaysData
+          ${getFilteredOwnerStays()
             .sort((a, b) => toSortableDate(a.checkIn || a.checkInDate) - toSortableDate(b.checkIn || b.checkInDate))
             .map(res => `
             <tr>
