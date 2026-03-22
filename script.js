@@ -988,13 +988,15 @@ function renderSummaryBoxes() {
 
 function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
-  if (!tbody) return;
+if (tbody) {
   tbody.innerHTML = "";
+}
 
   const sortedReservations = [...getFilteredReservations()].sort((a, b) => {
     return toSortableDate(a.checkIn) - toSortableDate(b.checkIn);
   });
 
+  if (tbody) {
   if (!sortedReservations.length) {
     tbody.innerHTML = `
       <tr>
@@ -1024,6 +1026,7 @@ function renderReservationsTable() {
       `;
     });
   }
+}
 
   let oldOwnerTable = document.getElementById("ownerStaysTable");
   if (oldOwnerTable && oldOwnerTable.parentNode) {
@@ -1050,7 +1053,7 @@ function renderReservationsTable() {
   const propertyNames = Object.keys(propertyGroups);
 
   if (propertyNames.length > 1) {
-    const mainTable = tbody.closest("table");
+    const mainTable = tbody ? tbody.closest("table") : null;
     if (mainTable && mainTable.parentNode) {
       mainTable.parentNode.removeChild(mainTable);
     }
