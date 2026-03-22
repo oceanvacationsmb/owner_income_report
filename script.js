@@ -1340,11 +1340,11 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
   container.appendChild(ownerTable);
 }
 
-  const vrboManualRows = sortedReservations.filter(res => {
-    const source = String(res.source || "").toUpperCase();
-    const payout = toNumber(res.totalPayout);
-    return source === "MANUAL_VRBO" && payout > 0;
-  });
+  const vrboManualRows = getFilteredReservations().filter(res => {
+  const source = String(res.source || "").toUpperCase();
+  const payout = toNumber(res.totalPayout);
+  return source === "MANUAL_VRBO" && payout > 0;
+});
 
   if (vrboManualRows.length) {
     const tableWraps = document.getElementsByClassName("table-wrap");
