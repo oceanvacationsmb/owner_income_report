@@ -1,12 +1,4 @@
-Yes — here is a clean full `script.js` you can paste.
 
-Important before paste:
-1. Select all in your current `script.js` and delete.
-2. Paste the code below.
-3. Save.
-4. Refresh browser with `Ctrl + F5`.
-
-```javascript
 let currentOwner = null;
 document.getElementById("loginBtn").onclick = function() {
   const email = (document.getElementById("ownerEmail").value || "").trim().toLowerCase();
