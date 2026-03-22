@@ -1264,4 +1264,3 @@ function renderAdminPanel() {
 
 // === CONTACT MODAL AND EMAILJS HANDLERS ===
 // ... keep your remaining existing code below this line unchanged
-```
