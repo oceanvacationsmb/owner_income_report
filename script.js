@@ -1285,48 +1285,48 @@ function renderReservationsTable() {
     });
   }
 
-  if (ownerStaysData.length) {
-    const tableWraps = document.getElementsByClassName("table-wrap");
-    let container = null;
+ if (ownerStaysData.length) {
+  const tableWraps = document.getElementsByClassName("table-wrap");
+  let container = null;
 
-    if (tableWraps.length > 0) {
-      container = tableWraps[0].parentNode;
-    } else {
-      container = document.body;
-    }
-
-    const ownerTable = document.createElement("div");
-    ownerTable.id = "ownerStaysTable";
-    ownerTable.innerHTML = `
-      <h3 class="section-title" style="margin-top:40px; text-align:center;">Upcoming Owner Stays</h3>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="text-align:center;">Check-In</th>
-              <th style="text-align:center;">Check-Out</th>
-              <th style="text-align:center;">Nights</th>
-              <th style="text-align:center;">Cleaning Fee</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${ownerStaysData
-              .sort((a, b) => toSortableDate(a.checkIn || a.checkInDate) - toSortableDate(b.checkIn || b.checkInDate))
-              .map(res => `
-              <tr>
-                <td style="text-align:center;">${formatDateDisplay(res.checkIn || res.checkInDate || "")}</td>
-                <td style="text-align:center;">${formatDateDisplay(res.checkOut || res.checkOutDate || "")}</td>
-                <td style="text-align:center;">${toNumber(res.numberOfNights)}</td>
-                <td style="text-align:center;">${formatMoney(getCleaningFee())}</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      </div>
-    `;
-
-    container.appendChild(ownerTable);
+  if (tableWraps.length > 0) {
+    container = tableWraps[0].parentNode;
+  } else {
+    container = document.body;
   }
+
+  const ownerTable = document.createElement("div");
+  ownerTable.id = "ownerStaysTable";
+  ownerTable.innerHTML = `
+    <h3 class="section-title" style="margin-top:40px; text-align:center;">Upcoming Owner Stays</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:center;">Check-In</th>
+            <th style="text-align:center;">Check-Out</th>
+            <th style="text-align:center;">Nights</th>
+            <th style="text-align:center;">Cleaning Fee</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${ownerStaysData
+            .sort((a, b) => toSortableDate(a.checkIn || a.checkInDate) - toSortableDate(b.checkIn || b.checkInDate))
+            .map(res => `
+            <tr>
+              <td style="text-align:center;">${formatDateDisplay(res.checkIn || res.checkInDate || "")}</td>
+              <td style="text-align:center;">${formatDateDisplay(res.checkOut || res.checkOutDate || "")}</td>
+              <td style="text-align:center;">${toNumber(res.numberOfNights)}</td>
+              <td style="text-align:center;">${formatMoney(getCleaningFee())}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  container.appendChild(ownerTable);
+}
 
   const vrboManualRows = sortedReservations.filter(res => {
     const source = String(res.source || "").toUpperCase();
