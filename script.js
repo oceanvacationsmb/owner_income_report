@@ -164,6 +164,121 @@ let ownerStaysData = [];
 let calendarCurrentDate = new Date();
 let calendarResizeBound = false;
 
+let filterYear = String(new Date().getFullYear());
+let filterMonth = "all";
+
+function getYearMonthFromDate(dateStr) {
+  const d = new Date(dateStr);
+  if (isNaN(d)) return null;
+  return {
+    year: String(d.getFullYear()),
+    month: String(d.getMonth() + 1).padStart(2, "0")
+  };
+}
+
+function matchesFilters(dateStr) {
+  const ym = getYearMonthFromDate(dateStr);
+  if (!ym) return false;
+  if (filterYear !== "all" && ym.year !== filterYear) return false;
+  if (filterMonth !== "all" && ym.month !== filterMonth) return false;
+  return true;
+}
+
+function getFilteredReservations() {
+  return reservationsData.filter(r => matchesFilters(r.checkIn));
+}
+
+function getFilteredOwnerStays() {
+  return ownerStaysData.filter(s => matchesFilters(s.checkIn || s.checkInDate));
+}
+
+function getUniqueYearsFromData() {
+  const years = new Set();
+  reservationsData.forEach(r => {
+    const ym = getYearMonthFromDate(r.checkIn);
+    if (ym) years.add(ym.year);
+  });
+  ownerStaysData.forEach(s => {
+    const ym = getYearMonthFromDate(s.checkIn || s.checkInDate);
+    if (ym) years.add(ym.year);
+  });
+  years.add(String(new Date().getFullYear()));
+  return Array.from(years).sort((a, b) => Number(a) - Number(b));
+}
+
+function renderFilterControls() {
+  const summaryBoxes = document.getElementById("summaryBoxes");
+  if (!summaryBoxes) return;
+
+  let wrap = document.getElementById("reportFiltersWrap");
+  if (!wrap) {
+    wrap = document.createElement("div");
+    wrap.id = "reportFiltersWrap";
+    wrap.style.display = "flex";
+    wrap.style.justifyContent = "center";
+    wrap.style.gap = "12px";
+    wrap.style.margin = "12px 0 18px 0";
+    wrap.style.flexWrap = "wrap";
+    summaryBoxes.parentNode.insertBefore(wrap, summaryBoxes.nextSibling);
+  }
+
+  const years = getUniqueYearsFromData();
+  const monthOptions = [
+    { v: "all", t: "All Months" },
+    { v: "01", t: "January" },
+    { v: "02", t: "February" },
+    { v: "03", t: "March" },
+    { v: "04", t: "April" },
+    { v: "05", t: "May" },
+    { v: "06", t: "June" },
+    { v: "07", t: "July" },
+    { v: "08", t: "August" },
+    { v: "09", t: "September" },
+    { v: "10", t: "October" },
+    { v: "11", t: "November" },
+    { v: "12", t: "December" }
+  ];
+
+  wrap.innerHTML = `
+    <div style="display:flex; gap:8px; align-items:center;">
+      <label for="yearFilterSelect" style="font-weight:700;">Year</label>
+      <select id="yearFilterSelect" style="padding:6px 8px; border-radius:8px;">
+        <option value="all">All Years</option>
+        ${years.map(y => `<option value="${y}">${y}</option>`).join("")}
+      </select>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <label for="monthFilterSelect" style="font-weight:700;">Month</label>
+      <select id="monthFilterSelect" style="padding:6px 8px; border-radius:8px;">
+        ${monthOptions.map(m => `<option value="${m.v}">${m.t}</option>`).join("")}
+      </select>
+    </div>
+  `;
+
+  const yearSelect = document.getElementById("yearFilterSelect");
+  const monthSelect = document.getElementById("monthFilterSelect");
+
+  yearSelect.value = filterYear;
+  monthSelect.value = filterMonth;
+
+  yearSelect.onchange = () => {
+    filterYear = yearSelect.value;
+    applyFiltersAndRender();
+  };
+
+  monthSelect.onchange = () => {
+    filterMonth = monthSelect.value;
+    applyFiltersAndRender();
+  };
+}
+
+function applyFiltersAndRender() {
+  renderSummaryBoxes();
+  renderReservationsTable();
+  setupCalendarButtons();
+  refreshCalendarUI();
+}
+
 // === EMAILJS CONFIGURATION ===
 const EMAILJS_USER_ID = "ti3155";
 const EMAILJS_SERVICE_ID = "service_06c56l2";
@@ -309,7 +424,10 @@ function toDateKey(dateObj) {
 }
 
 function getAllCalendarBlocks() {
-  const reservationBlocks = reservationsData.map(reservation => {
+  const filteredReservations = getFilteredReservations();
+  const filteredOwnerStays = getFilteredOwnerStays();
+
+  const reservationBlocks = filteredReservations.map(reservation => {
     const platformText = String(reservation.platform || "").trim();
     const sourceText = String(reservation.source || platformText || "").toUpperCase();
     const isVrbo = sourceText.includes("VRBO") || sourceText.includes("MANUAL_VRBO");
@@ -325,7 +443,7 @@ function getAllCalendarBlocks() {
     };
   });
 
-  const ownerBlocks = ownerStaysData.map(stay => ({
+  const ownerBlocks = filteredOwnerStays.map(stay => ({
     checkIn: stay.checkIn || stay.checkInDate,
     checkOut: stay.checkOut || stay.checkOutDate,
     type: "owner",
@@ -789,11 +907,14 @@ function renderSummaryBoxes() {
   const summaryBoxes = document.getElementById("summaryBoxes");
   if (!summaryBoxes || !currentOwner || currentOwner.admin) return;
 
+  const filteredReservations = getFilteredReservations();
+  const filteredOwnerStays = getFilteredOwnerStays();
+
   let totalAccommodation = 0;
   let totalPMC = 0;
   let totalOwnerPayout = 0;
 
-  reservationsData.forEach(reservation => {
+  filteredReservations.forEach(reservation => {
     const accommodation = toNumber(reservation.accommodationFare);
     const pmc = accommodation * (currentOwner.pmcPercent / 100);
     const ownerPayout = accommodation - pmc;
@@ -802,7 +923,7 @@ function renderSummaryBoxes() {
     totalOwnerPayout += ownerPayout;
   });
 
-  const vrboManualRows = reservationsData.filter(
+  const vrboManualRows = filteredReservations.filter(
     res => String(res.source || "").toUpperCase() === "MANUAL_VRBO"
   );
 
@@ -820,17 +941,51 @@ function renderSummaryBoxes() {
   totalPMC += vrboPmcTotal;
   totalOwnerPayout = totalAccommodation - totalPMC;
 
-  summaryBoxes.innerHTML =
-    '<div class="summary-box"><div class="summary-label">PMC %</div><div class="summary-value">' + currentOwner.pmcPercent + "%</div></div>" +
-    '<div class="summary-box"><div class="summary-label">Total Accommodation</div><div class="summary-value">' + formatMoney(totalAccommodation) + "</div></div>" +
-    '<div class="summary-box"><div class="summary-label">Total PMC</div><div class="summary-value">' + formatMoney(totalPMC) + "</div></div>" +
-    '<div class="summary-box"><div class="summary-label">Total Owner Payout</div><div class="summary-value">' + formatMoney(totalOwnerPayout) + "</div></div>";
+  const bookedNightsCount = (() => {
+    const bookedMap = {};
+    filteredReservations.forEach(reservation => {
+      const start = parseLocalDate(reservation.checkIn);
+      const end = parseLocalDate(reservation.checkOut);
+      if (!start || !end) return;
+      const current = new Date(start);
+      while (current < end) {
+        bookedMap[toDateKey(current)] = true;
+        current.setDate(current.getDate() + 1);
+      }
+    });
+    return Object.keys(bookedMap).length;
+  })();
 
-  const ownerCleaningFee = ownerStaysData.length * getCleaningFee();
-  summaryBoxes.innerHTML +=
-    '<div class="summary-box" style="background:#e6f2ff;">' +
-    '<div class="summary-label">Owner Cleaning Fee</div>' +
-    '<div class="summary-value">' + formatMoney(ownerCleaningFee) + "</div></div>";
+  summaryBoxes.innerHTML = `
+    <div class="summary-box">
+      <div class="summary-label">PMC %</div>
+      <div class="summary-value">${currentOwner.pmcPercent}%</div>
+    </div>
+    <div class="summary-box">
+      <div class="summary-label">Total Accommodation</div>
+      <div class="summary-value">${formatMoney(totalAccommodation)}</div>
+    </div>
+    <div class="summary-box">
+      <div class="summary-label">Total PMC</div>
+      <div class="summary-value">${formatMoney(totalPMC)}</div>
+    </div>
+    <div class="summary-box">
+      <div class="summary-label">Total Owner Payout</div>
+      <div class="summary-value">${formatMoney(totalOwnerPayout)}</div>
+    </div>
+    <div class="summary-box">
+      <div class="summary-label">Booked Nights</div>
+      <div class="summary-value">${bookedNightsCount}</div>
+    </div>
+  `;
+
+  const ownerCleaningFee = filteredOwnerStays.length * getCleaningFee();
+  summaryBoxes.innerHTML += `
+    <div class="summary-box" style="background:#e6f2ff;">
+      <div class="summary-label">Owner Cleaning Fee</div>
+      <div class="summary-value">${formatMoney(ownerCleaningFee)}</div>
+    </div>
+  `;
 
   summaryBoxes.style.textAlign = "center";
   summaryBoxes.style.display = "flex";
@@ -845,7 +1000,9 @@ function renderReservationsTable() {
     tbody.innerHTML = "";
   }
 
-  const sortedReservations = [...reservationsData].sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
+  const filteredReservations = getFilteredReservations();
+const filteredOwnerStays = getFilteredOwnerStays();
+const sortedReservations = [...filteredReservations].sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
 
   const propertyGroups = {};
   sortedReservations.forEach(reservation => {
@@ -882,7 +1039,7 @@ function renderReservationsTable() {
 
     propertyNames.forEach(propertyName => {
       const rows = propertyGroups[propertyName].sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
-      const ownerRows = ownerStaysData.filter(s => {
+      const ownerRows = filteredOwnerStays.filter(s => {
         const nameMatch = String(s.listingNickname || s.property || "").trim() === propertyName;
         return nameMatch;
       });
@@ -1137,7 +1294,7 @@ function renderReservationsTable() {
     oldVrboManualTable.parentNode.removeChild(oldVrboManualTable);
   }
 
-  const vrboManualRows = reservationsData.filter(res => {
+ const vrboManualRows = filteredReservations.filter(res => {
     const source = String(res.source || "").toUpperCase();
     const payout = toNumber(res.totalPayout);
     return source === "MANUAL_VRBO" && payout > 0;
@@ -1201,7 +1358,7 @@ function renderReservationsTable() {
     container.appendChild(vrboManualTable);
   }
 
-  if (ownerStaysData.length) {
+  if (filteredOwnerStays.length) {
     const ownerTable = document.createElement("div");
     ownerTable.id = "ownerStaysTable";
     ownerTable.innerHTML = `
@@ -1216,7 +1373,123 @@ function renderReservationsTable() {
             </tr>
           </thead>
           <tbody>
-            ${ownerStaysData.map(res => `
+           ${filteredOwnerStays.map(res => `
+
+           let filterYear = String(new Date().getFullYear());
+let filterMonth = "all";
+
+function getYearMonthFromDate(dateStr) {
+  const d = new Date(dateStr);
+  if (isNaN(d)) return null;
+  return {
+    year: String(d.getFullYear()),
+    month: String(d.getMonth() + 1).padStart(2, "0")
+  };
+}
+
+function matchesFilters(dateStr) {
+  const ym = getYearMonthFromDate(dateStr);
+  if (!ym) return false;
+  if (filterYear !== "all" && ym.year !== filterYear) return false;
+  if (filterMonth !== "all" && ym.month !== filterMonth) return false;
+  return true;
+}
+
+function getFilteredReservations() {
+  return reservationsData.filter(r => matchesFilters(r.checkIn));
+}
+
+function getFilteredOwnerStays() {
+  return ownerStaysData.filter(s => matchesFilters(s.checkIn || s.checkInDate));
+}
+
+function getUniqueYearsFromData() {
+  const years = new Set();
+  reservationsData.forEach(r => {
+    const ym = getYearMonthFromDate(r.checkIn);
+    if (ym) years.add(ym.year);
+  });
+  ownerStaysData.forEach(s => {
+    const ym = getYearMonthFromDate(s.checkIn || s.checkInDate);
+    if (ym) years.add(ym.year);
+  });
+  years.add(String(new Date().getFullYear()));
+  return Array.from(years).sort((a, b) => Number(a) - Number(b));
+}
+
+function renderFilterControls() {
+  const summaryBoxes = document.getElementById("summaryBoxes");
+  if (!summaryBoxes) return;
+
+  let wrap = document.getElementById("reportFiltersWrap");
+  if (!wrap) {
+    wrap = document.createElement("div");
+    wrap.id = "reportFiltersWrap";
+    wrap.style.display = "flex";
+    wrap.style.justifyContent = "center";
+    wrap.style.gap = "12px";
+    wrap.style.margin = "12px 0 18px 0";
+    wrap.style.flexWrap = "wrap";
+    summaryBoxes.parentNode.insertBefore(wrap, summaryBoxes.nextSibling);
+  }
+
+  const years = getUniqueYearsFromData();
+  const monthOptions = [
+    { v: "all", t: "All Months" },
+    { v: "01", t: "January" },
+    { v: "02", t: "February" },
+    { v: "03", t: "March" },
+    { v: "04", t: "April" },
+    { v: "05", t: "May" },
+    { v: "06", t: "June" },
+    { v: "07", t: "July" },
+    { v: "08", t: "August" },
+    { v: "09", t: "September" },
+    { v: "10", t: "October" },
+    { v: "11", t: "November" },
+    { v: "12", t: "December" }
+  ];
+
+  wrap.innerHTML = `
+    <div style="display:flex; gap:8px; align-items:center;">
+      <label for="yearFilterSelect" style="font-weight:700;">Year</label>
+      <select id="yearFilterSelect" style="padding:6px 8px; border-radius:8px;">
+        <option value="all">All Years</option>
+        ${years.map(y => `<option value="${y}">${y}</option>`).join("")}
+      </select>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <label for="monthFilterSelect" style="font-weight:700;">Month</label>
+      <select id="monthFilterSelect" style="padding:6px 8px; border-radius:8px;">
+        ${monthOptions.map(m => `<option value="${m.v}">${m.t}</option>`).join("")}
+      </select>
+    </div>
+  `;
+
+  const yearSelect = document.getElementById("yearFilterSelect");
+  const monthSelect = document.getElementById("monthFilterSelect");
+
+  yearSelect.value = filterYear;
+  monthSelect.value = filterMonth;
+
+  yearSelect.onchange = () => {
+    filterYear = yearSelect.value;
+    applyFiltersAndRender();
+  };
+
+  monthSelect.onchange = () => {
+    filterMonth = monthSelect.value;
+    applyFiltersAndRender();
+  };
+}
+
+function applyFiltersAndRender() {
+  renderSummaryBoxes();
+  renderReservationsTable();
+  setupCalendarButtons();
+  refreshCalendarUI();
+}
+  
               <tr>
                 <td style="text-align:center;">${formatDateDisplay(res.checkIn || res.checkInDate || "")}</td>
                 <td style="text-align:center;">${formatDateDisplay(res.checkOut || res.checkOutDate || "")}</td>
@@ -1247,20 +1520,16 @@ function loadOwnerReport() {
   if (!currentOwner || (!currentOwner.guestyApiKey && !currentOwner.admin)) {
     console.error("No owner or API key configured");
     reservationsData = [];
-    renderDashboardHeader();
-    renderSummaryBoxes();
-    renderReservationsTable();
-    setupCalendarButtons();
-    refreshCalendarUI();
+   renderDashboardHeader();
+   renderFilterControls();
+   applyFiltersAndRender();
     return;
   }
 
   if (currentOwner.admin) {
     renderDashboardHeader();
-    renderSummaryBoxes();
-    renderReservationsTable();
-    setupCalendarButtons();
-    refreshCalendarUI();
+    renderFilterControls();
+    applyFiltersAndRender();
     renderAdminPanel();
     return;
   }
@@ -1296,19 +1565,15 @@ function loadOwnerReport() {
       });
 
       renderDashboardHeader();
-      renderSummaryBoxes();
-      renderReservationsTable();
-      setupCalendarButtons();
-      refreshCalendarUI();
+      renderFilterControls();
+      applyFiltersAndRender();
     })
     .catch(err => {
       console.error("Error loading report:", err);
       reservationsData = [];
       renderDashboardHeader();
-      renderSummaryBoxes();
-      renderReservationsTable();
-      setupCalendarButtons();
-      refreshCalendarUI();
+      renderFilterControls();
+      applyFiltersAndRender();
     });
 }
 
