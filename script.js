@@ -95,7 +95,7 @@ const OWNERS = {
     pmcPercent: 12,
     guestyApiKey: "8a32863cba1cd5066ef2c40ddd064ccb591c4111d70c650b75bcff6f6bab955c7504394415775586795e2f7408cb61b12277841485f5dc0b65b22b32a31ce7c3",
     cleaningFee: 0,
-    viewMode: "payout"
+    viewMode: "draft"
   },
   "liatedri18@gmail.com": {
     password: "owner6357$$",
