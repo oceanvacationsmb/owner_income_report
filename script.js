@@ -925,7 +925,11 @@ const explicitCardProcessingFee = pickNumber(
   r.creditCardProcessingFee
 );
 
-if (totalPayoutValue < standardAccommodation) {
+const triggerAccommodation = isAirbnb
+  ? Math.max(baseAccommodation, standardAccommodation)
+  : standardAccommodation;
+
+if (totalPayoutValue < triggerAccommodation) {
   if (isAirbnb) {
     // Airbnb only: Payout - Cleaning - Airbnb Resolution Center
     calculatedAccommodation = Math.max(0, totalPayoutValue - Math.max(0, cleaningFareValue) - Math.max(0, airbnbResolutionCenter));
