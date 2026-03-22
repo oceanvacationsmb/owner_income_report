@@ -858,11 +858,8 @@ function mapGuestyReservation(r) {
     r.lengthOfStayDiscount
   );
 
-  const standardAccommodation = baseAccommodation - markup + lengthOfStayDiscount;
-  let calculatedAccommodation = standardAccommodation;
+  const calculatedAccommodation = baseAccommodation - markup + lengthOfStayDiscount;
   
-  if (totalPayoutValue < standardAccommodation) {
-  calculatedAccommodation = totalPayoutValue - taxesCombined + cleaningFareValue - airbnbResolutionCenter;
 }
 
   const sourceValue = pickText(
