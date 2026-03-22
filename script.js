@@ -947,7 +947,11 @@ function renderSummaryBoxes() {
   return sum + toNumber(reservation.numberOfNights);
 }, 0);
   
-
+summaryBoxes.innerHTML = `
+  <h2 style="text-align:center; width:100%; margin-bottom:12px;">SUMMARY</h2>
+  <div class="summary-box">
+    <div class="summary-label">PMC %</div>
+    
   summaryBoxes.innerHTML = `
     <div class="summary-box">
       <div class="summary-label">PMC %</div>
@@ -1130,9 +1134,10 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
         <div style="margin-top:40px;">
           <h3 class="section-title" style="text-align:center; margin-bottom:12px;">${propertyName}</h3>
 
-          <div style="display:flex; justify-content:center; gap:18px; flex-wrap:wrap; margin-bottom:14px;">
-            <div class="summary-box">
-              <div class="summary-label">Accommodation</div>
+          <h3 style="text-align:center; width:100%; margin:0 0 12px 0;">SUMMARY PER PROPERTY</h3>
+<div style="display:flex; justify-content:center; gap:18px; flex-wrap:wrap; margin-bottom:14px;">
+  <div class="summary-box">
+    <div class="summary-label">Accommodation</div>
               <div class="summary-value">${formatMoney(propertyAccommodation)}</div>
             </div>
             <div class="summary-box">
