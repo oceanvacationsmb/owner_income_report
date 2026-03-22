@@ -997,7 +997,7 @@ function renderReservationsTable() {
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  const sortedReservations = [...reservationsData].sort((a, b) => {
+  const sortedReservations = [...getFilteredReservations()].sort((a, b) => {
     return toSortableDate(a.checkIn) - toSortableDate(b.checkIn);
   });
 
@@ -1074,6 +1074,14 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
 } else if (showCalendarBtn) {
   showCalendarBtn.style.display = "none";
 }
+
+  const calendarToggleSummary = document.getElementById("calendarToggleSummary");
+  if (calendarToggleSummary && calendarToggleSummary.parentNode) {
+    calendarToggleSummary.parentNode.removeChild(calendarToggleSummary);
+  } else if (calendarToggleSummary) {
+    calendarToggleSummary.style.display = "none";
+  }
+    
     const tableWraps = document.getElementsByClassName("table-wrap");
     let container = null;
 
