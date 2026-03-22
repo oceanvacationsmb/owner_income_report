@@ -929,7 +929,7 @@ const channelCommission = pickNumber(
   r["money.channelCommission"]?.value
 );
 
-// Optional explicit card processing fee from report
+// Optional explicit card processing fee from report// Optional explicit card processing fee from report
 const explicitCardProcessingFee = pickNumber(
   r["money.invoiceItems.CCF"]?.value,
   r["money.invoiceItems.CC"]?.value,
@@ -940,12 +940,12 @@ const explicitCardProcessingFee = pickNumber(
 
 let allowedAccommodation = standardAccommodation;
 
+// Build required deductions by source/platform
 const cardFeeToUse =
   explicitCardProcessingFee > 0
     ? explicitCardProcessingFee
     : (totalPayoutValue * 0.04);
 
-// Fees that must be covered (source-specific)
 let requiredDeductions = Math.max(0, cleaningFareValue);
 
 if (isVrboOrHomeAway) {
@@ -958,16 +958,19 @@ if (isVrboOrHomeAway) {
     Math.max(0, channelCommission) +
     Math.max(0, totalPayoutValue * 0.01) +
     Math.max(0, cardFeeToUse);
-} else if (!isAirbnb) {
+} else if (isAirbnb) {
+  // keep Airbnb deductions as previously defined (cleaning only)
+  requiredDeductions += 0;
+} else {
   // fallback for unknown sources
   requiredDeductions += Math.max(0, taxesCombined);
 }
 
-// How much standardAccommodation already reduced from baseAccommodation
-const adjustmentCoverage = Math.max(0, baseAccommodation - standardAccommodation);
-
-// Switch only when standard adjustment is not enough to cover required fees
-const shouldUsePayoutFormula = adjustmentCoverage < requiredDeductions;
+// Decision rule you requested:
+// if (standardAccommodation - payout) is NOT enough to cover required deductions,
+// switch to payout-based accommodation.
+const accommodationMinusPayout = standardAccommodation - totalPayoutValue;
+const shouldUsePayoutFormula = accommodationMinusPayout < requiredDeductions;
 
 if (shouldUsePayoutFormula) {
   allowedAccommodation = totalPayoutValue - requiredDeductions;
