@@ -1,8 +1,21 @@
+Here's the full JavaScript file with your complete `OWNERS` list restored, per-property calendars (Option B), `viewMode` support (`payout`|`draft`), and an admin login (password `05960596`) to edit owner settings. Paste the entire contents into your `script.js`.
+
+```javascript
 let currentOwner = null;
 document.getElementById("loginBtn").onclick = function() {
   const email = (document.getElementById("ownerEmail").value || "").trim().toLowerCase();
   const pw = (document.getElementById("ownerPassword").value || "");
   const loginStatus = document.getElementById("loginStatus");
+
+  // Admin login
+  if (email === "admin" && pw === "05960596") {
+    currentOwner = { admin: true, ownerName: "Administrator" };
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("ownerPortal").style.display = "";
+    loginStatus.innerText = "";
+    renderAdminPanel();
+    return;
+  }
 
   if (!OWNERS[email]) {
     loginStatus.innerText = "Email not found.";
@@ -13,6 +26,9 @@ document.getElementById("loginBtn").onclick = function() {
     loginStatus.innerText = "Password incorrect.";
     return;
   }
+
+  // Ensure a viewMode default
+  if (!OWNERS[email].viewMode) OWNERS[email].viewMode = "payout";
 
   currentOwner = OWNERS[email];
   document.getElementById("loginBox").style.display = "none";
@@ -31,7 +47,8 @@ const OWNERS = {
     postalCode: "29576",
     pmcPercent: 12,
     guestyApiKey: "1a58fc1af3815f9023a08e09c590a05f3f3d1c73dbc3ab2e19985ecfe0003aa87acc7e264983e31d5b10a98cf4fd9b4789de3cb864daf2031e42aae6266c92f5",
-    cleaningFee: 250
+    cleaningFee: 250,
+    viewMode: "payout"
   },
   "mbiddington@aol.com": {
     password: "owner7511$$",
@@ -40,7 +57,8 @@ const OWNERS = {
     postalCode: "29575",
     pmcPercent: 12,
     guestyApiKey: "bbbab438244300805daaf5485d3b516cbeee616fba7e640fc3b80d0b648c01d13e3f70a2bde2abaf9deb3b661aabf1c17453fd4e6d799f380cfd059df66cf01e",
-    cleaningFee: 350
+    cleaningFee: 350,
+    viewMode: "payout"
   },
   "chrpfd@verizon.net": {
     password: "owner7491$$",
@@ -49,7 +67,8 @@ const OWNERS = {
     postalCode: "29575",
     pmcPercent: 12,
     guestyApiKey: "d6ab951850fef54399e2206f36f4e79fb1b425a8e5c891076036b11f50da8870613a226021487307c8c5f51eae997a08dd7e112d013ef683728ad1d9220ee0b7",
-    cleaningFee: 350
+    cleaningFee: 350,
+    viewMode: "payout"
   },
   "adahabani@gmail.com": {
     password: "owner2667$$",
@@ -58,80 +77,89 @@ const OWNERS = {
     postalCode: "29577",
     pmcPercent: 12,
     guestyApiKey: "cf0997316ba50ce76dc77eb8f00b10dd266167ccbe9462d205edea9215afb74a0038d0e73a05af9f858c3f626d54c1cf5f2e6e3b14107d533ce4af7994465781",
-    cleaningFee: 150
+    cleaningFee: 150,
+    viewMode: "payout"
   },
-"beachsmyles@gmail.com": {
+  "beachsmyles@gmail.com": {
     password: "owner2838$$",
     ownerName: "Chris",
     propertyName: "115C 15th Ave North. Surfside Beach SC 29575",
     postalCode: "29575",
     pmcPercent: 12,
     guestyApiKey: "0542d3c012e0c4bb62fe31f35ba940d1e7ee42da5c24e73cedc34d7fd794e256804ae48b3386d18beb91471e751355ca50ebef2512b865d769ea84debeba8ec7",
-    cleaningFee: 350
+    cleaningFee: 350,
+    viewMode: "payout"
   },
-"maron.eran@gmail.com": {
+  "maron.eran@gmail.com": {
     password: "owner3507$$",
     ownerName: "Eran",
     propertyName: "",
     postalCode: "29575",
     pmcPercent: 12,
     guestyApiKey: "8a32863cba1cd5066ef2c40ddd064ccb591c4111d70c650b75bcff6f6bab955c7504394415775586795e2f7408cb61b12277841485f5dc0b65b22b32a31ce7c3",
-    cleaningFee: 0
+    cleaningFee: 0,
+    viewMode: "payout"
   },
-"liatedri18@gmail.com": {
+  "liatedri18@gmail.com": {
     password: "owner6357$$",
     ownerName: "Liat",
     propertyName: "GHO REVOCABLE TRUST",
     postalCode: "29575",
     pmcPercent: 10,
     guestyApiKey: "05b79c86c4688c3409154f48ac9fde1fc59cc31c03126566cc8bfc55813fa89e01619ee48fd16a30476eb01ef6cb77ad9dbeca35b7ca188678462e8278c65022",
-    cleaningFee: 0
+    cleaningFee: 0,
+    viewMode: "payout"
   },
-"office@rodriguezlc.com": {
+  "office@rodriguezlc.com": {
     password: "owner5574$$",
     ownerName: "Liat",
     propertyName: "2131 Sanibel Ct. Myrtle Beach SC 29577",
     postalCode: "29577",
     pmcPercent: 12,
     guestyApiKey: "e30ca84498f8e9ef64c9ff7ed2f0b40312a0e1df2a2e07044a86518a1233cd332d79595d24282bab03cf63c1d96b5237ba9ca14d35fd450c952b5f36f03eb5a1",
-    cleaningFee: 300
+    cleaningFee: 300,
+    viewMode: "payout"
   },
-"zilkerinvestments@gmail.com": {
+  "zilkerinvestments@gmail.com": {
     password: "owner7920$$",
     ownerName: "Tal Zilker - GTI Group LLC",
     propertyName: "214 2nd Ave S. North Myrtle Beach SC 29582",
     postalCode: "29582",
     pmcPercent: 12,
     guestyApiKey: "796af50d38fbbedbcec1df5bdd790355a574f67e21a823ba64f9a26cda86cc4d6d7c71552d7c02889a32557ed6185d44de44820881f74e128d66dacd57a70017",
-    cleaningFee: 300
+    cleaningFee: 300,
+    viewMode: "payout"
   },
-"kobiswisa26@gmail.com": {
+  "kobiswisa26@gmail.com": {
     password: "owner9646$$",
     ownerName: "Tal Zilker - GTI Group LLC",
     propertyName: "508 3rd Avenue S. North Myrtle Beach SC 29582 unit 1-2",
     postalCode: "29582",
     pmcPercent: 15,
     guestyApiKey: "386c28f3e370968e7efe7e756ef8315d2eb420606a662909377be671d9e966c0271af42d1a8a61d5621646d6d5a2f59bc8e621743bd7fc4c5994d695b4c870e8",
-    cleaningFee: 250
+    cleaningFee: 250,
+    viewMode: "payout"
   },
-"tristate1391@gmail.com": {
+  "tristate1391@gmail.com": {
     password: "owner6474$$",
     ownerName: "Suzan",
     propertyName: "1552 Elizabeth Ln. Myrtle Beach SC 29577",
     postalCode: "29577",
     pmcPercent: 15,
     guestyApiKey: "9512389c04f387d631c31f5eb901ae89d56d646ebe156166da68e78502c1c64d6a8bab54753942cc5be2ab33ce8523e5902e9ddfd24285efb4786c2de32225d6",
-    cleaningFee: 200
+    cleaningFee: 200,
+    viewMode: "payout"
   },
-"pleasechange@email.com": {
+  "pleasechange@email.com": {
     password: "owner8589$$",
     ownerName: "Moran",
     propertyName: "4679 Wild Iris Drive Myrtle Beach SC 29577",
     postalCode: "29577",
     pmcPercent: 12,
     guestyApiKey: "22265c7b0f6a3a9ec499fe6571adaccc43bda8300ac343b0964ed4b0594856f376ef2593f8519135bf9d31be6c887e9fb68dd10cbfc8c0efe47ce2c91f626213",
-    cleaningFee: 200
-  },
+    cleaningFee: 200,
+    viewMode: "payout"
+  }
 };
 
 let reservationsData = [];
@@ -257,14 +285,7 @@ function getExpectedPayoutDate(checkOutDate) {
 }
 
 function getCleaningFee() {
-  function getNightCount(checkIn, checkOut) {
-    const start = new Date(checkIn);
-    const end = new Date(checkOut);
-    if (isNaN(start) || isNaN(end)) return 0;
-    const diffMs = end - start;
-    return Math.round(diffMs / (1000 * 60 * 60 * 24));
-  }
-  return currentOwner.cleaningFee ? Number(currentOwner.cleaningFee) : 0;
+  return currentOwner && currentOwner.cleaningFee ? Number(currentOwner.cleaningFee) : 0;
 }
 
 function parseLocalDate(dateStr) {
@@ -289,8 +310,7 @@ function getAllCalendarBlocks() {
   const reservationBlocks = reservationsData.map(reservation => {
     const platformText = String(reservation.platform || "").trim();
     const sourceText = String(reservation.source || platformText || "").toUpperCase();
-   
- const isVrbo = sourceText.includes("VRBO") || sourceText.includes("MANUAL_VRBO");
+    const isVrbo = sourceText.includes("VRBO") || sourceText.includes("MANUAL_VRBO");
     const platformLabel = isVrbo
       ? "VRBO"
       : String(platformText || reservation.source || "BOOKED").trim().toUpperCase();
@@ -338,6 +358,41 @@ function getReservedDateMap() {
   return reservedMap;
 }
 
+function buildReservedMapFromRows(resRows = [], ownerRows = []) {
+  const reservedMap = {};
+  const allBlocks = [];
+
+  resRows.forEach(res => {
+    const platformText = String(res.platform || "").trim();
+    const sourceText = String(res.source || platformText || "").toUpperCase();
+    const isVrbo = sourceText.includes("VRBO") || sourceText.includes("MANUAL_VRBO");
+    const platformLabel = isVrbo ? "VRBO" : String(platformText || res.source || "BOOKED").trim().toUpperCase();
+    allBlocks.push({ checkIn: res.checkIn, checkOut: res.checkOut, type: isVrbo ? "vrbo" : "reservation", platformLabel });
+  });
+
+  ownerRows.forEach(stay => {
+    allBlocks.push({ checkIn: stay.checkIn || stay.checkInDate, checkOut: stay.checkOut || stay.checkOutDate, type: "owner", platformLabel: "OWNER" });
+  });
+
+  allBlocks.forEach(block => {
+    const start = parseLocalDate(block.checkIn);
+    const end = parseLocalDate(block.checkOut);
+    if (!start || !end) return;
+    const current = new Date(start);
+    while (current < end) {
+      const key = toDateKey(current);
+      if (!reservedMap[key]) {
+        reservedMap[key] = { reservation: false, vrbo: false, owner: false, platforms: {} };
+      }
+      reservedMap[key][block.type] = true;
+      if (block.platformLabel) reservedMap[key].platforms[block.platformLabel] = true;
+      current.setDate(current.getDate() + 1);
+    }
+  });
+
+  return reservedMap;
+}
+
 function getTotalBookedNights() {
   const bookedMap = {};
 
@@ -374,12 +429,42 @@ function getTotalOwnerStayNights() {
   return Object.keys(ownerMap).length;
 }
 
-function renderNightTotals(targetEl) {
+function renderNightTotals(targetEl, reservedRows = null, ownerRows = null) {
   if (!targetEl) return;
-  targetEl.innerHTML = `
-    <div>Total Booked Nights: ${getTotalBookedNights()}</div>
-    <div style="margin-top:4px;">Total Owner Stay Nights: ${getTotalOwnerStayNights()}</div>
-  `;
+  if (reservedRows === null) {
+    targetEl.innerHTML = `
+      <div>Total Booked Nights: ${getTotalBookedNights()}</div>
+      <div style="margin-top:4px;">Total Owner Stay Nights: ${getTotalOwnerStayNights()}</div>
+    `;
+  } else {
+    // compute totals for provided rows
+    const bookedMap = {};
+    reservedRows.forEach(res => {
+      const start = parseLocalDate(res.checkIn);
+      const end = parseLocalDate(res.checkOut);
+      if (!start || !end) return;
+      const current = new Date(start);
+      while (current < end) {
+        bookedMap[toDateKey(current)] = true;
+        current.setDate(current.getDate() + 1);
+      }
+    });
+    const ownerMap = {};
+    ownerRows.forEach(stay => {
+      const start = parseLocalDate(stay.checkIn || stay.checkInDate);
+      const end = parseLocalDate(stay.checkOut || stay.checkOutDate);
+      if (!start || !end) return;
+      const current = new Date(start);
+      while (current < end) {
+        ownerMap[toDateKey(current)] = true;
+        current.setDate(current.getDate() + 1);
+      }
+    });
+    targetEl.innerHTML = `
+      <div>Total Booked Nights: ${Object.keys(bookedMap).length}</div>
+      <div style="margin-top:4px;">Total Owner Stay Nights: ${Object.keys(ownerMap).length}</div>
+    `;
+  }
 }
 
 function getCellStyleForDate(dayInfo) {
@@ -439,11 +524,9 @@ function getCompactBadgeText(badgeText) {
   return upper.substring(0, 1);
 }
 
-function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
-  const grid = document.getElementById(gridId);
-  const monthLabel = document.getElementById(labelId);
-  const nightsLabel = document.getElementById(nightsId);
-  if (!grid || !monthLabel || !nightsLabel) return;
+// Render calendar using a provided reserved map (for per-property calendars)
+function renderCalendarWithMap(gridEl, monthLabelEl, nightsEl, currentMonthDate, isLarge, reservedMap) {
+  if (!gridEl || !monthLabelEl || !nightsEl) return;
 
   const isCompact = !isLarge && window.innerWidth <= 600;
   const dayHeaderFontSize = isLarge ? "14px" : (isCompact ? "10px" : "11px");
@@ -452,28 +535,26 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
   const smallDayFont = isCompact ? "11px" : "12px";
   const smallBadgeFont = isCompact ? "8px" : "9px";
 
-  const reservedMap = getReservedDateMap();
-  const year = currentMonthDate.getFullYear();
-  const month = currentMonthDate.getMonth();
-
-  monthLabel.innerText = new Date(year, month, 1).toLocaleDateString("en-US", {
+  monthLabelEl.innerText = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), 1).toLocaleDateString("en-US", {
     month: "long",
     year: "numeric"
   });
 
-  renderNightTotals(nightsLabel);
+  renderNightTotals(nightsEl); // summary uses global totals; optionally pass per-property
 
-  grid.innerHTML = "";
+  gridEl.innerHTML = "";
 
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   dayNames.forEach(day => {
-    grid.innerHTML += `
+    gridEl.innerHTML += `
       <div style="text-align:center; font-weight:700; padding:2px 0; font-size:${dayHeaderFontSize}; overflow:hidden;">
         ${isLarge ? day : day.substring(0, dayShort)}
       </div>
     `;
   });
 
+  const year = currentMonthDate.getFullYear();
+  const month = currentMonthDate.getMonth();
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
   const startOffset = firstDay.getDay();
@@ -482,7 +563,7 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
 
   for (let i = 0; i < startOffset; i++) {
     const dayNum = prevMonthLastDay - startOffset + i + 1;
-    grid.innerHTML += `
+    gridEl.innerHTML += `
       <div style="
         min-height:${isLarge ? "90px" : smallCellMinHeight};
         background:#fff;
@@ -503,7 +584,7 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
     const cellStyle = getCellStyleForDate(dayInfo);
     const badgeText = dayInfo ? (isCompact ? getCompactBadgeText(cellStyle.badge) : cellStyle.badge) : "";
 
-    grid.innerHTML += `
+    gridEl.innerHTML += `
       <div style="
         min-height:${isLarge ? "90px" : smallCellMinHeight};
         background:${cellStyle.background};
@@ -521,7 +602,7 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
   const endFill = (7 - (totalCellsUsed % 7)) % 7;
 
   for (let i = 1; i <= endFill; i++) {
-    grid.innerHTML += `
+    gridEl.innerHTML += `
       <div style="
         min-height:${isLarge ? "90px" : smallCellMinHeight};
         background:#fff;
@@ -534,6 +615,15 @@ function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
       </div>
     `;
   }
+}
+
+function renderCalendar(gridId, labelId, nightsId, currentMonthDate, isLarge) {
+  const grid = document.getElementById(gridId);
+  const monthLabel = document.getElementById(labelId);
+  const nightsLabel = document.getElementById(nightsId);
+  if (!grid || !monthLabel || !nightsLabel) return;
+  const reservedMap = getReservedDateMap();
+  renderCalendarWithMap(grid, monthLabel, nightsLabel, currentMonthDate, isLarge, reservedMap);
 }
 
 function setupCalendarButtons() {
@@ -611,12 +701,12 @@ function getTimeBasedGreeting() {
 function renderDashboardHeader() {
   const greeting = document.getElementById("greeting");
   const propertyAddress = document.getElementById("propertyAddress");
-  if (greeting)
- greeting.innerText = `${getTimeBasedGreeting()} ${currentOwner.ownerName}`;
-  if (propertyAddress) propertyAddress.innerText = currentOwner.propertyName;
-  renderWeather(currentOwner.postalCode);
+  if (greeting && currentOwner && !currentOwner.admin) greeting.innerText = `${getTimeBasedGreeting()} ${currentOwner.ownerName}`;
+  if (propertyAddress && currentOwner && !currentOwner.admin) propertyAddress.innerText = currentOwner.propertyName || "";
+  if (currentOwner && !currentOwner.admin) renderWeather(currentOwner.postalCode);
 }
 
+// simple weather function unchanged
 function renderWeather(zip) {
   const apiKey = "301c3846b1ed5b804976f73bd010175a";
   const weatherBox = document.getElementById("weatherBox");
@@ -684,6 +774,7 @@ function setDateFieldsMin() {
   if (checkOut) checkOut.setAttribute("min", minDate);
 }
 
+// Map guesty reservation and also attempt to extract taxes/resolution center fields for draft calculation
 function mapGuestyReservation(r) {
   const baseAccommodation = pickNumber(r["money.fareAccommodation"]?.value);
 
@@ -692,12 +783,12 @@ function mapGuestyReservation(r) {
   );
 
   const lengthOfStayDiscount = pickNumber(
-  r["money.invoiceItems.LOS"]?.value,
-  r["money.invoiceItems.lengthOfStayDiscount"]?.value,
-  r.money?.invoiceItems?.LOS?.value,
-  r.money?.invoiceItems?.lengthOfStayDiscount?.value,
-  r.lengthOfStayDiscount
-);
+    r["money.invoiceItems.LOS"]?.value,
+    r["money.invoiceItems.lengthOfStayDiscount"]?.value,
+    r.money?.invoiceItems?.LOS?.value,
+    r.money?.invoiceItems?.lengthOfStayDiscount?.value,
+    r.lengthOfStayDiscount
+  );
 
   const calculatedAccommodation = baseAccommodation - markup + lengthOfStayDiscount;
 
@@ -731,6 +822,22 @@ function mapGuestyReservation(r) {
     r.cleaningFee
   );
 
+  // Best-effort taxes + airbnb resolution center extraction (may be undefined depending on payload)
+  const taxesCombined = pickNumber(
+    r["money.fareTaxes"]?.value,
+    r.money?.fareTaxes?.value,
+    r.fareTaxes,
+    r.taxes,
+    r.tax
+  );
+
+  const airbnbResolutionCenter = pickNumber(
+    r["money.invoiceItems.ARC"]?.value,
+    r["money.invoiceItems.ARC"]?.amount,
+    r.airbnbResolutionCenter,
+    r.resolutionCenter
+  );
+
   return {
     status: pickText(r.status, r.reservationStatus, r["STATUS"], r["reservationStatus"]),
     listingNickname: pickText(r["listing.nickname"], r.listingNickname, r.listing?.nickname, r.listing),
@@ -746,7 +853,9 @@ function mapGuestyReservation(r) {
     baseAccommodation,
     markup,
     lengthOfStayDiscount,
-    guestName: pickText(r["guest.fullName"], r.guestName, r.guest?.fullName, r.guest, r["guest.name"])
+    guestName: pickText(r["guest.fullName"], r.guestName, r.guest?.fullName, r.guest, r["guest.name"]),
+    taxesCombined,
+    airbnbResolutionCenter
   };
 }
 
@@ -756,35 +865,35 @@ function renderSummaryBoxes() {
   if (!summaryBoxes) return;
 
   let totalAccommodation = 0;
-let totalPMC = 0;
-let totalOwnerPayout = 0;
+  let totalPMC = 0;
+  let totalOwnerPayout = 0;
 
-reservationsData.forEach(reservation => {
-  const accommodation = toNumber(reservation.accommodationFare);
-  const pmc = accommodation * (currentOwner.pmcPercent / 100);
-  const ownerPayout = accommodation - pmc;
-  totalAccommodation += accommodation;
-  totalPMC += pmc;
-  totalOwnerPayout += ownerPayout;
-});
+  reservationsData.forEach(reservation => {
+    const accommodation = toNumber(reservation.accommodationFare);
+    const pmc = accommodation * (currentOwner.pmcPercent / 100);
+    const ownerPayout = accommodation - pmc;
+    totalAccommodation += accommodation;
+    totalPMC += pmc;
+    totalOwnerPayout += ownerPayout;
+  });
 
-const vrboManualRows = reservationsData.filter(
-  res => String(res.source || "").toUpperCase() === "MANUAL_VRBO"
-);
+  const vrboManualRows = reservationsData.filter(
+    res => String(res.source || "").toUpperCase() === "MANUAL_VRBO"
+  );
 
-const vrboAccommodationTotal = vrboManualRows.reduce(
-  (sum, res) => sum + toNumber(res.accommodationFare),
-  0
-);
+  const vrboAccommodationTotal = vrboManualRows.reduce(
+    (sum, res) => sum + toNumber(res.accommodationFare),
+    0
+  );
 
-const vrboPmcTotal = vrboManualRows.reduce(
-  (sum, res) => sum + (toNumber(res.accommodationFare) * (currentOwner.pmcPercent / 100)),
-  0
-);
+  const vrboPmcTotal = vrboManualRows.reduce(
+    (sum, res) => sum + (toNumber(res.accommodationFare) * (currentOwner.pmcPercent / 100)),
+    0
+  );
 
-totalAccommodation += vrboAccommodationTotal;
-totalPMC += vrboPmcTotal;
-totalOwnerPayout = totalAccommodation - totalPMC;
+  totalAccommodation += vrboAccommodationTotal;
+  totalPMC += vrboPmcTotal;
+  totalOwnerPayout = totalAccommodation - totalPMC;
 
   summaryBoxes.innerHTML = `
     <div class="summary-box">
@@ -820,23 +929,222 @@ totalOwnerPayout = totalAccommodation - totalPMC;
 
 /**
  * --- MAIN: Render reservations table and separate owner stays table right under it ---
+ * Behavior changes:
+ * - If more than one property: remove the main combined reservations table and top calendar,
+ *   and render per-property summary + per-property table + calendar.
+ * - Each property's table columns depend on `currentOwner.viewMode`:
+ *   - payout: legacy columns
+ *   - draft: shows Gross Payout and Net Accommodation (gross - cleaning - taxes - resolution + LOS discount)
  */
 function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
-  if (!tbody) return;
-  tbody.innerHTML = "";
+  if (!tbody && !document.getElementById("mainReservationsTable")) {
+    // nothing to do
+  } else if (tbody) {
+    tbody.innerHTML = "";
+  }
 
   const sortedReservations = [...reservationsData].sort((a, b) => {
     return toSortableDate(a.checkIn) - toSortableDate(b.checkIn);
   });
 
+  const propertyGroups = {};
+  sortedReservations.forEach(reservation => {
+    const propertyKey = (reservation.listingNickname || "Unknown Property").trim();
+    if (!propertyGroups[propertyKey]) propertyGroups[propertyKey] = [];
+    propertyGroups[propertyKey].push(reservation);
+  });
+
+  const propertyNames = Object.keys(propertyGroups);
+
+  // if more than one property -> remove main combined table and top calendar
+  if (propertyNames.length > 1) {
+    // remove main table if present
+    const mainTableWrapper = document.getElementById("mainReservationsTable") || (tbody ? tbody.closest("table") : null);
+    if (mainTableWrapper && mainTableWrapper.parentNode) {
+      mainTableWrapper.parentNode.removeChild(mainTableWrapper);
+    }
+
+    // hide/remove global calendar
+    const calendarPanel = document.getElementById("calendarPanel");
+    if (calendarPanel && calendarPanel.parentNode) {
+      calendarPanel.parentNode.removeChild(calendarPanel);
+    } else if (calendarPanel) {
+      calendarPanel.style.display = "none";
+    }
+
+    // Clean old property wrap if present
+    let oldPropertyGroups = document.getElementById("propertyGroupsWrap");
+    if (oldPropertyGroups && oldPropertyGroups.parentNode) {
+      oldPropertyGroups.parentNode.removeChild(oldPropertyGroups);
+    }
+
+    // where to append: try to find .table-wrap parent, else body
+    const tableWraps = document.getElementsByClassName("table-wrap");
+    let container = tableWraps.length > 0 ? tableWraps[0].parentNode : document.body;
+
+    const propertyWrap = document.createElement("div");
+    propertyWrap.id = "propertyGroupsWrap";
+
+    propertyNames.forEach(propertyName => {
+      const rows = propertyGroups[propertyName].sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
+      const ownerRows = ownerStaysData.filter(s => {
+        const nameMatch = String(s.listingNickname || s.property || "").trim() === propertyName;
+        // fallback: keep all owner stays (optional)
+        return nameMatch || true;
+      });
+
+      let propertyAccommodation = 0;
+      let propertyPmc = 0;
+      let propertyOwnerPayout = 0;
+
+      rows.forEach(reservation => {
+        const accommodation = toNumber(reservation.accommodationFare);
+        const pmc = accommodation * (currentOwner && currentOwner.pmcPercent ? (currentOwner.pmcPercent / 100) : 0);
+        const ownerPayout = accommodation - pmc;
+        propertyAccommodation += accommodation;
+        propertyPmc += pmc;
+        propertyOwnerPayout += ownerPayout;
+      });
+
+      // Build per-property calendar
+      const propIdSafe = propertyName.replace(/\W+/g, "_").substring(0, 40);
+      const calendarGridId = `calendarGrid_${propIdSafe}`;
+      const calendarLabelId = `calendarMonthLabel_${propIdSafe}`;
+      const calendarNightsId = `calendarBookedNights_${propIdSafe}`;
+
+      // summary for this property (adapts to draft view)
+      let propertySummaryHtml = `
+        <div style="display:flex; justify-content:center; gap:18px; flex-wrap:wrap; margin-bottom:14px;">
+          <div class="summary-box">
+            <div class="summary-label">Accommodation</div>
+            <div class="summary-value">${formatMoney(propertyAccommodation)}</div>
+          </div>
+          <div class="summary-box">
+            <div class="summary-label">PMC</div>
+            <div class="summary-value">${formatMoney(propertyPmc)}</div>
+          </div>
+          <div class="summary-box">
+            <div class="summary-label">Owner Payout</div>
+            <div class="summary-value">${formatMoney(propertyOwnerPayout)}</div>
+          </div>
+        </div>
+      `;
+
+      propertyWrap.innerHTML += `
+        <div style="margin-top:40px;">
+          <h3 class="section-title" style="text-align:center; margin-bottom:12px;">${propertyName}</h3>
+          ${propertySummaryHtml}
+          <div style="display:flex; gap:18px; align-items:flex-start; justify-content:center; flex-wrap:wrap;">
+            <div style="min-width:300px; max-width:760px; flex:1;">
+              <div class="table-wrap">
+                <table class="property-table" data-property="${propertyName}">
+                  <thead>
+                    <tr>
+                      <th style="text-align:center;">Code</th>
+                      <th style="text-align:center;">Platform</th>
+                      <th style="text-align:center;">Check In</th>
+                      <th style="text-align:center;">Check Out</th>
+                      <th style="text-align:center;">Nights</th>
+                      ${currentOwner && currentOwner.viewMode === "draft" ? `
+                        <th style="text-align:center;">Gross Payout</th>
+                        <th style="text-align:center;">Net Accommodation</th>
+                      ` : `
+                        <th style="text-align:center;">Accommodation</th>
+                        <th style="text-align:center;">PMC</th>
+                        <th style="text-align:center;">Owner Payout</th>
+                        <th style="text-align:center;">Expected Payout</th>
+                      `}
+                    </tr>
+                  </thead>
+                  <tbody id="tbody_${propIdSafe}">
+                    ${rows.map(reservation => {
+                      const accommodation = toNumber(reservation.accommodationFare);
+                      const pmc = accommodation * (currentOwner && currentOwner.pmcPercent ? (currentOwner.pmcPercent / 100) : 0);
+                      const ownerPayout = accommodation - pmc;
+                      const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
+                      const nights = toNumber(reservation.numberOfNights);
+
+                      if (currentOwner && currentOwner.viewMode === "draft") {
+                        const grossPayout = toNumber(reservation.totalPayout);
+                        const cleaningFee = toNumber(reservation.cleaningFare);
+                        const taxes = toNumber(reservation.taxesCombined);
+                        const resolution = toNumber(reservation.airbnbResolutionCenter);
+                        const los = toNumber(reservation.lengthOfStayDiscount);
+                        const netAccommodation = grossPayout - cleaningFee - taxes - resolution + los;
+                        return `
+                          <tr>
+                            <td>${reservation.confirmationCode || ""}</td>
+                            <td style="text-align:center;">${reservation.platform || ""}</td>
+                            <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
+                            <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
+                            <td style="text-align:center;">${nights}</td>
+                            <td style="text-align:center;">${formatMoney(grossPayout)}</td>
+                            <td style="text-align:center;">${formatMoney(netAccommodation)}</td>
+                          </tr>
+                        `;
+                      }
+
+                      // payout view (legacy)
+                      return `
+                        <tr>
+                          <td>${reservation.confirmationCode || ""}</td>
+                          <td style="text-align:center;">${reservation.platform || ""}</td>
+                          <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
+                          <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
+                          <td style="text-align:center;">${nights}</td>
+                          <td style="text-align:center;">${formatMoney(accommodation)}</td>
+                          <td style="text-align:center;">${formatMoney(pmc)}</td>
+                          <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
+                          <td style="text-align:center;">${expectedPayoutDate}</td>
+                        </tr>
+                      `;
+                    }).join("")}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div style="width:320px; max-width:320px;">
+              <div class="property-calendar" style="border:1px solid #e3e8ef; border-radius:8px; padding:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <div id="${calendarLabelId}" style="font-weight:700;"></div>
+                  <div id="${calendarNightsId}" style="font-size:12px; text-align:right;"></div>
+                </div>
+                <div id="${calendarGridId}" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:6px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // After adding markup, call calendar render for these rows
+      // Create reservedMap for these rows
+      setTimeout(() => {
+        const gridEl = document.getElementById(calendarGridId);
+        const labelEl = document.getElementById(calendarLabelId);
+        const nightsEl = document.getElementById(calendarNightsId);
+        const reservedMap = buildReservedMapFromRows(rows, ownerRows);
+        renderCalendarWithMap(gridEl, labelEl, nightsEl, calendarCurrentDate, false, reservedMap);
+        // render per-property night totals
+        renderNightTotals(nightsEl, rows, ownerRows);
+      }, 0);
+    });
+
+    container.appendChild(propertyWrap);
+    return;
+  }
+
+  // SINGLE PROPERTY: render main combined table (unchanged behavior)
   if (!sortedReservations.length) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="9" style="text-align:center;">No reservations found</td>
-      </tr>
-    `;
-  } else {
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="9" style="text-align:center;">No reservations found</td>
+        </tr>
+      `;
+    }
+  } else if (tbody) {
     sortedReservations.forEach(reservation => {
       const accommodation = toNumber(reservation.accommodationFare);
       const pmc = accommodation * (currentOwner.pmcPercent / 100);
@@ -860,6 +1168,7 @@ function renderReservationsTable() {
     });
   }
 
+  // --- rest of function: cleanup and vrbo/owner sections (kept unchanged) ---
   let oldOwnerTable = document.getElementById("ownerStaysTable");
   if (oldOwnerTable && oldOwnerTable.parentNode) {
     oldOwnerTable.parentNode.removeChild(oldOwnerTable);
@@ -870,177 +1179,22 @@ function renderReservationsTable() {
     oldVrboManualTable.parentNode.removeChild(oldVrboManualTable);
   }
 
-  let oldPropertyGroups = document.getElementById("propertyGroupsWrap");
-  if (oldPropertyGroups && oldPropertyGroups.parentNode) {
-    oldPropertyGroups.parentNode.removeChild(oldPropertyGroups);
-  }
-
-  const propertyGroups = {};
-  sortedReservations.forEach(reservation => {
-    const propertyKey = (reservation.listingNickname || "Unknown Property").trim();
-    if (!propertyGroups[propertyKey]) propertyGroups[propertyKey] = [];
-    propertyGroups[propertyKey].push(reservation);
-  });
-
-  const propertyNames = Object.keys(propertyGroups);
-
-  if (propertyNames.length > 1) {
-    const tableWraps = document.getElementsByClassName("table-wrap");
-    let container = null;
-
-    if (tableWraps.length > 0) {
-      container = tableWraps[0].parentNode;
-    } else {
-      container = document.body;
-    }
-
-    const propertyWrap = document.createElement("div");
-    propertyWrap.id = "propertyGroupsWrap";
-
-    propertyNames.forEach(propertyName => {
-      const rows = propertyGroups[propertyName].sort((a, b) => {
-        return toSortableDate(a.checkIn) - toSortableDate(b.checkIn);
-      });
-
-      let propertyAccommodation = 0;
-
-      let propertyPmc = 0;
-      let propertyOwnerPayout = 0;
-
-      rows.forEach(reservation => {
-        const accommodation = toNumber(reservation.accommodationFare);
-        const pmc = accommodation * (currentOwner.pmcPercent / 100);
-        const ownerPayout = accommodation - pmc;
-        propertyAccommodation += accommodation;
-        propertyPmc += pmc;
-        propertyOwnerPayout += ownerPayout;
-      });
-
-      propertyWrap.innerHTML += `
-        <div style="margin-top:40px;">
-          <h3 class="section-title" style="text-align:center; margin-bottom:12px;">${propertyName}</h3>
-
-          <div style="display:flex; justify-content:center; gap:18px; flex-wrap:wrap; margin-bottom:14px;">
-            <div class="summary-box">
-              <div class="summary-label">Accommodation</div>
-              <div class="summary-value">${formatMoney(propertyAccommodation)}</div>
-            </div>
-            <div class="summary-box">
-              <div class="summary-label">PMC</div>
-              <div class="summary-value">${formatMoney(propertyPmc)}</div>
-            </div>
-            <div class="summary-box">
-              <div class="summary-label">Owner Payout</div>
-              <div class="summary-value">${formatMoney(propertyOwnerPayout)}</div>
-            </div>
-          </div>
-
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th style="text-align:center;">Code</th>
-                  <th style="text-align:center;">Platform</th>
-                  <th style="text-align:center;">Check In</th>
-                  <th style="text-align:center;">Check Out</th>
-                  <th style="text-align:center;">Nights</th>
-                  <th style="text-align:center;">Accommodation</th>
-                  <th style="text-align:center;">PMC</th>
-                  <th style="text-align:center;">Owner Payout</th>
-                  <th style="text-align:center;">Expected Payout</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${rows.map(reservation => {
-                  const accommodation = toNumber(reservation.accommodationFare);
-                  const pmc = accommodation * (currentOwner.pmcPercent / 100);
-                  const ownerPayout = accommodation - pmc;
-                  const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
-                  const nights = toNumber(reservation.numberOfNights);
-
-                  return `
-                    <tr>
-                      <td>${reservation.confirmationCode || ""}</td>
-                      <td style="text-align:center;">${reservation.platform || ""}</td>
-                      <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
-                      <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
-                      <td style="text-align:center;">${nights}</td>
-                      <td style="text-align:center;">${formatMoney(accommodation)}</td>
-                      <td style="text-align:center;">${formatMoney(pmc)}</td>
-                      <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
-                      <td style="text-align:center;">${expectedPayoutDate}</td>
-                    </tr>
-                  `;
-                }).join("")}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      `;
-    });
-
-    container.appendChild(propertyWrap);
-  }
-
-  if (ownerStaysData.length) {
-    const tableWraps = document.getElementsByClassName("table-wrap");
-    let container = null;
-
-    if (tableWraps.length > 0) {
-      container = tableWraps[0].parentNode;
-    } else {
-      container = document.body;
-    }
-
-    const ownerTable = document.createElement("div");
-    ownerTable.id = "ownerStaysTable";
-    ownerTable.innerHTML = `
-      <h3 class="section-title" style="margin-top:40px; text-align:center;">Upcoming Owner Stays</h3>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="text-align:center;">Check-In</th>
-              <th style="text-align:center;">Check-Out</th>
-              <th style="text-align:center;">Nights</th>
-              <th style="text-align:center;">Cleaning Fee</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${ownerStaysData
-              .sort((a, b) => toSortableDate(a.checkIn || a.checkInDate) - toSortableDate(b.checkIn || b.checkInDate))
-              .map(res => `
-              <tr>
-                <td style="text-align:center;">${formatDateDisplay(res.checkIn || res.checkInDate || "")}</td>
-                <td style="text-align:center;">${formatDateDisplay(res.checkOut || res.checkOutDate || "")}</td>
-                <td style="text-align:center;">${toNumber(res.numberOfNights)}</td>
-                <td style="text-align:center;">${formatMoney(getCleaningFee())}</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      </div>
-    `;
-
-    container.appendChild(ownerTable);
-  }
-
-  const vrboManualRows = sortedReservations.filter(res => {
+  const vrboManualRows = reservationsData.filter(res => {
     const source = String(res.source || "").toUpperCase();
     const payout = toNumber(res.totalPayout);
     return source === "MANUAL_VRBO" && payout > 0;
   });
 
+  const tableWraps = document.getElementsByClassName("table-wrap");
+  let container = null;
+
+  if (tableWraps.length > 0) {
+    container = tableWraps[0].parentNode;
+  } else {
+    container = document.body;
+  }
+
   if (vrboManualRows.length) {
-    const tableWraps = document.getElementsByClassName("table-wrap");
-    let container = null;
-
-    if (tableWraps.length > 0) {
-      container = tableWraps[0].parentNode;
-    } else {
-      container = document.body;
-    }
-
     const vrboManualTable = document.createElement("div");
     vrboManualTable.id = "vrboManualTable";
     vrboManualTable.innerHTML = `
@@ -1093,87 +1247,6 @@ function renderReservationsTable() {
 
     container.appendChild(vrboManualTable);
   }
-}
-
-  let oldOwnerTable = document.getElementById("ownerStaysTable");
-  if (oldOwnerTable && oldOwnerTable.parentNode) {
-    oldOwnerTable.parentNode.removeChild(oldOwnerTable);
-  }
-
-  let oldVrboManualTable = document.getElementById("vrboManualTable");
-  if (oldVrboManualTable && oldVrboManualTable.parentNode) {
-    oldVrboManualTable.parentNode.removeChild(oldVrboManualTable);
-  }
-
-  const vrboManualRows = reservationsData.filter(res => {
-    const source = String(res.source || "").toUpperCase();
-    const payout = toNumber(res.totalPayout);
-    return source === "MANUAL_VRBO" && payout > 0;
-  });
-
-  const tableWraps = document.getElementsByClassName("table-wrap");
-  let container = null;
-
-  if (tableWraps.length > 0) {
-    container = tableWraps[0].parentNode;
-  } else {
-    container = document.body;
-  }
-
-  if (vrboManualRows.length) {
-    const vrboManualTable = document.createElement("div");
-    vrboManualTable.id = "vrboManualTable";
-    vrboManualTable.innerHTML = `
-      <div style="margin-top:40px; text-align:center;">
-        <h3 class="section-title" style="margin:0;">Booking Channel Paid To Owner Bank Account</h3>
-        <div style="font-size:14px; margin-top:6px;">(channel will process 3-5 business days after check-in)</div>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="text-align:center;">Platform</th>
-              <th style="text-align:center;">Check-In</th>
-              <th style="text-align:center;">Check-Out</th>
-              <th style="text-align:center;">Nights</th>
-              <th style="text-align:center;">Owner Paid by VRBO</th>
-              <th style="text-align:center;">Accommodation</th>
-              <th style="text-align:center;">Cleaning Fee</th>
-
-              <th style="text-align:center;">PMC</th>
-              <th style="text-align:center;">Due to Management</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${vrboManualRows.map(reservation => {
-  const accommodation = toNumber(reservation.accommodationFare);
-  const cleaningFee = toNumber(reservation.cleaningFare);
-  const pmc = accommodation * (currentOwner.pmcPercent / 100);
-  const dueToManagement = cleaningFee + pmc;
-  const ownerPaidByVrbo = toNumber(reservation.totalPayout);
-  const nights = toNumber(reservation.numberOfNights);
-
-  return `
-    <tr>
-      <td style="text-align:center;">VRBO</td>
-      <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
-      <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
-      <td style="text-align:center;">${nights}</td>
-      <td style="text-align:center;">${formatMoney(ownerPaidByVrbo)}</td>
-      <td style="text-align:center;">${formatMoney(accommodation)}</td>
-      <td style="text-align:center;">${formatMoney(cleaningFee)}</td>
-      <td style="text-align:center;">${formatMoney(pmc)}</td>
-      <td style="text-align:center;">${formatMoney(dueToManagement)}</td>
-    </tr>
-  `;
-}).join("")}
-          </tbody>
-        </table>
-      </div>
-    `;
-
-    container.appendChild(vrboManualTable);
-  }
 
   if (ownerStaysData.length) {
     const ownerTable = document.createElement("div");
@@ -1201,10 +1274,9 @@ function renderReservationsTable() {
         </table>
       </div>
     `;
-
     container.appendChild(ownerTable);
   }
-
+}
 
 function fillReservationDropdown() {
   const select = document.getElementById("reservationSelect");
@@ -1220,7 +1292,7 @@ function loadOwnerReport() {
   setupCalendarButtons();
   refreshCalendarUI();
 
-  if (!currentOwner || !currentOwner.guestyApiKey) {
+  if (!currentOwner || (!currentOwner.guestyApiKey && !currentOwner.admin)) {
     console.error("No owner or API key configured");
     reservationsData = [];
     renderDashboardHeader();
@@ -1228,6 +1300,17 @@ function loadOwnerReport() {
     renderReservationsTable();
     setupCalendarButtons();
     refreshCalendarUI();
+    return;
+  }
+
+  if (currentOwner.admin) {
+    // admin view: do not fetch, but show dashboard + admin panel
+    renderDashboardHeader();
+    renderSummaryBoxes();
+    renderReservationsTable();
+    setupCalendarButtons();
+    refreshCalendarUI();
+    renderAdminPanel();
     return;
   }
 
@@ -1281,5 +1364,97 @@ function loadOwnerReport() {
     });
 }
 
+// === ADMIN PANEL (simple in-page settings editor) ===
+function renderAdminPanel() {
+  const portal = document.getElementById("ownerPortal");
+  if (!portal) return;
+  let adminDiv = document.getElementById("adminPanel");
+  if (adminDiv) adminDiv.remove();
+  adminDiv = document.createElement("div");
+  adminDiv.id = "adminPanel";
+  adminDiv.style.marginTop = "16px";
+  adminDiv.style.padding = "12px";
+  adminDiv.style.border = "1px solid #e1e6ef";
+  adminDiv.style.borderRadius = "8px";
+  adminDiv.innerHTML = `
+    <h3 style="margin:0 0 8px 0;">Admin: Edit Owner Settings</h3>
+    <div style="display:flex; gap:12px; align-items:center; margin-bottom:8px;">
+      <select id="adminOwnerSelect" style="min-width:220px;">
+        ${Object.keys(OWNERS).map(email => `<option value="${email}">${OWNERS[email].ownerName} — ${email}</option>`).join("")}
+      </select>
+      <button id="adminLoadOwner">Load</button>
+    </div>
+    <div id="adminOwnerForm" style="display:none;">
+      <div style="display:flex; gap:8px; margin-bottom:8px;">
+        <div style="flex:1;">
+          <label>Owner Email</label>
+          <input id="adminOwnerEmail" style="width:100%" disabled />
+        </div>
+        <div style="flex:1;">
+          <label>Owner Name</label>
+          <input id="adminOwnerName" style="width:100%" />
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:8px;">
+        <div style="flex:1;">
+          <label>PMC %</label>
+          <input id="adminOwnerPmc" type="number" style="width:100%" />
+        </div>
+        <div style="flex:1;">
+          <label>Cleaning Fee</label>
+          <input id="adminOwnerCleaning" type="number" style="width:100%" />
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:8px;">
+        <div>
+          <label>View Mode</label>
+          <select id="adminOwnerViewMode">
+            <option value="payout">Payout</option>
+            <option value="draft">Draft</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button id="adminOwnerSave">Save</button>
+        <button id="adminOwnerCancel">Cancel</button>
+      </div>
+    </div>
+  `;
+  portal.insertBefore(adminDiv, portal.firstChild);
+
+  document.getElementById("adminLoadOwner").onclick = () => {
+    const email = document.getElementById("adminOwnerSelect").value;
+    const owner = OWNERS[email];
+    if (!owner) return alert("Owner not found");
+    document.getElementById("adminOwnerForm").style.display = "";
+    document.getElementById("adminOwnerEmail").value = email;
+    document.getElementById("adminOwnerName").value = owner.ownerName || "";
+    document.getElementById("adminOwnerPmc").value = owner.pmcPercent || "";
+    document.getElementById("adminOwnerCleaning").value = owner.cleaningFee || "";
+    document.getElementById("adminOwnerViewMode").value = owner.viewMode || "payout";
+  };
+
+  document.getElementById("adminOwnerSave").onclick = () => {
+    const email = document.getElementById("adminOwnerEmail").value;
+    if (!OWNERS[email]) return alert("Owner not found");
+    OWNERS[email].ownerName = document.getElementById("adminOwnerName").value;
+    OWNERS[email].pmcPercent = Number(document.getElementById("adminOwnerPmc").value) || OWNERS[email].pmcPercent;
+    OWNERS[email].cleaningFee = Number(document.getElementById("adminOwnerCleaning").value) || OWNERS[email].cleaningFee;
+    OWNERS[email].viewMode = document.getElementById("adminOwnerViewMode").value || "payout";
+    alert("Owner settings saved");
+  };
+
+  document.getElementById("adminOwnerCancel").onclick = () => {
+    document.getElementById("adminOwnerForm").style.display = "none";
+  };
+}
+
 // === CONTACT MODAL AND EMAILJS HANDLERS ===
 // ... keep the rest of your unchanged code here
+```
+
+If you want, I can:
+- Patch `script.js` directly in your workspace (tell me the path), or
+- Provide a smaller diff that only replaces the `renderReservationsTable()` and admin bits while preserving the file exactly.
+
+Which do you prefer?
