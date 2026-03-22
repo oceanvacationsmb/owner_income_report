@@ -1611,9 +1611,12 @@ function loadOwnerReport() {
     return;
   }
 
-  const reportUrl = "https://report.guesty.com/api/shared-reservations-reports?timezone=America/New_York&skip=0&limit=1000";
+  const reportBaseUrl = "https://report.guesty.com/api/shared-reservations-reports?timezone=America/New_York";
+const PAGE_LIMIT = 1000;
 
-  fetch(reportUrl, {
+function fetchReservationsPage(skip) {
+  const reportUrl = `${reportBaseUrl}&skip=${skip}&limit=${PAGE_LIMIT}`;
+  return fetch(reportUrl, {
     headers: {
       accept: "*/*",
       authorization: currentOwner.guestyApiKey,
@@ -1624,9 +1627,20 @@ function loadOwnerReport() {
       if (!r.ok) throw new Error("Guesty fetch failed: " + r.status);
       return r.json();
     })
-    .then(payload => {
-      const rows = Array.isArray(payload) ? payload : (payload.results || payload.data || []);
-      const mappedRows = rows.map(mapGuestyReservation);
+    .then(payload => Array.isArray(payload) ? payload : (payload.results || payload.data || []));
+}
+
+function fetchAllReservations(skip = 0, acc = []) {
+  return fetchReservationsPage(skip).then(pageRows => {
+    const merged = acc.concat(pageRows);
+    if (pageRows.length < PAGE_LIMIT) return merged;
+    return fetchAllReservations(skip + PAGE_LIMIT, merged);
+  });
+}
+
+fetchAllReservations()
+  .then(rows => {
+    const mappedRows = rows.map(mapGuestyReservation);
 
       ownerStaysData = mappedRows.filter(res =>
         String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY") &&
