@@ -992,9 +992,7 @@ const draftNetAccommodation = Math.max(
     Math.max(0, lengthOfStayDiscount)
 );
 
-  return {
-
-  return {
+    return {
     status: pickText(r.status, r.reservationStatus, r["STATUS"], r["reservationStatus"]),
     listingNickname: pickText(r["listing.nickname"], r.listingNickname, r.listing?.nickname, r.listing),
     platform: pickText(r["integration.platform"], r.platform, r.integration?.platform, r.integration),
