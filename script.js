@@ -219,7 +219,7 @@ function renderFilterControls() {
     wrap.style.gap = "12px";
     wrap.style.margin = "12px 0 18px 0";
     wrap.style.flexWrap = "wrap";
-    summaryBoxes.parentNode.insertBefore(wrap, summaryBoxes.nextSibling);
+    summaryBoxes.parentNode.insertBefore(wrap, summaryBoxes);
   }
 
   const years = getUniqueYearsFromData();
@@ -906,7 +906,7 @@ function mapGuestyReservation(r) {
 function renderSummaryBoxes() {
   const summaryBoxes = document.getElementById("summaryBoxes");
   if (!summaryBoxes || !currentOwner || currentOwner.admin) return;
-
+  renderFilterControls();  // ← ADD THIS LINE HERE
   const filteredReservations = getFilteredReservations();
   const filteredOwnerStays = getFilteredOwnerStays();
 
@@ -1067,7 +1067,13 @@ function renderReservationsTable() {
     } else if (calendarPanel) {
       calendarPanel.style.display = "none";
     }
-
+    
+const showCalendarBtn = document.getElementById("showCalendarBtn");
+if (showCalendarBtn && showCalendarBtn.parentNode) {
+  showCalendarBtn.parentNode.removeChild(showCalendarBtn);
+} else if (showCalendarBtn) {
+  showCalendarBtn.style.display = "none";
+}
     const tableWraps = document.getElementsByClassName("table-wrap");
     let container = null;
 
