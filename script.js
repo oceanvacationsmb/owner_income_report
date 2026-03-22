@@ -929,7 +929,7 @@ const channelCommission = pickNumber(
   r["money.channelCommission"]?.value
 );
 
-// Optional explicit card processing fee from report// Optional explicit card processing fee from report
+// Optional explicit card processing fee from report
 const explicitCardProcessingFee = pickNumber(
   r["money.invoiceItems.CCF"]?.value,
   r["money.invoiceItems.CC"]?.value,
@@ -940,12 +940,12 @@ const explicitCardProcessingFee = pickNumber(
 
 let allowedAccommodation = standardAccommodation;
 
-// Build required deductions by source/platform
 const cardFeeToUse =
   explicitCardProcessingFee > 0
     ? explicitCardProcessingFee
     : (totalPayoutValue * 0.04);
 
+// source-specific required deductions
 let requiredDeductions = Math.max(0, cleaningFareValue);
 
 if (isVrboOrHomeAway) {
@@ -958,19 +958,14 @@ if (isVrboOrHomeAway) {
     Math.max(0, channelCommission) +
     Math.max(0, totalPayoutValue * 0.01) +
     Math.max(0, cardFeeToUse);
-} else if (isAirbnb) {
-  // keep Airbnb deductions as previously defined (cleaning only)
-  requiredDeductions += 0;
-} else {
+} else if (!isAirbnb) {
   // fallback for unknown sources
   requiredDeductions += Math.max(0, taxesCombined);
 }
 
-// Decision rule you requested:
-// if (standardAccommodation - payout) is NOT enough to cover required deductions,
-// switch to payout-based accommodation.
-const accommodationMinusPayout = standardAccommodation - totalPayoutValue;
-const shouldUsePayoutFormula = accommodationMinusPayout < requiredDeductions;
+// correct trigger:
+const payoutHeadroom = totalPayoutValue - standardAccommodation;
+const shouldUsePayoutFormula = payoutHeadroom < requiredDeductions;
 
 if (shouldUsePayoutFormula) {
   allowedAccommodation = totalPayoutValue - requiredDeductions;
