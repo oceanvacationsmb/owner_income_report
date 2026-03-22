@@ -1003,7 +1003,7 @@ if (tbody) {
 
       tbody.innerHTML += `
         <tr>
-          <td>${reservation.confirmationCode || ""} ${String(reservation.status || "").toLowerCase().includes("cancel") ? '<span style="color:red; font-weight:700;">CANCELLED</span>' : ""}</td>
+          <td>${reservation.confirmationCode || ""} ${String(reservation.status || "").toLowerCase().includes("cancel") ? '<span style="color:red; font-weight:700;">Cancelled with payout</span>' : ""}</td>
           <td style="text-align:center;">${reservation.platform || ""}</td>
           <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
           <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
@@ -1180,7 +1180,7 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
 
                   return `
                     <tr>
-                      <td>${reservation.confirmationCode || ""} ${String(reservation.status || "").toLowerCase().includes("cancel") ? '<span style="color:red; font-weight:700;">CANCELLED</span>' : ""}</td>
+                      <td>${reservation.confirmationCode || ""} ${String(reservation.status || "").toLowerCase().includes("cancel") ? '<span style="color:red; font-weight:700;">Cancelled with payout</span>' : ""}</td>
                       <td style="text-align:center;">${reservation.platform || ""}</td>
                       <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
                       <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
