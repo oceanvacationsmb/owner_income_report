@@ -1450,21 +1450,26 @@ function renderFilterControls() {
     { v: "12", t: "December" }
   ];
 
-  wrap.innerHTML = `
-    <div style="display:flex; gap:8px; align-items:center;">
-      <label for="yearFilterSelect" style="font-weight:700;">Year</label>
-      <select id="yearFilterSelect" style="padding:6px 8px; border-radius:8px;">
-        <option value="all">All Years</option>
-        ${years.map(y => `<option value="${y}">${y}</option>`).join("")}
-      </select>
-    </div>
-    <div style="display:flex; gap:8px; align-items:center;">
-      <label for="monthFilterSelect" style="font-weight:700;">Month</label>
-      <select id="monthFilterSelect" style="padding:6px 8px; border-radius:8px;">
-        ${monthOptions.map(m => `<option value="${m.v}">${m.t}</option>`).join("")}
-      </select>
-    </div>
-  `;
+  const yearsHtml =
+    '<option value="all">All Years</option>' +
+    years.map(function(y) { return '<option value="' + y + '">' + y + '</option>'; }).join("");
+
+  const monthsHtml =
+    monthOptions.map(function(m) { return '<option value="' + m.v + '">' + m.t + '</option>'; }).join("");
+
+  wrap.innerHTML =
+    '<div style="display:flex; gap:8px; align-items:center;">' +
+      '<label for="yearFilterSelect" style="font-weight:700;">Year</label>' +
+      '<select id="yearFilterSelect" style="padding:6px 8px; border-radius:8px;">' +
+        yearsHtml +
+      '</select>' +
+    '</div>' +
+    '<div style="display:flex; gap:8px; align-items:center;">' +
+      '<label for="monthFilterSelect" style="font-weight:700;">Month</label>' +
+      '<select id="monthFilterSelect" style="padding:6px 8px; border-radius:8px;">' +
+        monthsHtml +
+      '</select>' +
+    '</div>';
 
   const yearSelect = document.getElementById("yearFilterSelect");
   const monthSelect = document.getElementById("monthFilterSelect");
@@ -1472,12 +1477,12 @@ function renderFilterControls() {
   yearSelect.value = filterYear;
   monthSelect.value = filterMonth;
 
-  yearSelect.onchange = () => {
+  yearSelect.onchange = function() {
     filterYear = yearSelect.value;
     applyFiltersAndRender();
   };
 
-  monthSelect.onchange = () => {
+  monthSelect.onchange = function() {
     filterMonth = monthSelect.value;
     applyFiltersAndRender();
   };
