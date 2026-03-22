@@ -871,16 +871,35 @@ let calculatedAccommodation = standardAccommodation;
   );
 
   const totalPayoutValue = pickNumber(
-    r["money.hostPayout"]?.value, r.hostPayout, r.totalPayout
-  );
+  r["money.hostPayout"]?.value,
+  r.money?.hostPayout?.value,
+  r["preCancelationMoney.hostPayout"]?.value,
+  r.preCancelationMoney?.hostPayout?.value,
+  r["money.payout"]?.value,
+  r.money?.payout?.value,
+  r["money.totalPayout"]?.value,
+  r.money?.totalPayout?.value,
+  r.hostPayout,
+  r.totalPayout,
+  r.payout
+);
 
   const numberOfNightsValue = pickNumber(
     r["numberOfNights"]?.children, r.numberOfNights?.children, r["numberOfNights"]?.value, r.numberOfNights?.value, r.numberOfNights
   );
 
   const cleaningFareValue = pickNumber(
-    r["money.fareCleaning"]?.value, r.money?.fareCleaning?.value, r.fareCleaning, r.cleaningFee
-  );
+  r["money.fareCleaning"]?.value,
+  r.money?.fareCleaning?.value,
+  r["money.invoiceItems.CLEANING_FEE"]?.value,
+  r["money.invoiceItems.CLEANING"]?.value,
+  r["money.invoiceItems.CLF"]?.value,
+  r.money?.invoiceItems?.CLEANING_FEE?.value,
+  r.money?.invoiceItems?.CLEANING?.value,
+  r.money?.invoiceItems?.CLF?.value,
+  r.fareCleaning,
+  r.cleaningFee
+);
 
   const taxesCombined = pickNumber(
     r["money.fareTaxes"]?.value, r.money?.fareTaxes?.value, r.fareTaxes, r.taxes, r.tax
