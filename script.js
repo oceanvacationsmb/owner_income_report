@@ -251,7 +251,7 @@ function pickDate(...args) {
 }
 
 function formatMoney(v) {
-  return `$${Number(v || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+ return `$${Number(v || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function toNumber(v) {
