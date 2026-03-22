@@ -929,7 +929,7 @@ const channelCommission = pickNumber(
   r["money.channelCommission"]?.value
 );
 
-// Optional explicit card processing fee from report// Optional explicit card processing fee from report
+// Optional explicit card processing fee from report
 const explicitCardProcessingFee = pickNumber(
   r["money.invoiceItems.CCF"]?.value,
   r["money.invoiceItems.CC"]?.value,
@@ -938,38 +938,51 @@ const explicitCardProcessingFee = pickNumber(
   r.creditCardProcessingFee
 );
 
-// standardAccommodation already accounts for markup and length-of-stay discount.
-// Only use the payout-based formula if the payout (minus its fees) can't cover standardAccommodation.
+// Check if the payout covers standardAccommodation + all applicable fees.
+// If not, the accommodation is squeezed — derive it from what payout has left after fees.
 let allowedAccommodation = standardAccommodation;
 
 if (isAirbnb) {
-  const payoutBased = totalPayoutValue - Math.max(0, cleaningFareValue);
-  if (payoutBased < standardAccommodation) {
-    allowedAccommodation = payoutBased;
+  // Payout should cover: accommodation + cleaning
+  const requiredPayout = standardAccommodation + Math.max(0, cleaningFareValue);
+  if (totalPayoutValue < requiredPayout) {
+    allowedAccommodation = totalPayoutValue - Math.max(0, cleaningFareValue);
   }
 } else if (isVrboOrHomeAway) {
-  const payoutBased =
-    totalPayoutValue -
-    Math.max(0, cleaningFareValue) -
-    Math.max(0, taxesCombined) -
+  // Payout should cover: accommodation + cleaning + taxes + channel commission
+  const requiredPayout =
+    standardAccommodation +
+    Math.max(0, cleaningFareValue) +
+    Math.max(0, taxesCombined) +
     Math.max(0, channelCommission);
-  if (payoutBased < standardAccommodation) {
-    allowedAccommodation = payoutBased;
+  if (totalPayoutValue < requiredPayout) {
+    allowedAccommodation =
+      totalPayoutValue -
+      Math.max(0, cleaningFareValue) -
+      Math.max(0, taxesCombined) -
+      Math.max(0, channelCommission);
   }
 } else if (isWebsite || isDirect || isManual) {
+  // Payout should cover: accommodation + cleaning + taxes + channel commission + 1% platform + 4% card
   const cardFeeToUse =
     explicitCardProcessingFee > 0
       ? explicitCardProcessingFee
       : (totalPayoutValue * 0.04);
-  const payoutBased =
-    totalPayoutValue -
-    Math.max(0, cleaningFareValue) -
-    Math.max(0, taxesCombined) -
-    Math.max(0, channelCommission) -
-    Math.max(0, totalPayoutValue * 0.01) -
+  const requiredPayout =
+    standardAccommodation +
+    Math.max(0, cleaningFareValue) +
+    Math.max(0, taxesCombined) +
+    Math.max(0, channelCommission) +
+    Math.max(0, totalPayoutValue * 0.01) +
     Math.max(0, cardFeeToUse);
-  if (payoutBased < standardAccommodation) {
-    allowedAccommodation = payoutBased;
+  if (totalPayoutValue < requiredPayout) {
+    allowedAccommodation =
+      totalPayoutValue -
+      Math.max(0, cleaningFareValue) -
+      Math.max(0, taxesCombined) -
+      Math.max(0, channelCommission) -
+      Math.max(0, totalPayoutValue * 0.01) -
+      Math.max(0, cardFeeToUse);
   }
 }
 
