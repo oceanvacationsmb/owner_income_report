@@ -1,5 +1,6 @@
 
 let currentOwner = null;
+let isDraftView = false;
 document.getElementById("loginBtn").onclick = function() {
   const email = (document.getElementById("ownerEmail").value || "").trim().toLowerCase();
   const pw = (document.getElementById("ownerPassword").value || "");
@@ -27,8 +28,9 @@ document.getElementById("loginBtn").onclick = function() {
 
   if (!OWNERS[email].viewMode) OWNERS[email].viewMode = "payout";
 
-  currentOwner = OWNERS[email];
-  document.getElementById("loginBox").style.display = "none";
+currentOwner = OWNERS[email];
+isDraftView = String(currentOwner.viewMode || "payout").toLowerCase() === "draft";
+document.getElementById("loginBox").style.display = "none";
   document.getElementById("ownerPortal").style.display = "";
   loginStatus.innerText = "";
 
@@ -973,6 +975,25 @@ if (shouldUsePayoutFormula) {
 
 calculatedAccommodation = Math.max(0, allowedAccommodation);
 
+const grossPayout = Math.max(0, totalPayoutValue);
+
+const draftVrboCommission =
+  (isVrboOrHomeAway && !isManualVrbo)
+    ? Math.max(0, channelCommission)
+    : 0;
+
+const draftNetAccommodation = Math.max(
+  0,
+  grossPayout -
+    Math.max(0, cleaningFareValue) -
+    Math.max(0, taxesCombined) -
+    draftVrboCommission +
+    Math.max(0, airbnbResolutionCenter) +
+    Math.max(0, lengthOfStayDiscount)
+);
+
+  return {
+
   return {
     status: pickText(r.status, r.reservationStatus, r["STATUS"], r["reservationStatus"]),
     listingNickname: pickText(r["listing.nickname"], r.listingNickname, r.listing?.nickname, r.listing),
@@ -985,6 +1006,8 @@ calculatedAccommodation = Math.max(0, allowedAccommodation);
     totalPayout: totalPayoutValue,
     cleaningFare: cleaningFareValue,
     accommodationFare: calculatedAccommodation,
+    grossPayout,
+    draftNetAccommodation,
     baseAccommodation,
     markup,
     lengthOfStayDiscount,
@@ -1041,6 +1064,41 @@ function renderSummaryBoxes() {
   return sum + toNumber(reservation.numberOfNights);
 }, 0);
 
+    if (isDraftView) {
+    let grossPayoutTotal = 0;
+    let netAccommodationTotal = 0;
+    let cleaningFeeTotal = 0;
+    let pmcTotal = 0;
+
+    filteredReservations.forEach((res) => {
+      grossPayoutTotal += toNumber(res.grossPayout || res.totalPayout);
+      netAccommodationTotal += toNumber(res.draftNetAccommodation);
+      cleaningFeeTotal += toNumber(res.cleaningFare);
+      pmcTotal += toNumber(res.draftNetAccommodation) * (currentOwner.pmcPercent / 100);
+    });
+
+    summaryBoxes.innerHTML = `
+      <h2 style="text-align:center; width:100%; margin-bottom:12px;">SUMMARY</h2>
+      <div class="summary-box">
+        <div class="summary-label">GROSS PAYOUT (PAYOUT)</div>
+        <div class="summary-value">${formatMoney(grossPayoutTotal)}</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-label">NET ACCOMMODATION</div>
+        <div class="summary-value">${formatMoney(netAccommodationTotal)}</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-label">CLEANING FEE</div>
+        <div class="summary-value">${formatMoney(cleaningFeeTotal)}</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-label">PMC</div>
+        <div class="summary-value">${formatMoney(pmcTotal)}</div>
+      </div>
+    `;
+    return;
+  }
+
   summaryBoxes.innerHTML = `
     <h2 style="text-align:center; width:100%; margin-bottom:12px;">SUMMARY</h2>
     <div class="summary-box">
@@ -1093,11 +1151,13 @@ const sortedReservations = [...getFilteredReservations()]
     `;
   } else {
     sortedReservations.forEach(reservation => {
-      const accommodation = toNumber(reservation.accommodationFare);
-      const pmc = accommodation * (currentOwner.pmcPercent / 100);
-      const ownerPayout = accommodation - pmc;
-      const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
-      const nights = toNumber(reservation.numberOfNights);
+  const accommodation = isDraftView
+    ? toNumber(reservation.draftNetAccommodation)
+    : toNumber(reservation.accommodationFare);
+  const pmc = accommodation * (currentOwner.pmcPercent / 100);
+  const ownerPayout = accommodation - pmc;
+  const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
+  const nights = toNumber(reservation.numberOfNights);
 
       tbody.innerHTML += `
         <tr>
@@ -1191,9 +1251,11 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
       let propertyOwnerPayout = 0;
 
       rows.forEach(reservation => {
-        const accommodation = toNumber(reservation.accommodationFare);
-        const pmc = accommodation * (currentOwner.pmcPercent / 100);
-        const ownerPayout = accommodation - pmc;
+  const accommodation = isDraftView
+    ? toNumber(reservation.draftNetAccommodation)
+    : toNumber(reservation.accommodationFare);
+  const pmc = accommodation * (currentOwner.pmcPercent / 100);
+  const ownerPayout = accommodation - pmc;
         propertyAccommodation += accommodation;
         propertyPmc += pmc;
         propertyOwnerPayout += ownerPayout;
@@ -1255,6 +1317,9 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
             </button>
           </div>
 
+${isDraftView ? `<button class="toggle-reservations-btn" data-target="prop-table-${propIdSafe}">Open Reservations</button>` : ""}
+<div id="prop-table-${propIdSafe}" style="display:${isDraftView ? "none" : "block"};">
+
           <div class="table-wrap">
             <table>
               <thead>
@@ -1295,6 +1360,8 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
               </tbody>
             </table>
           </div>
+      </div>
+          
 
           <div id="${overlayId}" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.45);">
             <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:min(980px,95vw); max-height:90vh; overflow:auto; background:#fff; border-radius:12px; padding:14px;">
@@ -1321,6 +1388,16 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
 
     container.appendChild(propertyWrap);
 
+document.querySelectorAll(".toggle-reservations-btn").forEach((btn) => {
+  btn.onclick = () => {
+    const target = document.getElementById(btn.dataset.target);
+    if (!target) return;
+    const isOpen = target.style.display !== "none";
+    target.style.display = isOpen ? "none" : "block";
+    btn.textContent = isOpen ? "Open Reservations" : "Close Reservations";
+  };
+});
+    
     propertyNames.forEach(propertyName => {
       const rows = propertyGroups[propertyName]
   .filter(r => matchesFilters(r.checkIn))
