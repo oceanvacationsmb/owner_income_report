@@ -929,7 +929,7 @@ const channelCommission = pickNumber(
   r["money.channelCommission"]?.value
 );
 
-// Optional explicit card processing fee from report
+// Optional explicit card processing fee from report// Optional explicit card processing fee from report
 const explicitCardProcessingFee = pickNumber(
   r["money.invoiceItems.CCF"]?.value,
   r["money.invoiceItems.CC"]?.value,
@@ -938,36 +938,42 @@ const explicitCardProcessingFee = pickNumber(
   r.creditCardProcessingFee
 );
 
+// standardAccommodation already accounts for markup and length-of-stay discount.
+// Only use the payout-based formula if the payout (minus its fees) can't cover standardAccommodation.
 let allowedAccommodation = standardAccommodation;
 
 if (isAirbnb) {
-  allowedAccommodation =
-    totalPayoutValue -
-    Math.max(0, cleaningFareValue);
+  const payoutBased = totalPayoutValue - Math.max(0, cleaningFareValue);
+  if (payoutBased < standardAccommodation) {
+    allowedAccommodation = payoutBased;
+  }
 } else if (isVrboOrHomeAway) {
-  allowedAccommodation =
+  const payoutBased =
     totalPayoutValue -
     Math.max(0, cleaningFareValue) -
     Math.max(0, taxesCombined) -
     Math.max(0, channelCommission);
+  if (payoutBased < standardAccommodation) {
+    allowedAccommodation = payoutBased;
+  }
 } else if (isWebsite || isDirect || isManual) {
   const cardFeeToUse =
     explicitCardProcessingFee > 0
       ? explicitCardProcessingFee
       : (totalPayoutValue * 0.04);
-
-  allowedAccommodation =
+  const payoutBased =
     totalPayoutValue -
     Math.max(0, cleaningFareValue) -
     Math.max(0, taxesCombined) -
     Math.max(0, channelCommission) -
     Math.max(0, totalPayoutValue * 0.01) -
     Math.max(0, cardFeeToUse);
+  if (payoutBased < standardAccommodation) {
+    allowedAccommodation = payoutBased;
+  }
 }
 
-if (allowedAccommodation < standardAccommodation) {
-  calculatedAccommodation = Math.max(0, allowedAccommodation);
-}
+calculatedAccommodation = Math.max(0, allowedAccommodation);
 
   return {
     status: pickText(r.status, r.reservationStatus, r["STATUS"], r["reservationStatus"]),
