@@ -938,52 +938,42 @@ const explicitCardProcessingFee = pickNumber(
   r.creditCardProcessingFee
 );
 
-// Check if the payout covers standardAccommodation + all applicable fees.
-// If not, the accommodation is squeezed — derive it from what payout has left after fees.
 let allowedAccommodation = standardAccommodation;
 
-if (isAirbnb) {
-  // Payout should cover: accommodation + cleaning
-  const requiredPayout = standardAccommodation + Math.max(0, cleaningFareValue);
-  if (totalPayoutValue < requiredPayout) {
-    allowedAccommodation = totalPayoutValue - Math.max(0, cleaningFareValue);
-  }
-} else if (isVrboOrHomeAway) {
-  // Payout should cover: accommodation + cleaning + taxes + channel commission
-  const requiredPayout =
-    standardAccommodation +
-    Math.max(0, cleaningFareValue) +
+// Build required deductions by source/platform
+const cardFeeToUse =
+  explicitCardProcessingFee > 0
+    ? explicitCardProcessingFee
+    : (totalPayoutValue * 0.04);
+
+let requiredDeductions = Math.max(0, cleaningFareValue);
+
+if (isVrboOrHomeAway) {
+  requiredDeductions +=
     Math.max(0, taxesCombined) +
     Math.max(0, channelCommission);
-  if (totalPayoutValue < requiredPayout) {
-    allowedAccommodation =
-      totalPayoutValue -
-      Math.max(0, cleaningFareValue) -
-      Math.max(0, taxesCombined) -
-      Math.max(0, channelCommission);
-  }
 } else if (isWebsite || isDirect || isManual) {
-  // Payout should cover: accommodation + cleaning + taxes + channel commission + 1% platform + 4% card
-  const cardFeeToUse =
-    explicitCardProcessingFee > 0
-      ? explicitCardProcessingFee
-      : (totalPayoutValue * 0.04);
-  const requiredPayout =
-    standardAccommodation +
-    Math.max(0, cleaningFareValue) +
+  requiredDeductions +=
     Math.max(0, taxesCombined) +
     Math.max(0, channelCommission) +
     Math.max(0, totalPayoutValue * 0.01) +
     Math.max(0, cardFeeToUse);
-  if (totalPayoutValue < requiredPayout) {
-    allowedAccommodation =
-      totalPayoutValue -
-      Math.max(0, cleaningFareValue) -
-      Math.max(0, taxesCombined) -
-      Math.max(0, channelCommission) -
-      Math.max(0, totalPayoutValue * 0.01) -
-      Math.max(0, cardFeeToUse);
-  }
+} else if (isAirbnb) {
+  // keep Airbnb deductions as previously defined (cleaning only)
+  requiredDeductions += 0;
+} else {
+  // fallback for unknown sources
+  requiredDeductions += Math.max(0, taxesCombined);
+}
+
+// Decision rule you requested:
+// if (standardAccommodation - payout) is NOT enough to cover required deductions,
+// switch to payout-based accommodation.
+const accommodationMinusPayout = standardAccommodation - totalPayoutValue;
+const shouldUsePayoutFormula = accommodationMinusPayout < requiredDeductions;
+
+if (shouldUsePayoutFormula) {
+  allowedAccommodation = totalPayoutValue - requiredDeductions;
 }
 
 calculatedAccommodation = Math.max(0, allowedAccommodation);
