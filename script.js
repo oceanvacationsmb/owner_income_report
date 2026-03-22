@@ -1,5 +1,3 @@
-Here's the full JavaScript file with your complete `OWNERS` list restored, per-property calendars (Option B), `viewMode` support (`payout`|`draft`), and an admin login (password `05960596`) to edit owner settings. Paste the entire contents into your `script.js`.
-
 ```javascript
 let currentOwner = null;
 document.getElementById("loginBtn").onclick = function() {
