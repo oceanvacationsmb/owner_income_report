@@ -994,273 +994,20 @@ function renderSummaryBoxes() {
 
 function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
-  if (!tbody && !document.getElementById("mainReservationsTable")) {
-    // nothing
-  } else if (tbody) {
-    tbody.innerHTML = "";
-  }
+  if (!tbody) return;
+  tbody.innerHTML = "";
 
-  const filteredReservations = getFilteredReservations();
-const filteredOwnerStays = getFilteredOwnerStays();
-const sortedReservations = [...filteredReservations].sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
-
-  const propertyGroups = {};
-  sortedReservations.forEach(reservation => {
-    const propertyKey = (reservation.listingNickname || "Unknown Property").trim();
-    if (!propertyGroups[propertyKey]) propertyGroups[propertyKey] = [];
-    propertyGroups[propertyKey].push(reservation);
+  const sortedReservations = [...reservationsData].sort((a, b) => {
+    return toSortableDate(a.checkIn) - toSortableDate(b.checkIn);
   });
 
-  const propertyNames = Object.keys(propertyGroups);
-
-  if (propertyNames.length > 1) {
-    const mainTableWrapper = document.getElementById("mainReservationsTable") || (tbody ? tbody.closest("table") : null);
-    if (mainTableWrapper && mainTableWrapper.parentNode) {
-      mainTableWrapper.parentNode.removeChild(mainTableWrapper);
-    }
-
-    const calendarPanel = document.getElementById("calendarPanel");
-    if (calendarPanel && calendarPanel.parentNode) {
-      calendarPanel.parentNode.removeChild(calendarPanel);
-    } else if (calendarPanel) {
-      calendarPanel.style.display = "none";
-    }
-
-    const oldPropertyGroups = document.getElementById("propertyGroupsWrap");
-    if (oldPropertyGroups && oldPropertyGroups.parentNode) {
-      oldPropertyGroups.parentNode.removeChild(oldPropertyGroups);
-    }
-
-    const tableWraps = document.getElementsByClassName("table-wrap");
-    const container = tableWraps.length > 0 ? tableWraps[0].parentNode : document.body;
-
-    const propertyWrap = document.createElement("div");
-    propertyWrap.id = "propertyGroupsWrap";
-
-    propertyNames.forEach(propertyName => {
-      const rows = propertyGroups[propertyName].sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
-      const ownerRows = filteredOwnerStays.filter(s => {
-        const nameMatch = String(s.listingNickname || s.property || "").trim() === propertyName;
-        return nameMatch;
-      });
-
-      let propertyAccommodation = 0;
-      let propertyPmc = 0;
-      let propertyOwnerPayout = 0;
-
-      rows.forEach(reservation => {
-        const accommodation = toNumber(reservation.accommodationFare);
-        const pmc = accommodation * (currentOwner && currentOwner.pmcPercent ? (currentOwner.pmcPercent / 100) : 0);
-        const ownerPayout = accommodation - pmc;
-        propertyAccommodation += accommodation;
-        propertyPmc += pmc;
-        propertyOwnerPayout += ownerPayout;
-      });
-
-      const propIdSafe = propertyName.replace(/\W+/g, "_").substring(0, 40);
-
-      const openBtnId = `openCalendarBtn_${propIdSafe}`;
-      const overlayId = `calendarOverlay_${propIdSafe}`;
-      const closeBtnId = `closeCalendarBtn_${propIdSafe}`;
-      const prevBtnId = `overlayPrevBtn_${propIdSafe}`;
-      const nextBtnId = `overlayNextBtn_${propIdSafe}`;
-
-      const calendarGridId = `calendarGrid_${propIdSafe}`;
-      const calendarLabelId = `calendarMonthLabel_${propIdSafe}`;
-      const calendarNightsId = `calendarBookedNights_${propIdSafe}`;
-
-      let headerExtra = "";
-      if (currentOwner && currentOwner.viewMode === "draft") {
-        headerExtra = `
-          <th style="text-align:center;">Gross Payout</th>
-          <th style="text-align:center;">Net Accommodation</th>
-        `;
-      } else {
-        headerExtra = `
-          <th style="text-align:center;">Accommodation</th>
-          <th style="text-align:center;">PMC</th>
-          <th style="text-align:center;">Owner Payout</th>
-          <th style="text-align:center;">Expected Payout</th>
-        `;
-      }
-
-      const rowsHtml = rows.map(reservation => {
-        const accommodation = toNumber(reservation.accommodationFare);
-        const pmc = accommodation * (currentOwner && currentOwner.pmcPercent ? (currentOwner.pmcPercent / 100) : 0);
-        const ownerPayout = accommodation - pmc;
-        const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
-        const nights = toNumber(reservation.numberOfNights);
-
-        if (currentOwner && currentOwner.viewMode === "draft") {
-          const grossPayout = toNumber(reservation.totalPayout);
-          const cleaningFee = toNumber(reservation.cleaningFare);
-          const taxes = toNumber(reservation.taxesCombined);
-          const resolution = toNumber(reservation.airbnbResolutionCenter);
-          const los = toNumber(reservation.lengthOfStayDiscount);
-          const netAccommodation = grossPayout - cleaningFee - taxes - resolution + los;
-
-          return `
-            <tr>
-              <td>${reservation.confirmationCode || ""}</td>
-              <td style="text-align:center;">${reservation.platform || ""}</td>
-              <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
-              <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
-              <td style="text-align:center;">${nights}</td>
-              <td style="text-align:center;">${formatMoney(grossPayout)}</td>
-              <td style="text-align:center;">${formatMoney(netAccommodation)}</td>
-            </tr>
-          `;
-        }
-
-        return `
-          <tr>
-            <td>${reservation.confirmationCode || ""}</td>
-            <td style="text-align:center;">${reservation.platform || ""}</td>
-            <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
-            <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
-            <td style="text-align:center;">${nights}</td>
-            <td style="text-align:center;">${formatMoney(accommodation)}</td>
-            <td style="text-align:center;">${formatMoney(pmc)}</td>
-            <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
-            <td style="text-align:center;">${expectedPayoutDate}</td>
-          </tr>
-        `;
-      }).join("");
-
-      propertyWrap.innerHTML += `
-        <div style="margin-top:40px;">
-          <h3 class="section-title" style="text-align:center; margin-bottom:12px;">${propertyName}</h3>
-
-          <div style="display:flex; justify-content:center; gap:18px; flex-wrap:wrap; margin-bottom:14px;">
-            <div class="summary-box">
-              <div class="summary-label">Accommodation</div>
-              <div class="summary-value">${formatMoney(propertyAccommodation)}</div>
-            </div>
-            <div class="summary-box">
-              <div class="summary-label">PMC</div>
-              <div class="summary-value">${formatMoney(propertyPmc)}</div>
-            </div>
-            <div class="summary-box">
-              <div class="summary-label">Owner Payout</div>
-              <div class="summary-value">${formatMoney(propertyOwnerPayout)}</div>
-            </div>
-          </div>
-
-          <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-            <button id="${openBtnId}" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; background:#2f78b7; color:#fff; font-weight:700; cursor:pointer;">
-              Show Calendar
-            </button>
-          </div>
-
-          <div class="table-wrap">
-            <table class="property-table" data-property="${propertyName}">
-              <thead>
-                <tr>
-                  <th style="text-align:center;">Code</th>
-                  <th style="text-align:center;">Platform</th>
-                  <th style="text-align:center;">Check In</th>
-                  <th style="text-align:center;">Check Out</th>
-                  <th style="text-align:center;">Nights</th>
-                  ${headerExtra}
-                </tr>
-              </thead>
-              <tbody id="tbody_${propIdSafe}">
-                ${rowsHtml}
-              </tbody>
-            </table>
-          </div>
-
-          <div id="${overlayId}" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.45);">
-            <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:min(980px,95vw); max-height:90vh; overflow:auto; background:#fff; border-radius:12px; padding:14px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h3 style="margin:0;">${propertyName} Calendar</h3>
-                <button id="${closeBtnId}" style="padding:6px 10px; border-radius:8px; border:1px solid #ccc; background:#fff; cursor:pointer;">Close</button>
-              </div>
-
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:8px; flex-wrap:wrap;">
-                <div style="display:flex; gap:8px; align-items:center;">
-                  <button id="${prevBtnId}" style="padding:6px 10px; border-radius:8px; border:1px solid #ccc; background:#fff; cursor:pointer;">◀</button>
-                  <div id="${calendarLabelId}" style="font-weight:700;"></div>
-                  <button id="${nextBtnId}" style="padding:6px 10px; border-radius:8px; border:1px solid #ccc; background:#fff; cursor:pointer;">▶</button>
-                </div>
-                <div id="${calendarNightsId}" style="font-size:13px;"></div>
-              </div>
-
-              <div id="${calendarGridId}" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:6px;"></div>
-            </div>
-          </div>
-        </div>
-      `;
-
-      setTimeout(() => {
-        const overlay = document.getElementById(overlayId);
-        const openBtn = document.getElementById(openBtnId);
-        const closeBtn = document.getElementById(closeBtnId);
-        const prevBtn = document.getElementById(prevBtnId);
-        const nextBtn = document.getElementById(nextBtnId);
-
-        const gridEl = document.getElementById(calendarGridId);
-        const labelEl = document.getElementById(calendarLabelId);
-        const nightsEl = document.getElementById(calendarNightsId);
-
-        const reservedMap = buildReservedMapFromRows(rows, ownerRows);
-        let overlayMonthDate = new Date(calendarCurrentDate);
-
-        const renderOverlay = () => {
-          renderCalendarWithMap(gridEl, labelEl, nightsEl, overlayMonthDate, true, reservedMap);
-          renderNightTotals(nightsEl, rows, ownerRows);
-        };
-
-        if (openBtn) {
-          openBtn.onclick = () => {
-            overlay.style.display = "block";
-            renderOverlay();
-          };
-        }
-
-        if (closeBtn) {
-          closeBtn.onclick = () => {
-            overlay.style.display = "none";
-          };
-        }
-
-        if (overlay) {
-          overlay.onclick = e => {
-            if (e.target === overlay) {
-              overlay.style.display = "none";
-            }
-          };
-        }
-
-        if (prevBtn) {
-          prevBtn.onclick = () => {
-            overlayMonthDate.setMonth(overlayMonthDate.getMonth() - 1);
-            renderOverlay();
-          };
-        }
-
-        if (nextBtn) {
-          nextBtn.onclick = () => {
-            overlayMonthDate.setMonth(overlayMonthDate.getMonth() + 1);
-            renderOverlay();
-          };
-        }
-      }, 0);
-    });
-
-    container.appendChild(propertyWrap);
-    return;
-  }
-
   if (!sortedReservations.length) {
-    if (tbody) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="9" style="text-align:center;">No reservations found</td>
-        </tr>
-      `;
-    }
-  } else if (tbody) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="9" style="text-align:center;">No reservations found</td>
+      </tr>
+    `;
+  } else {
     sortedReservations.forEach(reservation => {
       const accommodation = toNumber(reservation.accommodationFare);
       const pmc = accommodation * (currentOwner.pmcPercent / 100);
@@ -1294,18 +1041,309 @@ const sortedReservations = [...filteredReservations].sort((a, b) => toSortableDa
     oldVrboManualTable.parentNode.removeChild(oldVrboManualTable);
   }
 
- const vrboManualRows = filteredReservations.filter(res => {
+  let oldPropertyGroups = document.getElementById("propertyGroupsWrap");
+  if (oldPropertyGroups && oldPropertyGroups.parentNode) {
+    oldPropertyGroups.parentNode.removeChild(oldPropertyGroups);
+  }
+
+  const propertyGroups = {};
+  sortedReservations.forEach(reservation => {
+    const propertyKey = (reservation.listingNickname || "Unknown Property").trim();
+    if (!propertyGroups[propertyKey]) propertyGroups[propertyKey] = [];
+    propertyGroups[propertyKey].push(reservation);
+  });
+
+  const propertyNames = Object.keys(propertyGroups);
+
+  if (propertyNames.length > 1) {
+    const mainTable = tbody.closest("table");
+    if (mainTable && mainTable.parentNode) {
+      mainTable.parentNode.removeChild(mainTable);
+    }
+
+    const calendarPanel = document.getElementById("calendarPanel");
+    if (calendarPanel && calendarPanel.parentNode) {
+      calendarPanel.parentNode.removeChild(calendarPanel);
+    } else if (calendarPanel) {
+      calendarPanel.style.display = "none";
+    }
+
+    const tableWraps = document.getElementsByClassName("table-wrap");
+    let container = null;
+
+    if (tableWraps.length > 0) {
+      container = tableWraps[0].parentNode;
+    } else {
+      container = document.body;
+    }
+
+    const propertyWrap = document.createElement("div");
+    propertyWrap.id = "propertyGroupsWrap";
+
+    propertyNames.forEach(propertyName => {
+      const rows = propertyGroups[propertyName].sort((a, b) => {
+        return toSortableDate(a.checkIn) - toSortableDate(b.checkIn);
+      });
+
+      let propertyAccommodation = 0;
+      let propertyPmc = 0;
+      let propertyOwnerPayout = 0;
+
+      rows.forEach(reservation => {
+        const accommodation = toNumber(reservation.accommodationFare);
+        const pmc = accommodation * (currentOwner.pmcPercent / 100);
+        const ownerPayout = accommodation - pmc;
+        propertyAccommodation += accommodation;
+        propertyPmc += pmc;
+        propertyOwnerPayout += ownerPayout;
+      });
+
+      const propertyBookedNights = (() => {
+        const bookedMap = {};
+        rows.forEach(reservation => {
+          const start = parseLocalDate(reservation.checkIn);
+          const end = parseLocalDate(reservation.checkOut);
+          if (!start || !end) return;
+          const current = new Date(start);
+          while (current < end) {
+            bookedMap[toDateKey(current)] = true;
+            current.setDate(current.getDate() + 1);
+          }
+        });
+        return Object.keys(bookedMap).length;
+      })();
+
+      const propIdSafe = propertyName.replace(/\W+/g, "_").substring(0, 40);
+      const overlayId = `calendarOverlay_${propIdSafe}`;
+      const openBtnId = `openCalendarBtn_${propIdSafe}`;
+      const closeBtnId = `closeCalendarBtn_${propIdSafe}`;
+      const prevBtnId = `overlayPrevBtn_${propIdSafe}`;
+      const nextBtnId = `overlayNextBtn_${propIdSafe}`;
+      const calendarGridId = `calendarGrid_${propIdSafe}`;
+      const calendarLabelId = `calendarMonthLabel_${propIdSafe}`;
+      const calendarNightsId = `calendarBookedNights_${propIdSafe}`;
+
+      propertyWrap.innerHTML += `
+        <div style="margin-top:40px;">
+          <h3 class="section-title" style="text-align:center; margin-bottom:12px;">${propertyName}</h3>
+
+          <div style="display:flex; justify-content:center; gap:18px; flex-wrap:wrap; margin-bottom:14px;">
+            <div class="summary-box">
+              <div class="summary-label">Accommodation</div>
+              <div class="summary-value">${formatMoney(propertyAccommodation)}</div>
+            </div>
+            <div class="summary-box">
+              <div class="summary-label">PMC</div>
+              <div class="summary-value">${formatMoney(propertyPmc)}</div>
+            </div>
+            <div class="summary-box">
+              <div class="summary-label">Owner Payout</div>
+              <div class="summary-value">${formatMoney(propertyOwnerPayout)}</div>
+            </div>
+            <div class="summary-box">
+              <div class="summary-label">Booked Nights</div>
+              <div class="summary-value">${propertyBookedNights}</div>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+            <button id="${openBtnId}" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; background:#2f78b7; color:#fff; font-weight:700; cursor:pointer;">
+              Show Calendar
+            </button>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="text-align:center;">Code</th>
+                  <th style="text-align:center;">Platform</th>
+                  <th style="text-align:center;">Check In</th>
+                  <th style="text-align:center;">Check Out</th>
+                  <th style="text-align:center;">Nights</th>
+                  <th style="text-align:center;">Accommodation</th>
+                  <th style="text-align:center;">PMC</th>
+                  <th style="text-align:center;">Owner Payout</th>
+                  <th style="text-align:center;">Expected Payout</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows.map(reservation => {
+                  const accommodation = toNumber(reservation.accommodationFare);
+                  const pmc = accommodation * (currentOwner.pmcPercent / 100);
+                  const ownerPayout = accommodation - pmc;
+                  const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
+                  const nights = toNumber(reservation.numberOfNights);
+
+                  return `
+                    <tr>
+                      <td>${reservation.confirmationCode || ""}</td>
+                      <td style="text-align:center;">${reservation.platform || ""}</td>
+                      <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
+                      <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
+                      <td style="text-align:center;">${nights}</td>
+                      <td style="text-align:center;">${formatMoney(accommodation)}</td>
+                      <td style="text-align:center;">${formatMoney(pmc)}</td>
+                      <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
+                      <td style="text-align:center;">${expectedPayoutDate}</td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+
+          <div id="${overlayId}" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.45);">
+            <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:min(980px,95vw); max-height:90vh; overflow:auto; background:#fff; border-radius:12px; padding:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 style="margin:0;">${propertyName} Calendar</h3>
+                <button id="${closeBtnId}" style="padding:6px 10px; border-radius:8px; border:1px solid #ccc; background:#fff; cursor:pointer;">Close</button>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:8px; flex-wrap:wrap;">
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <button id="${prevBtnId}" style="padding:6px 10px; border-radius:8px; border:1px solid #ccc; background:#fff; cursor:pointer;">◀</button>
+                  <div id="${calendarLabelId}" style="font-weight:700;"></div>
+                  <button id="${nextBtnId}" style="padding:6px 10px; border-radius:8px; border:1px solid #ccc; background:#fff; cursor:pointer;">▶</button>
+                </div>
+                <div id="${calendarNightsId}" style="font-size:13px;"></div>
+              </div>
+
+              <div id="${calendarGridId}" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:6px;"></div>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    container.appendChild(propertyWrap);
+
+    propertyNames.forEach(propertyName => {
+      const rows = propertyGroups[propertyName].sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
+      const propIdSafe = propertyName.replace(/\W+/g, "_").substring(0, 40);
+
+      const overlayId = `calendarOverlay_${propIdSafe}`;
+      const openBtnId = `openCalendarBtn_${propIdSafe}`;
+      const closeBtnId = `closeCalendarBtn_${propIdSafe}`;
+      const prevBtnId = `overlayPrevBtn_${propIdSafe}`;
+      const nextBtnId = `overlayNextBtn_${propIdSafe}`;
+      const calendarGridId = `calendarGrid_${propIdSafe}`;
+      const calendarLabelId = `calendarMonthLabel_${propIdSafe}`;
+      const calendarNightsId = `calendarBookedNights_${propIdSafe}`;
+
+      const overlay = document.getElementById(overlayId);
+      const openBtn = document.getElementById(openBtnId);
+      const closeBtn = document.getElementById(closeBtnId);
+      const prevBtn = document.getElementById(prevBtnId);
+      const nextBtn = document.getElementById(nextBtnId);
+      const gridEl = document.getElementById(calendarGridId);
+      const labelEl = document.getElementById(calendarLabelId);
+      const nightsEl = document.getElementById(calendarNightsId);
+
+      const reservedMap = buildReservedMapFromRows(rows, []);
+      let overlayMonthDate = new Date(calendarCurrentDate);
+
+      const renderOverlay = () => {
+        renderCalendarWithMap(gridEl, labelEl, nightsEl, overlayMonthDate, true, reservedMap);
+        renderNightTotals(nightsEl, rows, []);
+      };
+
+      if (openBtn) {
+        openBtn.onclick = () => {
+          overlay.style.display = "block";
+          renderOverlay();
+        };
+      }
+
+      if (closeBtn) {
+        closeBtn.onclick = () => {
+          overlay.style.display = "none";
+        };
+      }
+
+      if (overlay) {
+        overlay.onclick = e => {
+          if (e.target === overlay) {
+            overlay.style.display = "none";
+          }
+        };
+      }
+
+      if (prevBtn) {
+        prevBtn.onclick = () => {
+          overlayMonthDate.setMonth(overlayMonthDate.getMonth() - 1);
+          renderOverlay();
+        };
+      }
+
+      if (nextBtn) {
+        nextBtn.onclick = () => {
+          overlayMonthDate.setMonth(overlayMonthDate.getMonth() + 1);
+          renderOverlay();
+        };
+      }
+    });
+  }
+
+  if (ownerStaysData.length) {
+    const tableWraps = document.getElementsByClassName("table-wrap");
+    let container = null;
+
+    if (tableWraps.length > 0) {
+      container = tableWraps[0].parentNode;
+    } else {
+      container = document.body;
+    }
+
+    const ownerTable = document.createElement("div");
+    ownerTable.id = "ownerStaysTable";
+    ownerTable.innerHTML = `
+      <h3 class="section-title" style="margin-top:40px; text-align:center;">Upcoming Owner Stays</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align:center;">Check-In</th>
+              <th style="text-align:center;">Check-Out</th>
+              <th style="text-align:center;">Nights</th>
+              <th style="text-align:center;">Cleaning Fee</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${ownerStaysData
+              .sort((a, b) => toSortableDate(a.checkIn || a.checkInDate) - toSortableDate(b.checkIn || b.checkInDate))
+              .map(res => `
+              <tr>
+                <td style="text-align:center;">${formatDateDisplay(res.checkIn || res.checkInDate || "")}</td>
+                <td style="text-align:center;">${formatDateDisplay(res.checkOut || res.checkOutDate || "")}</td>
+                <td style="text-align:center;">${toNumber(res.numberOfNights)}</td>
+                <td style="text-align:center;">${formatMoney(getCleaningFee())}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    container.appendChild(ownerTable);
+  }
+
+  const vrboManualRows = sortedReservations.filter(res => {
     const source = String(res.source || "").toUpperCase();
     const payout = toNumber(res.totalPayout);
     return source === "MANUAL_VRBO" && payout > 0;
   });
 
-  const tableWraps = document.getElementsByClassName("table-wrap");
-  let container = null;
-  if (tableWraps.length > 0) container = tableWraps[0].parentNode;
-  else container = document.body;
-
   if (vrboManualRows.length) {
+    const tableWraps = document.getElementsByClassName("table-wrap");
+    let container = null;
+
+    if (tableWraps.length > 0) {
+      container = tableWraps[0].parentNode;
+    } else {
+      container = document.body;
+    }
+
     const vrboManualTable = document.createElement("div");
     vrboManualTable.id = "vrboManualTable";
     vrboManualTable.innerHTML = `
@@ -1355,157 +1393,8 @@ const sortedReservations = [...filteredReservations].sort((a, b) => toSortableDa
         </table>
       </div>
     `;
+
     container.appendChild(vrboManualTable);
-  }
-
-  if (filteredOwnerStays.length) {
-    const ownerTable = document.createElement("div");
-    ownerTable.id = "ownerStaysTable";
-    ownerTable.innerHTML = `
-      <h3 class="section-title" style="margin-top:40px; text-align:center;">Upcoming Owner Stays</h3>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="text-align:center;">Check-In</th>
-              <th style="text-align:center;">Check-Out</th>
-              <th style="text-align:center;">Cleaning Fee</th>
-            </tr>
-          </thead>
-          <tbody>
-           ${filteredOwnerStays.map(res => `
-
-           let filterYear = String(new Date().getFullYear());
-let filterMonth = "all";
-
-function getYearMonthFromDate(dateStr) {
-  const d = new Date(dateStr);
-  if (isNaN(d)) return null;
-  return {
-    year: String(d.getFullYear()),
-    month: String(d.getMonth() + 1).padStart(2, "0")
-  };
-}
-
-function matchesFilters(dateStr) {
-  const ym = getYearMonthFromDate(dateStr);
-  if (!ym) return false;
-  if (filterYear !== "all" && ym.year !== filterYear) return false;
-  if (filterMonth !== "all" && ym.month !== filterMonth) return false;
-  return true;
-}
-
-function getFilteredReservations() {
-  return reservationsData.filter(r => matchesFilters(r.checkIn));
-}
-
-function getFilteredOwnerStays() {
-  return ownerStaysData.filter(s => matchesFilters(s.checkIn || s.checkInDate));
-}
-
-function getUniqueYearsFromData() {
-  const years = new Set();
-  reservationsData.forEach(r => {
-    const ym = getYearMonthFromDate(r.checkIn);
-    if (ym) years.add(ym.year);
-  });
-  ownerStaysData.forEach(s => {
-    const ym = getYearMonthFromDate(s.checkIn || s.checkInDate);
-    if (ym) years.add(ym.year);
-  });
-  years.add(String(new Date().getFullYear()));
-  return Array.from(years).sort((a, b) => Number(a) - Number(b));
-}
-
-function renderFilterControls() {
-  const summaryBoxes = document.getElementById("summaryBoxes");
-  if (!summaryBoxes) return;
-
-  let wrap = document.getElementById("reportFiltersWrap");
-  if (!wrap) {
-    wrap = document.createElement("div");
-    wrap.id = "reportFiltersWrap";
-    wrap.style.display = "flex";
-    wrap.style.justifyContent = "center";
-    wrap.style.gap = "12px";
-    wrap.style.margin = "12px 0 18px 0";
-    wrap.style.flexWrap = "wrap";
-    summaryBoxes.parentNode.insertBefore(wrap, summaryBoxes.nextSibling);
-  }
-
-  const years = getUniqueYearsFromData();
-  const monthOptions = [
-    { v: "all", t: "All Months" },
-    { v: "01", t: "January" },
-    { v: "02", t: "February" },
-    { v: "03", t: "March" },
-    { v: "04", t: "April" },
-    { v: "05", t: "May" },
-    { v: "06", t: "June" },
-    { v: "07", t: "July" },
-    { v: "08", t: "August" },
-    { v: "09", t: "September" },
-    { v: "10", t: "October" },
-    { v: "11", t: "November" },
-    { v: "12", t: "December" }
-  ];
-
-  const yearsHtml =
-    '<option value="all">All Years</option>' +
-    years.map(function(y) { return '<option value="' + y + '">' + y + '</option>'; }).join("");
-
-  const monthsHtml =
-    monthOptions.map(function(m) { return '<option value="' + m.v + '">' + m.t + '</option>'; }).join("");
-
-  wrap.innerHTML =
-    '<div style="display:flex; gap:8px; align-items:center;">' +
-      '<label for="yearFilterSelect" style="font-weight:700;">Year</label>' +
-      '<select id="yearFilterSelect" style="padding:6px 8px; border-radius:8px;">' +
-        yearsHtml +
-      '</select>' +
-    '</div>' +
-    '<div style="display:flex; gap:8px; align-items:center;">' +
-      '<label for="monthFilterSelect" style="font-weight:700;">Month</label>' +
-      '<select id="monthFilterSelect" style="padding:6px 8px; border-radius:8px;">' +
-        monthsHtml +
-      '</select>' +
-    '</div>';
-
-  const yearSelect = document.getElementById("yearFilterSelect");
-  const monthSelect = document.getElementById("monthFilterSelect");
-
-  yearSelect.value = filterYear;
-  monthSelect.value = filterMonth;
-
-  yearSelect.onchange = function() {
-    filterYear = yearSelect.value;
-    applyFiltersAndRender();
-  };
-
-  monthSelect.onchange = function() {
-    filterMonth = monthSelect.value;
-    applyFiltersAndRender();
-  };
-}
-
-function applyFiltersAndRender() {
-  renderSummaryBoxes();
-  renderReservationsTable();
-  setupCalendarButtons();
-  refreshCalendarUI();
-}
-  
-              <tr>
-                <td style="text-align:center;">${formatDateDisplay(res.checkIn || res.checkInDate || "")}</td>
-                <td style="text-align:center;">${formatDateDisplay(res.checkOut || res.checkOutDate || "")}</td>
-                <td style="text-align:center;">${formatMoney(getCleaningFee())}</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      </div>
-    `;
-    container.appendChild(ownerTable);
   }
 }
 
