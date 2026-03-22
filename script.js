@@ -897,7 +897,11 @@ const isVrboOrHomeAway = (sourceUpper.includes("VRBO") || sourceUpper.includes("
 const isWebsite = sourceUpper.includes("WEBSITE");
 const isDirect = sourceUpper.includes("DIRECT") && !isManualDirect;
 const isManual = (sourceUpper === "MANUAL" || sourceUpper.includes("MANUAL")) && !isManualVrbo && !isManualDirect;
-const isAirbnb = sourceUpper.includes("AIRBNB");
+const platformUpper = String(
+  pickText(r["integration.platform"], r.platform, r.integration?.platform) || ""
+).toUpperCase().trim();
+
+const isAirbnb = sourceUpper.includes("AIRBNB") || platformUpper.includes("AIRBNB");
 
 const isSpecialSource = isVrboOrHomeAway || isWebsite || isDirect || isManual;
 
