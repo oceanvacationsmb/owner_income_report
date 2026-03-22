@@ -298,7 +298,8 @@ function pickDeep(obj, ...paths) {
     if (!obj) continue;
     const parts = path.split(".");
     let value = obj;
-    for (const part of parts) {
+    for (const part
+ of parts) {
       value = value?.[part];
       if (value === undefined) break;
     }
@@ -612,6 +613,7 @@ function getPlatformLabelForDay(dayInfo) {
   const nonVrboLabels = platformLabels.filter(label => label !== "VRBO");
 
   if (dayInfo.owner) return "OWNER";
+
   if (dayInfo.vrbo && !dayInfo.reservation) return "VRBO";
   if (nonVrboLabels.length === 1 && !dayInfo.vrbo) return nonVrboLabels[0];
   if (nonVrboLabels.length === 1 && dayInfo.vrbo) return nonVrboLabels[0];
@@ -859,8 +861,7 @@ function mapGuestyReservation(r) {
   );
 
   const calculatedAccommodation = baseAccommodation - markup + lengthOfStayDiscount;
-  
-}
+
 
   const sourceValue = pickText(
     r.source, r["source"], r["integration.source"], r.integration?.source, r.channel, r["channel"]
@@ -1130,6 +1131,7 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
       const propIdSafe = propertyName.replace(/\W+/g, "_").substring(0, 40);
       const overlayId = `calendarOverlay_${propIdSafe}`;
       const openBtnId = `openCalendarBtn_${propIdSafe}`;
+
       const closeBtnId = `closeCalendarBtn_${propIdSafe}`;
       const prevBtnId = `overlayPrevBtn_${propIdSafe}`;
       const nextBtnId = `overlayNextBtn_${propIdSafe}`;
@@ -1353,7 +1355,8 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
   return source === "MANUAL_VRBO" && payout > 0;
 });
 
-  if (vrboManualRows.length) {
+  if (vrboManualRows.length)
+ {
     const tableWraps = document.getElementsByClassName("table-wrap");
     let container = null;
 
