@@ -684,7 +684,13 @@ function mapGuestyReservation(r) {
     r["money.invoiceItems.MAR"]?.value
   );
 
-  const lengthOfStayDiscount = 0;
+  const lengthOfStayDiscount = pickNumber(
+  r["money.invoiceItems.LOS"]?.value,
+  r["money.invoiceItems.lengthOfStayDiscount"]?.value,
+  r.money?.invoiceItems?.LOS?.value,
+  r.money?.invoiceItems?.lengthOfStayDiscount?.value,
+  r.lengthOfStayDiscount
+);
 
   const calculatedAccommodation = baseAccommodation - markup + lengthOfStayDiscount;
 
