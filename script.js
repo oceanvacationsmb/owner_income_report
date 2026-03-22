@@ -1650,11 +1650,18 @@ fetchAllReservations()
       );
 
       reservationsData = mappedRows.filter(res => {
-  const status = String(res.status || "").toLowerCase();
   const isOwnerStay = String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY");
+
+  // Draft mode: include all non-owner reservations (no status/accommodation exclusion)
+  if (isDraftView) return !isOwnerStay;
+
+  // Payout mode: keep old behavior
+  const status = String(res.status || "").toLowerCase();
   const accommodation = toNumber(res.accommodationFare);
-  // Include: not owner stay, AND (active OR (cancelled AND has accommodation))
-  return !isOwnerStay && (status !== "cancel" && status !== "cancelled" && status !== "canceled" || (status === "cancelled" || status === "cancel" || status === "canceled") && accommodation > 0);
+  return !isOwnerStay && (
+    (status !== "cancel" && status !== "cancelled" && status !== "canceled") ||
+    ((status === "cancelled" || status === "cancel" || status === "canceled") && accommodation > 0)
+  );
 });
 
       renderDashboardHeader();
