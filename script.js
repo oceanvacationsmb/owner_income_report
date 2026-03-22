@@ -951,12 +951,13 @@ summaryBoxes.innerHTML = `
   <h2 style="text-align:center; width:100%; margin-bottom:12px;">SUMMARY</h2>
   <div class="summary-box">
     <div class="summary-label">PMC %</div>
-    
-  summaryBoxes.innerHTML = `
+   summaryBoxes.innerHTML = `
+    <h2 style="text-align:center; width:100%; margin-bottom:12px;">SUMMARY</h2>
     <div class="summary-box">
       <div class="summary-label">PMC %</div>
       <div class="summary-value">${currentOwner.pmcPercent}%</div>
     </div>
+    <div class="summary-box">
     <div class="summary-box">
       <div class="summary-label">Total Accommodation</div>
       <div class="summary-value">${formatMoney(totalAccommodation)}</div>
@@ -985,8 +986,15 @@ function renderReservationsTable() {
 if (tbody) {
   tbody.innerHTML = "";
 }
-
-  const sortedReservations = [...getFilteredReservations()].sort((a, b) => {
+const sortedReservations = [...getFilteredReservations()]
+  .filter(res => {
+    const source = String(res.source || "").toUpperCase();
+    return source !== "MANUAL_VRBO";
+  })
+  .sort((a, b) => {
+    return toSortableDate(a.checkIn) - toSortableDate(b.checkIn);
+  });
+  
     return toSortableDate(a.checkIn) - toSortableDate(b.checkIn);
   });
 
