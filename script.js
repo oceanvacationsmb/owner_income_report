@@ -938,10 +938,6 @@ const explicitCardProcessingFee = pickNumber(
   r.creditCardProcessingFee
 );
 
-const triggerAccommodation = isAirbnb
-  ? Math.max(baseAccommodation, standardAccommodation)
-  : standardAccommodation;
-
 let allowedAccommodation = standardAccommodation;
 
 if (isAirbnb) {
@@ -972,26 +968,6 @@ if (isAirbnb) {
 if (allowedAccommodation < standardAccommodation) {
   calculatedAccommodation = Math.max(0, allowedAccommodation);
 }
-    let netAccommodation = totalPayoutValue;
-
-    // Always deduct taxes + cleaning
-    netAccommodation -= Math.max(0, taxesCombined);
-    netAccommodation -= Math.max(0, cleaningFareValue);
-
-    if (isVrboOrHomeAway) {
-      // VRBO/HOMEAWAY: deduct channel commission only
-      netAccommodation -= Math.max(0, channelCommission);
-    } else {
-      // WEBSITE / DIRECT / MANUAL
-      netAccommodation -= totalPayoutValue * 0.01;
-      const cardFeeToUse = explicitCardProcessingFee > 0 ? explicitCardProcessingFee : (totalPayoutValue * 0.04);
-      netAccommodation -= Math.max(0, cardFeeToUse);
-      netAccommodation -= Math.max(0, channelCommission);
-    }
-
-    calculatedAccommodation = Math.max(0, netAccommodation);
-  }
-
 
   return {
     status: pickText(r.status, r.reservationStatus, r["STATUS"], r["reservationStatus"]),
