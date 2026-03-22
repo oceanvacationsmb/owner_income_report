@@ -289,7 +289,8 @@ function getAllCalendarBlocks() {
   const reservationBlocks = reservationsData.map(reservation => {
     const platformText = String(reservation.platform || "").trim();
     const sourceText = String(reservation.source || platformText || "").toUpperCase();
-    const isVrbo = sourceText.includes("VRBO") || sourceText.includes("MANUAL_VRBO");
+   
+ const isVrbo = sourceText.includes("VRBO") || sourceText.includes("MANUAL_VRBO");
     const platformLabel = isVrbo
       ? "VRBO"
       : String(platformText || reservation.source || "BOOKED").trim().toUpperCase();
@@ -610,7 +611,8 @@ function getTimeBasedGreeting() {
 function renderDashboardHeader() {
   const greeting = document.getElementById("greeting");
   const propertyAddress = document.getElementById("propertyAddress");
-  if (greeting) greeting.innerText = `${getTimeBasedGreeting()} ${currentOwner.ownerName}`;
+  if (greeting)
+ greeting.innerText = `${getTimeBasedGreeting()} ${currentOwner.ownerName}`;
   if (propertyAddress) propertyAddress.innerText = currentOwner.propertyName;
   renderWeather(currentOwner.postalCode);
 }
@@ -828,47 +830,35 @@ function renderReservationsTable() {
     return toSortableDate(a.checkIn) - toSortableDate(b.checkIn);
   });
 
-  const propertyGroups = {};
-sortedReservations.forEach(reservation => {
-  const propertyKey = (reservation.listingNickname || "Unknown Property").trim();
-  if (!propertyGroups[propertyKey]) propertyGroups[propertyKey] = [];
-  propertyGroups[propertyKey].push(reservation);
-});
-
-const propertyNames = Object.keys(propertyGroups);
-const hasMultipleProperties = propertyNames.length > 1;
-
-if (!sortedReservations.length) {
-  tbody.innerHTML = `
-    <tr>
-      <td colspan="9" style="text-align:center;">No reservations found</td>
-    </tr>
-  `;
-} else if (!hasMultipleProperties) {
-  sortedReservations.forEach(reservation => {
-    const accommodation = toNumber(reservation.accommodationFare);
-    const pmc = accommodation * (currentOwner.pmcPercent / 100);
-    const ownerPayout = accommodation - pmc;
-    const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
-    const nights = toNumber(reservation.numberOfNights);
-
-    tbody.innerHTML += `
+  if (!sortedReservations.length) {
+    tbody.innerHTML = `
       <tr>
-        <td>${reservation.confirmationCode || ""}</td>
-        <td style="text-align:center;">${reservation.platform || ""}</td>
-        <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
-        <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
-        <td style="text-align:center;">${nights}</td>
-        <td style="text-align:center;">${formatMoney(accommodation)}</td>
-        <td style="text-align:center;">${formatMoney(pmc)}</td>
-        <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
-        <td style="text-align:center;">${expectedPayoutDate}</td>
+        <td colspan="9" style="text-align:center;">No reservations found</td>
       </tr>
     `;
-  });
-} else {
-  tbody.innerHTML = "";
-}
+  } else {
+    sortedReservations.forEach(reservation => {
+      const accommodation = toNumber(reservation.accommodationFare);
+      const pmc = accommodation * (currentOwner.pmcPercent / 100);
+      const ownerPayout = accommodation - pmc;
+      const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
+      const nights = toNumber(reservation.numberOfNights);
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${reservation.confirmationCode || ""}</td>
+          <td style="text-align:center;">${reservation.platform || ""}</td>
+          <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
+          <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
+          <td style="text-align:center;">${nights}</td>
+          <td style="text-align:center;">${formatMoney(accommodation)}</td>
+          <td style="text-align:center;">${formatMoney(pmc)}</td>
+          <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
+          <td style="text-align:center;">${expectedPayoutDate}</td>
+        </tr>
+      `;
+    });
+  }
 
   let oldOwnerTable = document.getElementById("ownerStaysTable");
   if (oldOwnerTable && oldOwnerTable.parentNode) {
@@ -885,7 +875,12 @@ if (!sortedReservations.length) {
     oldPropertyGroups.parentNode.removeChild(oldPropertyGroups);
   }
 
- if (hasMultipleProperties) {
+  const propertyGroups = {};
+  sortedReservations.forEach(reservation => {
+    const propertyKey = (reservation.listingNickname || "Unknown Property").trim();
+    if (!propertyGroups[propertyKey]) propertyGroups[propertyKey] = [];
+    propertyGroups[propertyKey].push(reservation);
+  });
 
   const propertyNames = Object.keys(propertyGroups);
 
@@ -908,6 +903,7 @@ if (!sortedReservations.length) {
       });
 
       let propertyAccommodation = 0;
+
       let propertyPmc = 0;
       let propertyOwnerPayout = 0;
 
@@ -1143,6 +1139,7 @@ if (!sortedReservations.length) {
               <th style="text-align:center;">Owner Paid by VRBO</th>
               <th style="text-align:center;">Accommodation</th>
               <th style="text-align:center;">Cleaning Fee</th>
+
               <th style="text-align:center;">PMC</th>
               <th style="text-align:center;">Due to Management</th>
             </tr>
