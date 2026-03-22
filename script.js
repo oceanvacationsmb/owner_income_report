@@ -210,6 +210,8 @@ function renderFilterControls() {
   const summaryBoxes = document.getElementById("summaryBoxes");
   if (!summaryBoxes) return;
 
+  
+
   let wrap = document.getElementById("reportFiltersWrap");
   if (!wrap) {
     wrap = document.createElement("div");
@@ -516,7 +518,7 @@ function buildReservedMapFromRows(resRows = [], ownerRows = []) {
 function getTotalBookedNights() {
   const bookedMap = {};
 
-  reservationsData.forEach(reservation => {
+    getFilteredReservations().forEach(reservation => {
     const start = parseLocalDate(reservation.checkIn);
     const end = parseLocalDate(reservation.checkOut);
     if (!start || !end) return;
@@ -1095,9 +1097,11 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
     propertyWrap.id = "propertyGroupsWrap";
 
     propertyNames.forEach(propertyName => {
-      const rows = propertyGroups[propertyName].sort((a, b) => {
-        return toSortableDate(a.checkIn) - toSortableDate(b.checkIn);
-      });
+      const rows = propertyGroups[propertyName]
+  .filter(r => matchesFilters(r.checkIn))
+  .sort((a, b) => {
+    return toSortableDate(a.checkIn) - toSortableDate(b.checkIn);
+  });
 
       let propertyAccommodation = 0;
       let propertyPmc = 0;
