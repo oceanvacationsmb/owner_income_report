@@ -129,7 +129,7 @@ const OWNERS = {
   },
   "kobiswisa26@gmail.com": {
     password: "owner9646$$",
-    ownerName: "Tal Zilker - GTI Group LLC",
+    ownerName: "Kobi",
     propertyName: "508 3rd Avenue S. North Myrtle Beach SC 29582 unit 1-2",
     postalCode: "29582",
     pmcPercent: 15,
