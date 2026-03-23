@@ -1973,48 +1973,100 @@ function fetchAllReservations(skip = 0, acc = []) {
   });
 }
 
-fetchAllReservations()
-  .then(rows => {
-    const mappedRows = rows.map(mapGuestyReservation);
-
-      ownerStaysData = mappedRows.filter(res =>
-        String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY") &&
-        String(res.status || "").toLowerCase() !== "cancel" &&
-        String(res.status || "").toLowerCase() !== "cancelled" &&
-        String(res.status || "").toLowerCase() !== "canceled"
-      );
-
       reservationsData = mappedRows.filter(res => {
   const isOwnerStay = String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY");
 
-  // Draft mode: include all non-owner reservations (no status/accommodation exclusion)
+  // Draft mode: include all non-owner reservations
   if (isDraftView) return !isOwnerStay;
 
-const status = String(res.status || "").toLowerCase().trim();
-const payout = toNumber(res.grossPayout || res.totalPayout);
-const isCancelled =
-  status === "cancel" ||
-  status === "cancelled" ||
-  status === "canceled";
+  const status = String(res.status || "").toLowerCase().trim();
+  const payout = toNumber(res.grossPayout || res.totalPayout);
+  const isCancelled =
+    status === "cancel" ||
+    status === "cancelled" ||
+    status === "canceled";
 
-return !isOwnerStay && (
-  !isCancelled ||
-  (isCancelled && payout > 0)
-);
+  return !isOwnerStay && (
+    !isCancelled ||
+    (isCancelled && payout > 0)
+  );
+});
 
-      renderDashboardHeader();
-      renderFilterControls();
-      applyFiltersAndRender();
-    })
-    .catch(err => {
-      console.error("Error loading report:", err);
-      reservationsData = [];
-      renderDashboardHeader();
-      renderFilterControls();
-      applyFiltersAndRender();
-    });
+renderDashboardHeader();
+renderFilterControls();
+applyFiltersAndRender();
+})
+.catch(err => {
+  console.error("Error loading report:", err);
+  reservationsData = [];
+  renderDashboardHeader();
+  renderFilterControls();
+  applyFiltersAndRender();
+});
 }
-)
+
+function renderAdminPanel() {
+  const portal = document.getElementById("ownerPortal");
+  if (!portal) return;
+  let adminDiv = document.getElementById("adminPanel");
+  if (adminDiv) adminDiv.remove();
+
+  adminDiv = document.createElement("div");
+  adminDiv.id = "adminPanel";
+  adminDiv.style.marginTop = "16px";
+  adminDiv.style.padding = "12px";
+  adminDiv.style.border = "1px solid #e1e6ef";
+  adminDiv.style.borderRadius = "8px";
+
+  adminDiv.innerHTML =
+    "<h3 style='margin:0 0 8px 0;'>Admin: Edit Owner Settings</h3>" +
+    "<div style='display:flex; gap:12px; align-items:center; margin-bottom:8px;'>" +
+    "<select id='adminOwnerSelect' style='min-width:220px;'>" +
+    Object.keys(OWNERS).map(email => "<option value='" + email + "'>" + OWNERS[email].ownerName + " — " + email + "</option>").join("") +
+    "</select>" +
+    "<button id='adminLoadOwner'>Load</button>" +
+    "</div>" +
+    "<div id='adminOwnerForm' style='display:none;'>" +
+    "<div style='display:flex; gap:8px; margin-bottom:8px;'>" +
+    "<div style='flex:1;'><label>Owner Email</label><input id='adminOwnerEmail' style='width:100%' disabled /></div>" +
+    "<div style='flex:1;'><label>Owner Name</label><input id='adminOwnerName' style='width:100%' /></div>" +
+    "</div>" +
+    "<div style='display:flex; gap:8px; margin-bottom:8px;'>" +
+    "<div style='flex:1;'><label>PMC %</label><input id='adminOwnerPmc' type='number' style='width:100%' /></div>" +
+    "<div style='flex:1;'><label>Cleaning Fee</label><input id='adminOwnerCleaning' type='number' style='width:100%' /></div>" +
+    "</div>" +
+    "<div style='display:flex; gap:8px; margin-bottom:8px;'><div><label>View Mode</label><select id='adminOwnerViewMode'><option value='payout'>Payout</option><option value='draft'>Draft</option></select></div></div>" +
+    "<div style='display:flex; gap:8px;'><button id='adminOwnerSave'>Save</button><button id='adminOwnerCancel'>Cancel</button></div>" +
+    "</div>";
+
+  portal.insertBefore(adminDiv, portal.firstChild);
+
+  document.getElementById("adminLoadOwner").onclick = () => {
+    const email = document.getElementById("adminOwnerSelect").value;
+    const owner = OWNERS[email];
+    if (!owner) return alert("Owner not found");
+    document.getElementById("adminOwnerForm").style.display = "";
+    document.getElementById("adminOwnerEmail").value = email;
+    document.getElementById("adminOwnerName").value = owner.ownerName || "";
+    document.getElementById("adminOwnerPmc").value = owner.pmcPercent || "";
+    document.getElementById("adminOwnerCleaning").value = owner.cleaningFee || "";
+    document.getElementById("adminOwnerViewMode").value = owner.viewMode || "payout";
+  };
+
+  document.getElementById("adminOwnerSave").onclick = () => {
+    const email = document.getElementById("adminOwnerEmail").value;
+    if (!OWNERS[email]) return alert("Owner not found");
+    OWNERS[email].ownerName = document.getElementById("adminOwnerName").value;
+    OWNERS[email].pmcPercent = Number(document.getElementById("adminOwnerPmc").value) || OWNERS[email].pmcPercent;
+    OWNERS[email].cleaningFee = Number(document.getElementById("adminOwnerCleaning").value) || OWNERS[email].cleaningFee;
+    OWNERS[email].viewMode = document.getElementById("adminOwnerViewMode").value || "payout";
+    alert("Owner settings saved");
+  };
+
+  document.getElementById("adminOwnerCancel").onclick = () => {
+    document.getElementById("adminOwnerForm").style.display = "none";
+  };
+}
 function renderAdminPanel() {
   const portal = document.getElementById("ownerPortal");
   if (!portal) return;
