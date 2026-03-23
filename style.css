@@ -234,3 +234,186 @@ tr:last-child td { border-bottom: none; }
     min-width: 430px;
   }
 }
+
+@media (max-width: 768px) {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  body {
+    padding-left: 12px;
+    padding-right: 12px;
+    box-sizing: border-box;
+  }
+
+  .container {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box;
+  }
+
+  .topbar {
+    padding: 14px 10px !important;
+    text-align: center !important;
+  }
+
+  .brand {
+    font-size: 22px !important;
+    line-height: 1.2 !important;
+  }
+
+  .subtitle {
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+  }
+
+  .greeting-row {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+    width: 100% !important;
+  }
+
+  .greeting-main {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  #greeting {
+    font-size: 24px !important;
+    line-height: 1.25 !important;
+    text-align: left !important;
+  }
+
+  #propertyAddress {
+    font-size: 16px !important;
+    line-height: 1.35 !important;
+    word-break: break-word;
+  }
+
+  #topCalendarBox {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    padding: 12px !important;
+    border-radius: 14px !important;
+    box-sizing: border-box;
+  }
+
+  #showCalendarBtn {
+    width: 100% !important;
+    max-width: 100% !important;
+    font-size: 14px !important;
+  }
+
+  #calendarPanel {
+    width: 100% !important;
+    box-sizing: border-box;
+    padding: 10px !important;
+  }
+
+  #calendarGrid {
+    gap: 4px !important;
+  }
+
+  .summary-boxes {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+    align-items: stretch !important;
+  }
+
+  .summary-box {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+    padding: 16px 12px !important;
+    border-radius: 14px !important;
+  }
+
+  .summary-label {
+    font-size: 15px !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+  }
+
+  .summary-value {
+    font-size: 28px !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+    word-break: break-word;
+  }
+
+  .section-title {
+    font-size: 26px !important;
+    line-height: 1.2 !important;
+    margin-top: 18px !important;
+    margin-bottom: 12px !important;
+    text-align: center !important;
+  }
+
+  .table-wrap {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+    border-radius: 12px !important;
+  }
+
+  table {
+    min-width: 760px !important;
+    width: max-content !important;
+  }
+
+  th,
+  td {
+    white-space: nowrap !important;
+    font-size: 13px !important;
+    padding: 10px 8px !important;
+  }
+
+  #ownerStaysTableContainer {
+    width: 100% !important;
+    overflow-x: auto !important;
+  }
+
+  .login-container {
+    padding: 16px !important;
+  }
+
+  .login-inner {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 24px 18px !important;
+    box-sizing: border-box;
+    border-radius: 18px !important;
+  }
+
+  .login-header {
+    font-size: 28px !important;
+    line-height: 1.2 !important;
+  }
+
+  .login-header span {
+    font-size: 16px !important;
+  }
+
+  .login-input,
+  .login-btn {
+    width: 100% !important;
+    box-sizing: border-box;
+    font-size: 16px !important;
+  }
+}
