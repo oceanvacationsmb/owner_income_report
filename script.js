@@ -1330,6 +1330,37 @@ const nights = toNumber(reservation.numberOfNights);
     oldPropertyGroups.parentNode.removeChild(oldPropertyGroups);
   }
 
+let oldAdminDailyPage = document.getElementById("adminDailyPage");
+if (oldAdminDailyPage && oldAdminDailyPage.parentNode) {
+  oldAdminDailyPage.parentNode.removeChild(oldAdminDailyPage);
+}
+
+if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
+  const reservationsTitle = document.getElementById("reservationsTitle");
+  if (reservationsTitle) reservationsTitle.style.display = "none";
+
+  const summaryBoxes = document.getElementById("summaryBoxes");
+  if (summaryBoxes) summaryBoxes.style.display = "none";
+
+  const mainTable = tbody ? tbody.closest("table") : null;
+  if (mainTable) mainTable.style.display = "none";
+
+  const dailyPage = document.createElement("div");
+  dailyPage.id = "adminDailyPage";
+  dailyPage.style.margin = "30px auto";
+  dailyPage.style.maxWidth = "900px";
+  dailyPage.style.padding = "30px";
+  dailyPage.style.background = "#fff";
+  dailyPage.style.border = "1px solid #e1e6ef";
+  dailyPage.style.borderRadius = "12px";
+  dailyPage.style.textAlign = "center";
+  dailyPage.innerHTML = "<h2 style='margin:0;'>DAILY OPERATION</h2>";
+
+  const ownerPortal = document.getElementById("ownerPortal");
+  if (ownerPortal) ownerPortal.appendChild(dailyPage);
+  return;
+}
+  
   const propertyGroups = {};
   sortedReservations.forEach(reservation => {
     const propertyKey = (reservation.listingNickname || "Unknown Property").trim();
@@ -1357,7 +1388,7 @@ if (isDraftMulti) {
 
   toggleWrap.innerHTML = currentOwner && currentOwner.admin
   ? `
-      <button id="adminIncomeBtn" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#2f78b7; color:#fff;">INCOME</button>
+      <button id="adminIncomeBtn" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#2f78b7; color:#fff;">REPORT</button>
       <button id="adminManageUsersBtn" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#fff; color:#2f78b7;">MANAGE USERS</button>
       <button id="adminDailyOperationBtn" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#fff; color:#2f78b7;">DAILY OPERATION</button>
     `
@@ -1391,7 +1422,8 @@ if (adminManageUsersBtn) {
 
 if (adminDailyOperationBtn) {
   adminDailyOperationBtn.onclick = function() {
-    alert("DAILY OPERATION coming next");
+    window.adminActiveTab = "daily";
+    applyFiltersAndRender();
   };
 }
 
