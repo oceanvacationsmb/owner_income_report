@@ -160,7 +160,7 @@ const OWNERS = {
     cleaningFee: 200,
     viewMode: "payout"
   },
-   "oceanvacationsmb@gmail.com: {
+   "oceanvacationsmb@gmail.com": {
     password: "Ocean123++",
     ownerName: "Ocean Vacations",
     propertyName: "Team Portal",
