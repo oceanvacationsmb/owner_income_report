@@ -1358,6 +1358,9 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
 
   const ownerPortal = document.getElementById("ownerPortal");
   if (ownerPortal) ownerPortal.appendChild(dailyPage);
+ 
+  const toggleWrap = document.getElementById("draftViewModeToggle");
+  if (toggleWrap) toggleWrap.style.display = "flex";
   return;
 }
   
