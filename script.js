@@ -1,6 +1,7 @@
 
 let currentOwner = null;
 let isDraftView = false;
+let draftMultiPropertyViewMode = "smart"; // "smart" | "extended"
 document.getElementById("loginBtn").onclick = function() {
   const email = (document.getElementById("ownerEmail").value || "").trim().toLowerCase();
   const pw = (document.getElementById("ownerPassword").value || "");
@@ -30,6 +31,7 @@ document.getElementById("loginBtn").onclick = function() {
 
 currentOwner = OWNERS[email];
 isDraftView = String(currentOwner.viewMode || "payout").toLowerCase() === "draft";
+  draftMultiPropertyViewMode = "smart";
 document.getElementById("loginBox").style.display = "none";
   document.getElementById("ownerPortal").style.display = "";
   loginStatus.innerText = "";
@@ -1327,6 +1329,47 @@ const nights = toNumber(reservation.numberOfNights);
   const propertyNames = Object.keys(propertyGroups);
 
   if (propertyNames.length > 1) {
+    const isDraftMulti = isDraftView && propertyNames.length > 1;
+
+let oldDraftViewToggle = document.getElementById("draftViewModeToggle");
+if (oldDraftViewToggle && oldDraftViewToggle.parentNode) {
+  oldDraftViewToggle.parentNode.removeChild(oldDraftViewToggle);
+}
+
+if (isDraftMulti) {
+  const toggleWrap = document.createElement("div");
+  toggleWrap.id = "draftViewModeToggle";
+  toggleWrap.style.display = "flex";
+  toggleWrap.style.justifyContent = "center";
+  toggleWrap.style.gap = "10px";
+  toggleWrap.style.margin = "12px 0 18px 0";
+
+  toggleWrap.innerHTML = `
+    <button id="draftSmartViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; ${draftMultiPropertyViewMode === "smart" ? "background:#2f78b7; color:#fff;" : "background:#fff; color:#2f78b7;"}">Smart View</button>
+    <button id="draftExtendedViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; ${draftMultiPropertyViewMode === "extended" ? "background:#2f78b7; color:#fff;" : "background:#fff; color:#2f78b7;"}">Extended View</button>
+  `;
+
+  const summaryBoxes = document.getElementById("summaryBoxes");
+  if (summaryBoxes && summaryBoxes.parentNode) {
+    summaryBoxes.parentNode.insertBefore(toggleWrap, summaryBoxes.nextSibling);
+  }
+
+  const smartBtn = document.getElementById("draftSmartViewBtn");
+  const extendedBtn = document.getElementById("draftExtendedViewBtn");
+
+  if (smartBtn) {
+    smartBtn.onclick = () => {
+      draftMultiPropertyViewMode = "smart";
+      renderReservationsTable();
+    };
+  }
+  if (extendedBtn) {
+    extendedBtn.onclick = () => {
+      draftMultiPropertyViewMode = "extended";
+      renderReservationsTable();
+    };
+  }
+}
     const mainTable = tbody ? tbody.closest("table") : null;
     if (mainTable && mainTable.parentNode) {
       mainTable.parentNode.removeChild(mainTable);
@@ -1364,6 +1407,55 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
 
     const propertyWrap = document.createElement("div");
     propertyWrap.id = "propertyGroupsWrap";
+
+    if (isDraftView && draftMultiPropertyViewMode === "smart") {
+  propertyWrap.innerHTML = `
+    <h3 class="section-title" style="text-align:center; margin:18px 0 10px 0;">SMART VIEW</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:center;">Property</th>
+            <th style="text-align:center;">Gross Payout</th>
+            <th style="text-align:center;">Net Accommodation</th>
+            <th style="text-align:center;">PMC</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${propertyNames.map(propertyName => {
+            const rows = propertyGroups[propertyName]
+              .filter(r => matchesFilters(r.checkIn))
+              .sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
+
+            let grossTotal = 0;
+            let netTotal = 0;
+            let pmcTotal = 0;
+
+            rows.forEach(res => {
+              const gross = toNumber(res.grossPayout || res.totalPayout);
+              const net = toNumber(res.draftNetAccommodation);
+              grossTotal += gross;
+              netTotal += net;
+              pmcTotal += net * (currentOwner.pmcPercent / 100);
+            });
+
+            return `
+              <tr>
+                <td style="text-align:center;">${propertyName}</td>
+                <td style="text-align:center;">${formatMoney(grossTotal)}</td>
+                <td style="text-align:center;">${formatMoney(netTotal)}</td>
+                <td style="text-align:center;">${formatMoney(pmcTotal)}</td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  container.appendChild(propertyWrap);
+  return;
+}
 
     propertyNames.forEach(propertyName => {
       const rows = propertyGroups[propertyName]
@@ -1430,7 +1522,7 @@ rows.forEach(reservation => {
       const calendarNightsId = `calendarBookedNights_${propIdSafe}`;
 
       propertyWrap.innerHTML += `
-        <div style="margin-top:40px;">
+       <div style="margin-top:40px; padding-top:20px; border-top:1px solid #d9e6f2;">
           <h3 class="section-title" style="text-align:center; margin-bottom:12px;">${propertyName}</h3>
 
  <h3 style="text-align:center; width:100%; margin:0 0 12px 0;">SUMMARY PER PROPERTY</h3>
@@ -1488,14 +1580,16 @@ rows.forEach(reservation => {
   }
 </div>
 
-          <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-            <button id="${openBtnId}" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; background:#2f78b7; color:#fff; font-weight:700; cursor:pointer;">
-              Show Calendar
-            </button>
-          </div>
+          ${isDraftView && draftMultiPropertyViewMode !== "extended" ? "" : `
+<div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+  <button id="${openBtnId}" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; background:#2f78b7; color:#fff; font-weight:700; cursor:pointer;">
+    Show Calendar
+  </button>
+</div>
+`}
 
-${isDraftView ? `<button class="toggle-reservations-btn" data-target="prop-table-${propIdSafe}">Open Reservations</button>` : ""}
-<div id="prop-table-${propIdSafe}" style="display:${isDraftView ? "none" : "block"};">
+${isDraftView && draftMultiPropertyViewMode === "extended" ? `<button class="toggle-reservations-btn" data-target="prop-table-${propIdSafe}">Open Reservations</button>` : ""}
+<div id="prop-table-${propIdSafe}" style="display:${isDraftView ? (draftMultiPropertyViewMode === "extended" ? "none" : "none") : "block"};">
 
           <div class="table-wrap">
             <table>
