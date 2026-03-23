@@ -27,6 +27,12 @@ document.getElementById("loginBox").style.display = "none";
   document.getElementById("ownerPortal").style.display = "";
   loginStatus.innerText = "";
 
+if (currentOwner && currentOwner.admin) {
+  window.adminActiveTab = "daily";
+} else {
+  window.adminActiveTab = "income";
+}
+  
   loadOwnerReport();
 };
 
@@ -2047,13 +2053,29 @@ function renderAdminPanel() {
 
   adminDiv = document.createElement("div");
   adminDiv.id = "adminPanel";
-  adminDiv.style.marginTop = "16px";
-  adminDiv.style.padding = "12px";
-  adminDiv.style.border = "1px solid #e1e6ef";
-  adminDiv.style.borderRadius = "8px";
+  adminDiv = document.createElement("div");
+adminDiv.id = "adminPanel";
+adminDiv.style.position = "fixed";
+adminDiv.style.top = "50%";
+adminDiv.style.left = "50%";
+adminDiv.style.transform = "translate(-50%, -50%)";
+adminDiv.style.zIndex = "9999";
+adminDiv.style.background = "#fff";
+adminDiv.style.width = "min(900px, 92vw)";
+adminDiv.style.maxHeight = "85vh";
+adminDiv.style.overflowY = "auto";
+adminDiv.style.boxShadow = "0 10px 30px rgba(0,0,0,0.18)";
+adminDiv.style.marginTop = "16px";
+adminDiv.style.padding = "12px";
+adminDiv.style.border = "1px solid #e1e6ef";
+adminDiv.style.borderRadius = "8px";
+adminDiv.style.marginTop = "16px";
+adminDiv.style.padding = "12px";
+adminDiv.style.border = "1px solid #e1e6ef";
+adminDiv.style.borderRadius = "8px";
 
   adminDiv.innerHTML =
-    "<h3 style='margin:0 0 8px 0;'>Admin: Edit Owner Settings</h3>" +
+    "<div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;'><h3 style='margin:0;'>Manage Users</h3><button id='closeAdminPanel' style='padding:6px 10px; border:1px solid #d0d7e2; background:#fff; border-radius:8px; cursor:pointer;'>Close</button></div>" +
     "<div style='display:flex; gap:12px; align-items:center; margin-bottom:8px;'>" +
     "<select id='adminOwnerSelect' style='min-width:220px;'>" +
     Object.keys(OWNERS).map(email => "<option value='" + email + "'>" + OWNERS[email].ownerName + " — " + email + "</option>").join("") +
@@ -2100,7 +2122,13 @@ function renderAdminPanel() {
   document.getElementById("adminOwnerCancel").onclick = () => {
     document.getElementById("adminOwnerForm").style.display = "none";
   };
-}
+
+  document.getElementById("closeAdminPanel").onclick = () => {
+  const panel = document.getElementById("adminPanel");
+  if (panel) panel.remove();
+};
+  }
+
 function renderAdminPanel() {
   const portal = document.getElementById("ownerPortal");
   if (!portal) return;
@@ -2135,7 +2163,7 @@ function renderAdminPanel() {
     "<div style='display:flex; gap:8px;'><button id='adminOwnerSave'>Save</button><button id='adminOwnerCancel'>Cancel</button></div>" +
     "</div>";
 
-  portal.insertBefore(adminDiv, portal.firstChild);
+  document.body.appendChild(adminDiv);
 
   document.getElementById("adminLoadOwner").onclick = () => {
     const email = document.getElementById("adminOwnerSelect").value;
