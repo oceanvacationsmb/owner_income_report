@@ -1025,19 +1025,23 @@ calculatedAccommodation = Math.max(0, allowedAccommodation);
 
 const grossPayout = Math.max(0, totalPayoutValue);
 
-const draftVrboCommission =
-  (isVrboOrHomeAway && !isManualVrbo)
+const isHomeAway =
+  platformUpper.includes("HOMEAWAY") ||
+  sourceUpper.includes("HOMEAWAY");
+
+const homeAwayChannelCommission =
+  (isHomeAway && !isManualVrbo)
     ? Math.max(0, channelCommission)
     : 0;
 
 const draftNetAccommodation = Math.max(
   0,
   grossPayout -
+    Math.max(0, markup) -
     Math.max(0, effectiveCleaningFare) -
-    Math.max(0, taxesCombined) -
-    draftVrboCommission +
-    Math.max(0, airbnbResolutionCenter) +
-    Math.max(0, lengthOfStayDiscount)
+    homeAwayChannelCommission -
+    Math.max(0, airbnbResolutionCenter) -
+    Math.max(0, taxesCombined)
 );
 
     return {
