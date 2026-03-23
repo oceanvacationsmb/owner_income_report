@@ -2069,5 +2069,9 @@ function renderAdminPanel() {
   };
 }
 
+window.addEventListener('DOMContentLoaded', function() {
+  document.getElementById("loadingOverlay").style.display = "none";
+});
+
 // === CONTACT MODAL AND EMAILJS HANDLERS ===
 // ... keep your remaining existing code below this line unchanged
