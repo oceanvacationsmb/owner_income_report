@@ -1373,10 +1373,10 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
   });
 
       let propertyGrossPayout = 0;
-let propertyCleaning = 0;
-let propertyAccommodation = 0;
-let propertyPmc = 0;
-let propertyOwnerPayout = 0;
+      let propertyCleaning = 0;
+      let propertyAccommodation = 0;
+      let propertyPmc = 0;
+      let propertyOwnerPayout = 0;
 
 rows.forEach(reservation => {
   const gross = toNumber(reservation.grossPayout || reservation.totalPayout);
@@ -1411,6 +1411,13 @@ rows.forEach(reservation => {
         return Object.keys(bookedMap).length;
       })();
 
+      const propertyStaysCount = rows.reduce((count, reservation) => {
+  const status = String(reservation.status || "").toLowerCase().trim();
+  const isCancelled = status === "cancel" || status === "cancelled" || status === "canceled";
+  return isCancelled ? count : count + 1;
+}, 0);
+      
+
       const propIdSafe = propertyName.replace(/\W+/g, "_").substring(0, 40);
       const overlayId = `calendarOverlay_${propIdSafe}`;
       const openBtnId = `openCalendarBtn_${propIdSafe}`;
@@ -1426,7 +1433,7 @@ rows.forEach(reservation => {
         <div style="margin-top:40px;">
           <h3 class="section-title" style="text-align:center; margin-bottom:12px;">${propertyName}</h3>
 
-          <h3 style="text-align:center; width:100%; margin:0 0 12px 0;">SUMMARY PER PROPERTY</h3>
+ <h3 style="text-align:center; width:100%; margin:0 0 12px 0;">SUMMARY PER PROPERTY</h3>
 <div style="display:flex; justify-content:center; gap:18px; flex-wrap:wrap; margin-bottom:14px;">
   ${
     isDraftView
@@ -1451,6 +1458,10 @@ rows.forEach(reservation => {
           <div class="summary-label">BOOKED NIGHTS</div>
           <div class="summary-value">${propertyBookedNights}</div>
         </div>
+        <div class="summary-box">
+          <div class="summary-label">STAYS</div>
+          <div class="summary-value">${propertyStaysCount}</div>
+        </div>
       `
       : `
         <div class="summary-box">
@@ -1468,6 +1479,10 @@ rows.forEach(reservation => {
         <div class="summary-box">
           <div class="summary-label">Booked Nights</div>
           <div class="summary-value">${propertyBookedNights}</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-label">STAYS</div>
+          <div class="summary-value">${propertyStaysCount}</div>
         </div>
       `
   }
