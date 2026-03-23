@@ -7,6 +7,24 @@ document.getElementById("loginBtn").onclick = function() {
   const pw = (document.getElementById("ownerPassword").value || "");
   const loginStatus = document.getElementById("loginStatus");
 
+  // ...your existing login validation logic...
+  // Example:
+  if (email && pw) { // Replace with your real login check!
+    // Show the loading overlay immediately after login is clicked and credentials are valid
+    document.getElementById("loadingOverlay").style.display = "flex";
+
+    // ...start loading your data here...
+
+    // When all your data is loaded and the page is ready, hide the overlay:
+    // document.getElementById("loadingOverlay").style.opacity = "0";
+    // setTimeout(function() {
+    //   document.getElementById("loadingOverlay").style.display = "none";
+    // }, 300);
+  } else {
+    loginStatus.textContent = "Please enter your email and password.";
+  }
+};
+
   // Admin login
   if (email === "admin" && pw === "05960596") {
     currentOwner = { admin: true, ownerName: "Administrator" };
@@ -2068,10 +2086,6 @@ function renderAdminPanel() {
     document.getElementById("adminOwnerForm").style.display = "none";
   };
 }
-
-window.addEventListener('DOMContentLoaded', function() {
-  document.getElementById("loadingOverlay").style.display = "none";
-});
 
 // === CONTACT MODAL AND EMAILJS HANDLERS ===
 // ... keep your remaining existing code below this line unchanged
