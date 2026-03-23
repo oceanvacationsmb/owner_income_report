@@ -191,6 +191,7 @@ tr:last-child td { border-bottom: none; }
 }
 
 @media (max-width:600px) {
+  .login-inner { min-width:99vw; border-radius:0; padding: 24px 8px;}
   .container { padding:12px 10px;}
   table { font-size: .93em;}
   .summary-box { min-width:100px;}
@@ -395,10 +396,9 @@ tr:last-child td { border-bottom: none; }
 
   .login-inner {
     min-width: 0 !important;
-    width: 72vw !important;
-    max-width: 72vw !important;
-    min-height: 62vh !important;
-    padding: 32px 20px !important;
+    max-width: 88vw !important;
+    width: 88vw !important;
+    padding: 40px 24px !important;
     border-radius: 20px !important;
     box-sizing: border-box;
   }
