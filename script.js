@@ -1104,51 +1104,50 @@ function renderSummaryBoxes() {
   totalPMC += vrboPmcTotal;
   totalOwnerPayout = totalAccommodation - totalPMC;
 
- const bookedNightsCount = filteredReservations.reduce((sum, reservation) => {
-  return sum + toNumber(reservation.numberOfNights);
-}, 0);
+  const bookedNightsCount = filteredReservations.reduce((sum, reservation) => {
+    return sum + toNumber(reservation.numberOfNights);
+  }, 0);
 
-    if (isDraftView) {
+  if (isDraftView) {
     const draftRows = filteredReservations.filter(res => toNumber(res.grossPayout || res.totalPayout) > 0);
     let grossPayoutTotal = 0;
     let netAccommodationTotal = 0;
     let cleaningFeeTotal = 0;
     let pmcTotal = 0;
-      
+    let bookedNightsDraft = 0;
 
     draftRows.forEach((res) => {
       grossPayoutTotal += toNumber(res.grossPayout || res.totalPayout);
       netAccommodationTotal += toNumber(res.draftNetAccommodation);
       cleaningFeeTotal += toNumber(res.cleaningFare);
       pmcTotal += toNumber(res.draftNetAccommodation) * (currentOwner.pmcPercent / 100);
-      let bookedNightsDraft = 0;
       bookedNightsDraft += toNumber(res.numberOfNights);
     });
 
     summaryBoxes.innerHTML = `
-  <h2 style="text-align:center; width:100%; margin-bottom:12px;">SUMMARY</h2>
-  <div class="summary-box">
-    <div class="summary-label">GROSS PAYOUT</div>
-    <div class="summary-value">${formatMoney(grossPayoutTotal)}</div>
-  </div>
-  <div class="summary-box">
-    <div class="summary-label">CLEANING</div>
-    <div class="summary-value">${formatMoney(cleaningFeeTotal)}</div>
-  </div>
-  <div class="summary-box">
-    <div class="summary-label">NET ACCOMMODATION</div>
-    <div class="summary-value">${formatMoney(netAccommodationTotal)}</div>
-  </div>
-  <div class="summary-box">
-    <div class="summary-label">PMC</div>
-    <div class="summary-value">${formatMoney(pmcTotal)}</div>
-  </div>
-  <div class="summary-box">
-    <div class="summary-label">BOOKED NIGHTS</div>
-    <div class="summary-value">${bookedNightsDraft}</div>
-  </div>
-`;
-return;
+      <h2 style="text-align:center; width:100%; margin-bottom:12px;">SUMMARY</h2>
+      <div class="summary-box">
+        <div class="summary-label">GROSS PAYOUT</div>
+        <div class="summary-value">${formatMoney(grossPayoutTotal)}</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-label">CLEANING</div>
+        <div class="summary-value">${formatMoney(cleaningFeeTotal)}</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-label">NET ACCOMMODATION</div>
+        <div class="summary-value">${formatMoney(netAccommodationTotal)}</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-label">PMC</div>
+        <div class="summary-value">${formatMoney(pmcTotal)}</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-label">BOOKED NIGHTS</div>
+        <div class="summary-value">${bookedNightsDraft}</div>
+      </div>
+    `;
+    return;
   }
 
   summaryBoxes.innerHTML = `
