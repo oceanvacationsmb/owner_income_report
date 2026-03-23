@@ -170,7 +170,16 @@ let filterYear = String(new Date().getFullYear());
 let filterMonth = "all";
 
 function getYearMonthFromDate(dateStr) {
-  const d = new Date(dateStr);
+  if (!dateStr) return null;
+  const s = String(dateStr).trim();
+
+  // Handle YYYY-MM-DD without timezone shift
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (m) {
+    return { year: m[1], month: m[2] };
+  }
+
+  const d = new Date(s);
   if (isNaN(d)) return null;
   return {
     year: String(d.getFullYear()),
