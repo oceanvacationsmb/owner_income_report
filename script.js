@@ -1055,7 +1055,7 @@ const homeAwayChannelCommission =
 const draftNetAccommodation = Math.max(
   0,
   grossPayout -
-    Math.max(0, draftCleaningFare)
+    Math.max(0, draftCleaningFare) -
     Math.max(0, allTaxesCombined) -
     Math.max(0, airbnbResolutionCenter) +
     Math.max(0, lengthOfStayDiscount)
