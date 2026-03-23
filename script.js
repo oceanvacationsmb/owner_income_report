@@ -1408,17 +1408,18 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
     const propertyWrap = document.createElement("div");
     propertyWrap.id = "propertyGroupsWrap";
 
-    if (isDraftView && draftMultiPropertyViewMode === "smart") {
+   if (isDraftView && draftMultiPropertyViewMode === "smart") {
   propertyWrap.innerHTML = `
     <h3 class="section-title" style="text-align:center; margin:18px 0 10px 0;">SMART VIEW</h3>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th style="text-align:center;">Property</th>
-            <th style="text-align:center;">Gross Payout</th>
-            <th style="text-align:center;">Net Accommodation</th>
-            <th style="text-align:center;">PMC</th>
+            <th style="text-align:center; font-weight:bold;"><strong>PROPERTY</strong></th>
+            <th style="text-align:center; font-weight:bold;"><strong>GROSS PAYOUT</strong></th>
+            <th style="text-align:center; font-weight:bold;"><strong>CLEANING</strong></th>
+            <th style="text-align:center; font-weight:bold;"><strong>NET ACCOMMODATION</strong></th>
+            <th style="text-align:center; font-weight:bold;"><strong>PMC</strong></th>
           </tr>
         </thead>
         <tbody>
@@ -1428,13 +1429,16 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
               .sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
 
             let grossTotal = 0;
+            let cleaningTotal = 0;
             let netTotal = 0;
             let pmcTotal = 0;
 
             rows.forEach(res => {
               const gross = toNumber(res.grossPayout || res.totalPayout);
+              const cleaning = toNumber(res.draftCleaningFare);
               const net = toNumber(res.draftNetAccommodation);
               grossTotal += gross;
+              cleaningTotal += cleaning;
               netTotal += net;
               pmcTotal += net * (currentOwner.pmcPercent / 100);
             });
@@ -1443,6 +1447,7 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
               <tr>
                 <td style="text-align:center;">${propertyName}</td>
                 <td style="text-align:center;">${formatMoney(grossTotal)}</td>
+                <td style="text-align:center;">${formatMoney(cleaningTotal)}</td>
                 <td style="text-align:center;">${formatMoney(netTotal)}</td>
                 <td style="text-align:center;">${formatMoney(pmcTotal)}</td>
               </tr>
