@@ -877,6 +877,26 @@ let calculatedAccommodation = standardAccommodation;
 
   const sourceValue = pickText(
     r.source, r["source"], r["integration.source"], r.integration?.source, r.channel, r["channel"]
+    const CLEANING_CAPS_BY_PROPERTY = {
+  "MB - Tuscan C": 500,
+  "NMB - 204-27N": 450,
+  "NMB - 204-28N": 500,
+  "NMB - 703-2": 400,
+  "NMB - 705-2": 400,
+  "NMB - 709-2": 400,
+  "NMB - 304B": 500,
+  "NMB - 400A": 500,
+  "NMB - 400B": 500,
+  "MB - Tuscan A": 500,
+  "MB - Tuscan B": 500,
+  "GCSSB - 113A-12S": 500,
+  "GCSSB - 113B-12S": 500,
+  "NMB - 1004": 500,
+  "GC - 1211A": 500,
+  "GC - 601A": 400,
+  "GC - 601B": 400,
+  "GC - 827B": 500
+};
   );
 
   const totalPayoutValue = pickNumber(
@@ -929,7 +949,9 @@ const numberOfNightsValue = numberOfNightsValueRaw > 0 ? numberOfNightsValueRaw 
 const isCancelledStatus = statusValue === "cancel" || statusValue === "cancelled" || statusValue === "canceled";
 const hasPayout = totalPayoutValue > 0;
 const effectiveCleaningFare = (isCancelledStatus && hasPayout) ? 0 : cleaningFareValue;
-  const draftCleaningFare = Math.min(500, Math.max(0, effectiveCleaningFare));
+  const listingName = pickText(r["listing.nickname"], r.listingNickname, r.listing?.nickname, r.listing).trim();
+const maxCleaningCap = CLEANING_CAPS_BY_PROPERTY[listingName] ?? 500;
+const draftCleaningFare = Math.min(maxCleaningCap, Math.max(0, effectiveCleaningFare));
 
   const taxesCombined = pickNumber(
   r["money.fareTaxes"]?.value, r.money?.fareTaxes?.value, r.fareTaxes, r.taxes, r.tax
