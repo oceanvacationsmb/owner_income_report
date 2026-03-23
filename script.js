@@ -1720,7 +1720,7 @@ if (!isDraftView) {
     container.appendChild(vrboManualTable);
   }
 }
-
+}
 function fillReservationDropdown() {
   const select = document.getElementById("reservationSelect");
   if (!select) return;
