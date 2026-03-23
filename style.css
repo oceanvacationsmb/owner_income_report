@@ -154,7 +154,7 @@ tr:last-child td { border-bottom: none; }
 
 @keyframes fadeSlideIn {
   from {
-    opacity: 0;
+    opacity: 1;
     transform: translateY(-6px);
   }
   to {
@@ -191,7 +191,6 @@ tr:last-child td { border-bottom: none; }
 }
 
 @media (max-width:600px) {
-  .login-inner { min-width:99vw; border-radius:0; padding: 24px 8px;}
   .container { padding:12px 10px;}
   table { font-size: .93em;}
   .summary-box { min-width:100px;}
@@ -391,17 +390,22 @@ tr:last-child td { border-bottom: none; }
   }
 
   .login-container {
-    padding: 16px !important;
+    padding: 0 !important;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
- .login-inner {
-  min-width: 0 !important;
-  max-width: 100% !important;
-  width: 100% !important;
-  padding: 32px 12px 28px 12px !important;
-  border-radius: 18px !important;
-  box-sizing: border-box;
-}
+  .login-inner {
+    min-width: 0 !important;
+    width: 72vw !important;
+    max-width: 72vw !important;
+    min-height: 62vh !important;
+    padding: 32px 20px 28px 20px !important;
+    border-radius: 20px !important;
+    box-sizing: border-box;
+  }
 
   .login-header {
     font-size: 28px !important;
