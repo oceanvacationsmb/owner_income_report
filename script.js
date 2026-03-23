@@ -1345,8 +1345,8 @@ if (isDraftMulti) {
   toggleWrap.style.margin = "12px 0 18px 0";
 
   toggleWrap.innerHTML = `
-    <button id="draftSmartViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; ${draftMultiPropertyViewMode === "smart" ? "background:#2f78b7; color:#fff;" : "background:#fff; color:#2f78b7;"}">Smart View</button>
-    <button id="draftExtendedViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; ${draftMultiPropertyViewMode === "extended" ? "background:#2f78b7; color:#fff;" : "background:#fff; color:#2f78b7;"}">Extended View</button>
+    <button id="draftSmartViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; ${draftMultiPropertyViewMode === "smart" ? "background:#2f78b7; color:#fff;" : "background:#fff; color:#2f78b7;"}">SMART VIEW</button>
+    <button id="draftExtendedViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; ${draftMultiPropertyViewMode === "extended" ? "background:#2f78b7; color:#fff;" : "background:#fff; color:#2f78b7;"}">EXTENDED VIEW</button>
   `;
 
   const summaryBoxes = document.getElementById("summaryBoxes");
