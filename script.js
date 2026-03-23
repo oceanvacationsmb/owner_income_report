@@ -1408,6 +1408,22 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
     const propertyWrap = document.createElement("div");
     propertyWrap.id = "propertyGroupsWrap";
 
+    const PROPERTY_ORDER = [
+  "GC - 1211A", "GC - 601A", "GC - 601B", "GC - 827B",
+  "GCSSB - 113A-12S", "GCSSB - 113B-12S",
+  "MB - Tuscan A", "MB - Tuscan B", "MB - Tuscan C",
+  "NMB - 1004", "NMB - 204-27N", "NMB - 204-28N",
+  "NMB - 304B", "NMB - 400A", "NMB - 400B", "NMB - 703-2", "NMB - 705-2", "NMB - 709-2"
+];
+
+const orderedPropertyNames = Object.keys(propertyGroups).sort((a, b) => {
+  const ia = PROPERTY_ORDER.indexOf(a);
+  const ib = PROPERTY_ORDER.indexOf(b);
+  const va = ia === -1 ? PROPERTY_ORDER.length + a.charCodeAt(0) : ia;
+  const vb = ib === -1 ? PROPERTY_ORDER.length + b.charCodeAt(0) : ib;
+  return va - vb;
+});
+
    if (isDraftView && draftMultiPropertyViewMode === "smart") {
   propertyWrap.innerHTML = `
     <h3 class="section-title" style="text-align:center; margin:18px 0 10px 0;">SMART VIEW</h3>
@@ -1415,7 +1431,7 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
       <table>
         <thead>
           <tr>
-            <th style="text-align:center; font-weight:bold;"><strong>PROPERTY</strong></th>
+            <th style="text-align:left; font-weight:bold;"><strong>PROPERTY</strong></th>
             <th style="text-align:center; font-weight:bold;"><strong>GROSS PAYOUT</strong></th>
             <th style="text-align:center; font-weight:bold;"><strong>CLEANING</strong></th>
             <th style="text-align:center; font-weight:bold;"><strong>NET ACCOMMODATION</strong></th>
@@ -1423,7 +1439,7 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
           </tr>
         </thead>
         <tbody>
-          ${propertyNames.map(propertyName => {
+          ${orderedPropertyNames.map(propertyName => {
             const rows = propertyGroups[propertyName]
               .filter(r => matchesFilters(r.checkIn))
               .sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
@@ -1445,7 +1461,7 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
 
             return `
               <tr>
-                <td style="text-align:center;">${propertyName}</td>
+                <td style="text-align:left;">${propertyName}</td>
                 <td style="text-align:center;">${formatMoney(grossTotal)}</td>
                 <td style="text-align:center;">${formatMoney(cleaningTotal)}</td>
                 <td style="text-align:center;">${formatMoney(netTotal)}</td>
