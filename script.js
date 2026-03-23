@@ -2014,7 +2014,7 @@ return !isOwnerStay && (
       applyFiltersAndRender();
     });
 }
-
+)
 function renderAdminPanel() {
   const portal = document.getElementById("ownerPortal");
   if (!portal) return;
