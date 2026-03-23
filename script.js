@@ -613,8 +613,7 @@ function getCellStyleForDate(dayInfo) {
     return { background: "#ddf7ee", border: "2px solid #0d8a63", badge: "VRBO" };
   }
 
-  return
- {
+  return {
     background: "#dcecff",
     border: "2px solid #2f78b7",
     badge: getPlatformLabelForDay(dayInfo)
