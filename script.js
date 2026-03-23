@@ -1986,23 +1986,23 @@ function fetchAllReservations(skip = 0, acc = []) {
     status === "cancelled" ||
     status === "canceled";
 
-  return !isOwnerStay && (
+   return !isOwnerStay && (
     !isCancelled ||
     (isCancelled && payout > 0)
   );
 });
 
-renderDashboardHeader();
-renderFilterControls();
-applyFiltersAndRender();
-})
-.catch(err => {
-  console.error("Error loading report:", err);
-  reservationsData = [];
-  renderDashboardHeader();
-  renderFilterControls();
-  applyFiltersAndRender();
-});
+      renderDashboardHeader();
+      renderFilterControls();
+      applyFiltersAndRender();
+    })
+    .catch(err => {
+      console.error("Error loading report:", err);
+      reservationsData = [];
+      renderDashboardHeader();
+      renderFilterControls();
+      applyFiltersAndRender();
+    });
 }
 
 function renderAdminPanel() {
