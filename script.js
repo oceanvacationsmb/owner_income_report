@@ -1350,10 +1350,12 @@ if (isDraftMulti) {
   toggleWrap.style.margin = "12px 0 18px 0";
 
   toggleWrap.innerHTML = currentOwner && currentOwner.admin
-    ? `
-      <button id="draftSmartViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#2f78b7; color:#fff;">SMART VIEW</button>
+  ? `
+      <button id="adminIncomeBtn" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#2f78b7; color:#fff;">INCOME</button>
+      <button id="adminManageUsersBtn" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#fff; color:#2f78b7;">MANAGE USERS</button>
+      <button id="adminDailyOperationBtn" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#fff; color:#2f78b7;">DAILY OPERATION</button>
     `
-    : `
+  : `
       <button id="draftSmartViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; ${draftMultiPropertyViewMode === "smart" ? "background:#2f78b7; color:#fff;" : "background:#fff; color:#2f78b7;"}">SMART VIEW</button>
       <button id="draftExtendedViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; ${draftMultiPropertyViewMode === "extended" ? "background:#2f78b7; color:#fff;" : "background:#fff; color:#2f78b7;"}">EXTENDED VIEW</button>
     `;
@@ -1365,6 +1367,27 @@ if (isDraftMulti) {
 
   const smartBtn = document.getElementById("draftSmartViewBtn");
   const extendedBtn = document.getElementById("draftExtendedViewBtn");
+  const adminIncomeBtn = document.getElementById("adminIncomeBtn");
+  const adminManageUsersBtn = document.getElementById("adminManageUsersBtn");
+  const adminDailyOperationBtn = document.getElementById("adminDailyOperationBtn");
+
+  if (adminIncomeBtn) {
+  adminIncomeBtn.onclick = function() {
+    applyFiltersAndRender();
+  };
+}
+
+if (adminManageUsersBtn) {
+  adminManageUsersBtn.onclick = function() {
+    renderAdminPanel();
+  };
+}
+
+if (adminDailyOperationBtn) {
+  adminDailyOperationBtn.onclick = function() {
+    alert("DAILY OPERATION coming next");
+  };
+}
 
   if (smartBtn) {
     smartBtn.onclick = function() {
