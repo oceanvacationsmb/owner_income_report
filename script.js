@@ -1990,14 +1990,17 @@ fetchAllReservations()
   // Draft mode: include all non-owner reservations (no status/accommodation exclusion)
   if (isDraftView) return !isOwnerStay;
 
-  // Payout mode: keep old behavior
-  const status = String(res.status || "").toLowerCase();
-  const accommodation = toNumber(res.accommodationFare);
-  return !isOwnerStay && (
-    (status !== "cancel" && status !== "cancelled" && status !== "canceled") ||
-    ((status === "cancelled" || status === "cancel" || status === "canceled") && accommodation > 0)
-  );
-});
+const status = String(res.status || "").toLowerCase().trim();
+const payout = toNumber(res.grossPayout || res.totalPayout);
+const isCancelled =
+  status === "cancel" ||
+  status === "cancelled" ||
+  status === "canceled";
+
+return !isOwnerStay && (
+  !isCancelled ||
+  (isCancelled && payout > 0)
+);
 
       renderDashboardHeader();
       renderFilterControls();
