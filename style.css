@@ -394,13 +394,14 @@ tr:last-child td { border-bottom: none; }
     padding: 16px !important;
   }
 
-  .login-inner {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 24px 18px !important;
-    box-sizing: border-box;
-    border-radius: 18px !important;
-  }
+ .login-inner {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  padding: 32px 12px 28px 12px !important;
+  border-radius: 18px !important;
+  box-sizing: border-box;
+}
 
   .login-header {
     font-size: 28px !important;
