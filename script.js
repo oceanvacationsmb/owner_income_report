@@ -6,17 +6,7 @@ document.getElementById("loginBtn").onclick = function() {
   const pw = (document.getElementById("ownerPassword").value || "");
   const loginStatus = document.getElementById("loginStatus");
 
-  // Admin login
-  if (email === "admin" && pw === "05960596") {
-    currentOwner = { admin: true, ownerName: "Administrator" };
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("ownerPortal").style.display = "";
-    loginStatus.innerText = "";
-    renderAdminPanel();
-    return;
-  }
-
-  if (!OWNERS[email]) {
+    if (!OWNERS[email]) {
     loginStatus.innerText = "Email not found.";
     return;
   }
@@ -29,7 +19,9 @@ document.getElementById("loginBtn").onclick = function() {
   if (!OWNERS[email].viewMode) OWNERS[email].viewMode = "payout";
 
 currentOwner = OWNERS[email];
-isDraftView = String(currentOwner.viewMode || "payout").toLowerCase() === "draft";
+isDraftView = currentOwner.admin
+  ? true
+  : String(currentOwner.viewMode || "payout").toLowerCase() === "draft";
   draftMultiPropertyViewMode = "smart";
 document.getElementById("loginBox").style.display = "none";
   document.getElementById("ownerPortal").style.display = "";
@@ -169,6 +161,7 @@ const OWNERS = {
     guestyApiKey: "ada6fa4f86889add1196b0151fec4b77949586b9c1c7459c2bfd05cfab466f34d72197d1bd5beaeefb8ad2295dedb1b60d6c8de7a45985c85623ffdfb22b36a6",
     cleaningFee: 0,
     viewMode: "draft"
+    admin: true
   },
 };
 
@@ -1356,31 +1349,35 @@ if (isDraftMulti) {
   toggleWrap.style.gap = "10px";
   toggleWrap.style.margin = "12px 0 18px 0";
 
-  toggleWrap.innerHTML = `
+  toggleWrap.innerHTML = currentOwner && currentOwner.admin
+  ? `
+    <button id="draftSmartViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#2f78b7; color:#fff;">SMART VIEW</button>
+  `
+  : `
     <button id="draftSmartViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; ${draftMultiPropertyViewMode === "smart" ? "background:#2f78b7; color:#fff;" : "background:#fff; color:#2f78b7;"}">SMART VIEW</button>
     <button id="draftExtendedViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; ${draftMultiPropertyViewMode === "extended" ? "background:#2f78b7; color:#fff;" : "background:#fff; color:#2f78b7;"}">EXTENDED VIEW</button>
   `;
 
-  const summaryBoxes = document.getElementById("summaryBoxes");
-  if (summaryBoxes && summaryBoxes.parentNode) {
-    summaryBoxes.parentNode.insertBefore(toggleWrap, summaryBoxes.nextSibling);
-  }
+const summaryBoxes = document.getElementById("summaryBoxes");
+if (summaryBoxes && summaryBoxes.parentNode) {
+  summaryBoxes.parentNode.insertBefore(toggleWrap, summaryBoxes.nextSibling);
+}
 
-  const smartBtn = document.getElementById("draftSmartViewBtn");
-  const extendedBtn = document.getElementById("draftExtendedViewBtn");
+const smartBtn = document.getElementById("draftSmartViewBtn");
+const extendedBtn = document.getElementById("draftExtendedViewBtn");
 
-  if (smartBtn) {
-    smartBtn.onclick = () => {
-      draftMultiPropertyViewMode = "smart";
-      renderReservationsTable();
-    };
-  }
-  if (extendedBtn) {
-    extendedBtn.onclick = () => {
-      draftMultiPropertyViewMode = "extended";
-      renderReservationsTable();
-    };
-  }
+if (smartBtn) {
+  smartBtn.onclick = function() {
+    draftMultiPropertyViewMode = "smart";
+    applyFiltersAndRender();
+  };
+}
+
+if (extendedBtn) {
+  extendedBtn.onclick = function() {
+    draftMultiPropertyViewMode = "extended";
+    applyFiltersAndRender();
+  };
 }
     const mainTable = tbody ? tbody.closest("table") : null;
     if (mainTable && mainTable.parentNode) {
@@ -1944,14 +1941,6 @@ function loadOwnerReport() {
    renderDashboardHeader();
    renderFilterControls();
    applyFiltersAndRender();
-    return;
-  }
-
-  if (currentOwner.admin) {
-    renderDashboardHeader();
-    renderFilterControls();
-    applyFiltersAndRender();
-    renderAdminPanel();
     return;
   }
 
