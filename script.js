@@ -1345,6 +1345,40 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
   const mainTable = tbody ? tbody.closest("table") : null;
   if (mainTable) mainTable.style.display = "none";
 
+let oldAdminTopButtons = document.getElementById("adminTopButtons");
+if (oldAdminTopButtons && oldAdminTopButtons.parentNode) {
+  oldAdminTopButtons.parentNode.removeChild(oldAdminTopButtons);
+}
+
+const adminTopButtons = document.createElement("div");
+adminTopButtons.id = "adminTopButtons";
+adminTopButtons.style.display = "flex";
+adminTopButtons.style.justifyContent = "center";
+adminTopButtons.style.gap = "10px";
+adminTopButtons.style.margin = "12px 0 18px 0";
+adminTopButtons.innerHTML = `
+  <button id="adminReportBtnTop" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#fff; color:#2f78b7;">REPORT</button>
+  <button id="adminManageUsersBtnTop" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#fff; color:#2f78b7;">MANAGE USERS</button>
+  <button id="adminDailyOperationBtnTop" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#2f78b7; color:#fff;">DAILY OPERATION</button>
+`;
+
+const ownerPortal = document.getElementById("ownerPortal");
+if (ownerPortal) ownerPortal.appendChild(adminTopButtons);
+
+document.getElementById("adminReportBtnTop").onclick = function() {
+  window.adminActiveTab = "report";
+  applyFiltersAndRender();
+};
+
+document.getElementById("adminManageUsersBtnTop").onclick = function() {
+  renderAdminPanel();
+};
+
+document.getElementById("adminDailyOperationBtnTop").onclick = function() {
+  window.adminActiveTab = "daily";
+  applyFiltersAndRender();
+};
+  
   const dailyPage = document.createElement("div");
   dailyPage.id = "adminDailyPage";
   dailyPage.style.margin = "30px auto";
@@ -1356,11 +1390,10 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
   dailyPage.style.textAlign = "center";
   dailyPage.innerHTML = "<h2 style='margin:0;'>DAILY OPERATION</h2>";
 
-  const ownerPortal = document.getElementById("ownerPortal");
   if (ownerPortal) ownerPortal.appendChild(dailyPage);
  
   const toggleWrap = document.getElementById("draftViewModeToggle");
-  if (toggleWrap) toggleWrap.style.display = "flex";
+  if (toggleWrap) toggleWrap.style.display = "none";
   return;
 }
   
