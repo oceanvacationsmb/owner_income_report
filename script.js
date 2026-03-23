@@ -877,6 +877,7 @@ let calculatedAccommodation = standardAccommodation;
 
   const sourceValue = pickText(
     r.source, r["source"], r["integration.source"], r.integration?.source, r.channel, r["channel"]
+    );
     const CLEANING_CAPS_BY_PROPERTY = {
   "MB - Tuscan C": 500,
   "NMB - 204-27N": 450,
@@ -897,7 +898,7 @@ let calculatedAccommodation = standardAccommodation;
   "GC - 601B": 400,
   "GC - 827B": 500
 };
-  );
+
 
   const totalPayoutValue = pickNumber(
   r["money.hostPayout"]?.value,
