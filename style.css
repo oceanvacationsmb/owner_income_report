@@ -154,7 +154,7 @@ tr:last-child td { border-bottom: none; }
 
 @keyframes fadeSlideIn {
   from {
-    opacity: 1;
+    opacity: 0;
     transform: translateY(-6px);
   }
   to {
@@ -391,10 +391,6 @@ tr:last-child td { border-bottom: none; }
 
   .login-container {
     padding: 0 !important;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
   .login-inner {
@@ -402,7 +398,7 @@ tr:last-child td { border-bottom: none; }
     width: 72vw !important;
     max-width: 72vw !important;
     min-height: 62vh !important;
-    padding: 32px 20px 28px 20px !important;
+    padding: 32px 20px !important;
     border-radius: 20px !important;
     box-sizing: border-box;
   }
