@@ -1350,46 +1350,48 @@ if (isDraftMulti) {
   toggleWrap.style.margin = "12px 0 18px 0";
 
   toggleWrap.innerHTML = currentOwner && currentOwner.admin
-  ? `
-    <button id="draftSmartViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#2f78b7; color:#fff;">SMART VIEW</button>
-  `
-  : `
-    <button id="draftSmartViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; ${draftMultiPropertyViewMode === "smart" ? "background:#2f78b7; color:#fff;" : "background:#fff; color:#2f78b7;"}">SMART VIEW</button>
-    <button id="draftExtendedViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; ${draftMultiPropertyViewMode === "extended" ? "background:#2f78b7; color:#fff;" : "background:#fff; color:#2f78b7;"}">EXTENDED VIEW</button>
-  `;
+    ? `
+      <button id="draftSmartViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#2f78b7; color:#fff;">SMART VIEW</button>
+    `
+    : `
+      <button id="draftSmartViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; ${draftMultiPropertyViewMode === "smart" ? "background:#2f78b7; color:#fff;" : "background:#fff; color:#2f78b7;"}">SMART VIEW</button>
+      <button id="draftExtendedViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; ${draftMultiPropertyViewMode === "extended" ? "background:#2f78b7; color:#fff;" : "background:#fff; color:#2f78b7;"}">EXTENDED VIEW</button>
+    `;
 
-const summaryBoxes = document.getElementById("summaryBoxes");
-if (summaryBoxes && summaryBoxes.parentNode) {
-  summaryBoxes.parentNode.insertBefore(toggleWrap, summaryBoxes.nextSibling);
+  const summaryBoxes = document.getElementById("summaryBoxes");
+  if (summaryBoxes && summaryBoxes.parentNode) {
+    summaryBoxes.parentNode.insertBefore(toggleWrap, summaryBoxes.nextSibling);
+  }
+
+  const smartBtn = document.getElementById("draftSmartViewBtn");
+  const extendedBtn = document.getElementById("draftExtendedViewBtn");
+
+  if (smartBtn) {
+    smartBtn.onclick = function() {
+      draftMultiPropertyViewMode = "smart";
+      applyFiltersAndRender();
+    };
+  }
+
+  if (extendedBtn) {
+    extendedBtn.onclick = function() {
+      draftMultiPropertyViewMode = "extended";
+      applyFiltersAndRender();
+    };
+  }
 }
 
-const smartBtn = document.getElementById("draftSmartViewBtn");
-const extendedBtn = document.getElementById("draftExtendedViewBtn");
-
-if (smartBtn) {
-  smartBtn.onclick = function() {
-    draftMultiPropertyViewMode = "smart";
-    applyFiltersAndRender();
-  };
+const mainTable = tbody ? tbody.closest("table") : null;
+if (mainTable && mainTable.parentNode) {
+  mainTable.parentNode.removeChild(mainTable);
 }
 
-if (extendedBtn) {
-  extendedBtn.onclick = function() {
-    draftMultiPropertyViewMode = "extended";
-    applyFiltersAndRender();
-  };
+const calendarPanel = document.getElementById("calendarPanel");
+if (calendarPanel && calendarPanel.parentNode) {
+  calendarPanel.parentNode.removeChild(calendarPanel);
+} else if (calendarPanel) {
+  calendarPanel.style.display = "none";
 }
-    const mainTable = tbody ? tbody.closest("table") : null;
-    if (mainTable && mainTable.parentNode) {
-      mainTable.parentNode.removeChild(mainTable);
-    }
-
-    const calendarPanel = document.getElementById("calendarPanel");
-    if (calendarPanel && calendarPanel.parentNode) {
-      calendarPanel.parentNode.removeChild(calendarPanel);
-    } else if (calendarPanel) {
-      calendarPanel.style.display = "none";
-    }
     
 const showCalendarBtn = document.getElementById("showCalendarBtn");
 if (showCalendarBtn && showCalendarBtn.parentNode) {
