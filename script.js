@@ -1973,6 +1973,17 @@ function fetchAllReservations(skip = 0, acc = []) {
   });
 }
 
+fetchAllReservations()
+  .then(rows => {
+    const mappedRows = rows.map(mapGuestyReservation);
+
+    ownerStaysData = mappedRows.filter(res =>
+      String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY") &&
+      String(res.status || "").toLowerCase() !== "cancel" &&
+      String(res.status || "").toLowerCase() !== "cancelled" &&
+      String(res.status || "").toLowerCase() !== "canceled"
+    );
+  
       reservationsData = mappedRows.filter(res => {
   const isOwnerStay = String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY");
 
