@@ -2087,10 +2087,5 @@ function renderAdminPanel() {
   };
 }
 
-document.getElementById("loadingOverlay").style.opacity = "0";
-setTimeout(function() {
-  document.getElementById("loadingOverlay").style.display = "none";
-}, 300);
-
 // === CONTACT MODAL AND EMAILJS HANDLERS ===
 // ... keep your remaining existing code below this line unchanged
