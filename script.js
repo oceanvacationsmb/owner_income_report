@@ -1,4 +1,3 @@
-
 let currentOwner = null;
 let isDraftView = false;
 let draftMultiPropertyViewMode = "smart"; // "smart" | "extended"
@@ -6,24 +5,6 @@ document.getElementById("loginBtn").onclick = function() {
   const email = (document.getElementById("ownerEmail").value || "").trim().toLowerCase();
   const pw = (document.getElementById("ownerPassword").value || "");
   const loginStatus = document.getElementById("loginStatus");
-
-  // ...your existing login validation logic...
-  // Example:
-  if (email && pw) { // Replace with your real login check!
-    // Show the loading overlay immediately after login is clicked and credentials are valid
-    document.getElementById("loadingOverlay").style.display = "flex";
-
-    // ...start loading your data here...
-
-    // When all your data is loaded and the page is ready, hide the overlay:
-    // document.getElementById("loadingOverlay").style.opacity = "0";
-    // setTimeout(function() {
-    //   document.getElementById("loadingOverlay").style.display = "none";
-    // }, 300);
-  } else {
-    loginStatus.textContent = "Please enter your email and password.";
-  }
-};
 
   // Admin login
   if (email === "admin" && pw === "05960596") {
@@ -314,7 +295,8 @@ function applyFiltersAndRender() {
 
 // === EMAILJS CONFIGURATION ===
 const EMAILJS_USER_ID = "ti3155";
-const EMAILJS_SERVICE_ID = "service_06c56l2";
+const
+ EMAILJS_SERVICE_ID = "service_06c56l2";
 const EMAILJS_TEMPLATE_ID = "template_91j57r4";
 
 // === INIT EMAILJS (safe check) ===
@@ -631,7 +613,8 @@ function getCellStyleForDate(dayInfo) {
     return { background: "#ddf7ee", border: "2px solid #0d8a63", badge: "VRBO" };
   }
 
-  return {
+  return
+ {
     background: "#dcecff",
     border: "2px solid #2f78b7",
     badge: getPlatformLabelForDay(dayInfo)
@@ -881,7 +864,8 @@ function setDateFieldsMin() {
 
 function mapGuestyReservation(r) {
   const baseAccommodation = pickNumber(r["money.fareAccommodation"]?.value);
-  const markup = pickNumber(r["money.invoiceItems.MAR"]?.value);
+  const
+ markup = pickNumber(r["money.invoiceItems.MAR"]?.value);
 
   const lengthOfStayDiscount = pickNumber(
     r["money.invoiceItems.LOS"]?.value,
@@ -1175,7 +1159,8 @@ function renderSummaryBoxes() {
   );
 
   totalAccommodation += vrboAccommodationTotal;
-  totalPMC += vrboPmcTotal;
+  totalPMC
+ += vrboPmcTotal;
   totalOwnerPayout = totalAccommodation - totalPMC;
 
   const bookedNightsCount = filteredReservations.reduce((sum, reservation) => {
@@ -1434,7 +1419,8 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
   "NMB - 304B", "NMB - 400A", "NMB - 400B", "NMB - 703-2", "NMB - 705-2", "NMB - 709-2"
 ];
 
-const orderedPropertyNames = Object.keys(propertyGroups).sort((a, b) => {
+const orderedPropertyNames = Object.keys(propertyGroups).sort((a,
+ b) => {
   const ia = PROPERTY_ORDER.indexOf(a);
   const ib = PROPERTY_ORDER.indexOf(b);
   const va = ia === -1 ? PROPERTY_ORDER.length + a.charCodeAt(0) : ia;
@@ -1679,7 +1665,8 @@ const nights = toNumber(reservation.numberOfNights);
 
                   return `
                     <tr>
-                      <td>${reservation.confirmationCode || ""} ${String(reservation.status || "").toLowerCase().includes("cancel") ? '<span style="color:red; font-weight:700;">Cancelled with payout</span>' : ""}</td>
+                      <td>${reservation.confirmationCode || ""} ${String(reservation.status
+ || "").toLowerCase().includes("cancel") ? '<span style="color:red; font-weight:700;">Cancelled with payout</span>' : ""}</td>
                       <td style="text-align:center;">${reservation.platform || ""}</td>
                       <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
                       <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
@@ -1914,7 +1901,8 @@ if (!isDraftView) {
                   <td style="text-align:center;">${formatMoney(ownerPaidByVrbo)}</td>
                   <td style="text-align:center;">${formatMoney(accommodation)}</td>
                   <td style="text-align:center;">${formatMoney(cleaningFee)}</td>
-                  <td style="text-align:center;">${formatMoney(pmc)}</td>
+               
+   <td style="text-align:center;">${formatMoney(pmc)}</td>
                   <td style="text-align:center;">${formatMoney(dueToManagement)}</td>
                 </tr>
               `;
