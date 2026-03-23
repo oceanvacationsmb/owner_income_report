@@ -884,9 +884,23 @@ let calculatedAccommodation = standardAccommodation;
   r.payout
 );
 
-  const numberOfNightsValue = pickNumber(
-    r["numberOfNights"]?.children, r.numberOfNights?.children, r["numberOfNights"]?.value, r.numberOfNights?.value, r.numberOfNights
-  );
+  const numberOfNightsValueRaw = pickNumber(
+  r["numberOfNights"]?.children, r.numberOfNights?.children, r["numberOfNights"]?.value, r.numberOfNights?.value, r.numberOfNights
+);
+
+const checkInValue = r["checkInDate"]?.value || pickDate(r.checkInDate, r.checkIn);
+const checkOutValue = r["checkOutDate"]?.value || pickDate(r.checkOutDate, r.checkOut);
+
+let computedNights = 0;
+{
+  const s = new Date(checkInValue);
+  const e = new Date(checkOutValue);
+  if (!isNaN(s) && !isNaN(e)) {
+    computedNights = Math.max(0, Math.round((e - s) / (1000 * 60 * 60 * 24)));
+  }
+}
+
+const numberOfNightsValue = numberOfNightsValueRaw > 0 ? numberOfNightsValueRaw : computedNights;
 
   const cleaningFareValue = pickNumber(
   r["money.fareCleaning"]?.value,
@@ -900,6 +914,12 @@ let calculatedAccommodation = standardAccommodation;
   r.fareCleaning,
   r.cleaningFee
 );
+  
+
+  const statusValue = String(pickText(r.status, r.reservationStatus, r["STATUS"], r["reservationStatus"]) || "").toLowerCase();
+const isCancelledStatus = statusValue === "cancel" || statusValue === "cancelled" || statusValue === "canceled";
+const hasPayout = totalPayoutValue > 0;
+const effectiveCleaningFare = (isCancelledStatus && hasPayout) ? 0 : cleaningFareValue;
 
   const taxesCombined = pickNumber(
     r["money.fareTaxes"]?.value, r.money?.fareTaxes?.value, r.fareTaxes, r.taxes, r.tax
@@ -967,7 +987,7 @@ const cardFeeToUse =
     : (totalPayoutValue * 0.04);
 
 // source-specific required deductions
-let requiredDeductions = Math.max(0, cleaningFareValue);
+let requiredDeductions = Math.max(0, effectiveCleaningFare);
 
 if (isVrboOrHomeAway) {
   requiredDeductions +=
@@ -1004,7 +1024,7 @@ const draftVrboCommission =
 const draftNetAccommodation = Math.max(
   0,
   grossPayout -
-    Math.max(0, cleaningFareValue) -
+    Math.max(0, effectiveCleaningFare) -
     Math.max(0, taxesCombined) -
     draftVrboCommission +
     Math.max(0, airbnbResolutionCenter) +
@@ -1014,14 +1034,21 @@ const draftNetAccommodation = Math.max(
     return {
     status: pickText(r.status, r.reservationStatus, r["STATUS"], r["reservationStatus"]),
     listingNickname: pickText(r["listing.nickname"], r.listingNickname, r.listing?.nickname, r.listing),
-    platform: pickText(r["integration.platform"], r.platform, r.integration?.platform, r.integration),
-    source: sourceValue,
-    confirmationCode: (pickText(r["confirmationCode"], r.code, r.reservationCode) || "").toUpperCase(),
-    checkIn: r["checkInDate"]?.value || "",
-    checkOut: r["checkOutDate"]?.value || "",
-    numberOfNights: numberOfNightsValue,
-    totalPayout: totalPayoutValue,
-    cleaningFare: cleaningFareValue,
+    platform: (
+  String(sourceValue || "").toUpperCase().includes("MANUAL_DIRECT") ||
+  String(sourceValue || "").toUpperCase().includes("DIRECT_MANUAL")
+)
+  ? "Website (Old)"
+  : (String(sourceValue || "").toUpperCase().includes("MANUAL")
+      ? "Website"
+      : pickText(r["integration.platform"], r.platform, r.integration?.platform, r.integration)),
+source: sourceValue,
+confirmationCode: (pickText(r["confirmationCode"], r.code, r.reservationCode) || "").toUpperCase(),
+checkIn: checkInValue || "",
+checkOut: checkOutValue || "",
+numberOfNights: numberOfNightsValue,
+totalPayout: totalPayoutValue,
+cleaningFare: effectiveCleaningFare,
     accommodationFare: calculatedAccommodation,
     grossPayout,
     draftNetAccommodation,
@@ -1082,38 +1109,46 @@ function renderSummaryBoxes() {
 }, 0);
 
     if (isDraftView) {
+    const draftRows = filteredReservations.filter(res => toNumber(res.grossPayout || res.totalPayout) > 0);
     let grossPayoutTotal = 0;
     let netAccommodationTotal = 0;
     let cleaningFeeTotal = 0;
     let pmcTotal = 0;
+      
 
-    filteredReservations.forEach((res) => {
+    draftRows.forEach((res) => {
       grossPayoutTotal += toNumber(res.grossPayout || res.totalPayout);
       netAccommodationTotal += toNumber(res.draftNetAccommodation);
       cleaningFeeTotal += toNumber(res.cleaningFare);
       pmcTotal += toNumber(res.draftNetAccommodation) * (currentOwner.pmcPercent / 100);
+      let bookedNightsDraft = 0;
+      bookedNightsDraft += toNumber(res.numberOfNights);
     });
 
     summaryBoxes.innerHTML = `
-      <h2 style="text-align:center; width:100%; margin-bottom:12px;">SUMMARY</h2>
-      <div class="summary-box">
-        <div class="summary-label">GROSS PAYOUT (PAYOUT)</div>
-        <div class="summary-value">${formatMoney(grossPayoutTotal)}</div>
-      </div>
-      <div class="summary-box">
-        <div class="summary-label">NET ACCOMMODATION</div>
-        <div class="summary-value">${formatMoney(netAccommodationTotal)}</div>
-      </div>
-      <div class="summary-box">
-        <div class="summary-label">CLEANING FEE</div>
-        <div class="summary-value">${formatMoney(cleaningFeeTotal)}</div>
-      </div>
-      <div class="summary-box">
-        <div class="summary-label">PMC</div>
-        <div class="summary-value">${formatMoney(pmcTotal)}</div>
-      </div>
-    `;
-    return;
+  <h2 style="text-align:center; width:100%; margin-bottom:12px;">SUMMARY</h2>
+  <div class="summary-box">
+    <div class="summary-label">GROSS PAYOUT</div>
+    <div class="summary-value">${formatMoney(grossPayoutTotal)}</div>
+  </div>
+  <div class="summary-box">
+    <div class="summary-label">CLEANING</div>
+    <div class="summary-value">${formatMoney(cleaningFeeTotal)}</div>
+  </div>
+  <div class="summary-box">
+    <div class="summary-label">NET ACCOMMODATION</div>
+    <div class="summary-value">${formatMoney(netAccommodationTotal)}</div>
+  </div>
+  <div class="summary-box">
+    <div class="summary-label">PMC</div>
+    <div class="summary-value">${formatMoney(pmcTotal)}</div>
+  </div>
+  <div class="summary-box">
+    <div class="summary-label">BOOKED NIGHTS</div>
+    <div class="summary-value">${bookedNightsDraft}</div>
+  </div>
+`;
+return;
   }
 
   summaryBoxes.innerHTML = `
@@ -1153,7 +1188,13 @@ if (tbody) {
 const sortedReservations = [...getFilteredReservations()]
   .filter(res => {
     const source = String(res.source || "").toUpperCase();
-    return source !== "MANUAL_VRBO";
+    const payout = toNumber(res.grossPayout || res.totalPayout);
+
+    if (isDraftView) {
+      return payout > 0; // draft only
+    }
+
+    return source !== "MANUAL_VRBO"; // payout unchanged
   })
   .sort((a, b) => {
     return toSortableDate(a.checkIn) - toSortableDate(b.checkIn);
@@ -1168,13 +1209,15 @@ const sortedReservations = [...getFilteredReservations()]
     `;
   } else {
     sortedReservations.forEach(reservation => {
-  const accommodation = isDraftView
-    ? toNumber(reservation.draftNetAccommodation)
-    : toNumber(reservation.accommodationFare);
-  const pmc = accommodation * (currentOwner.pmcPercent / 100);
-  const ownerPayout = accommodation - pmc;
-  const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
-  const nights = toNumber(reservation.numberOfNights);
+ const grossPayout = toNumber(reservation.grossPayout || reservation.totalPayout);
+const cleaning = toNumber(reservation.cleaningFare);
+const accommodation = isDraftView
+  ? toNumber(reservation.draftNetAccommodation)
+  : toNumber(reservation.accommodationFare);
+const pmc = accommodation * (currentOwner.pmcPercent / 100);
+const ownerPayout = accommodation - pmc;
+const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
+const nights = toNumber(reservation.numberOfNights);
 
       tbody.innerHTML += `
         <tr>
@@ -1183,10 +1226,21 @@ const sortedReservations = [...getFilteredReservations()]
           <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
           <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
           <td style="text-align:center;">${nights}</td>
-          <td style="text-align:center;">${formatMoney(accommodation)}</td>
-          <td style="text-align:center;">${formatMoney(pmc)}</td>
-          <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
-          <td style="text-align:center;">${expectedPayoutDate}</td>
+          ${
+  isDraftView
+    ? `
+      <td style="text-align:center;">${formatMoney(grossPayout)}</td>
+      <td style="text-align:center;">${formatMoney(cleaning)}</td>
+      <td style="text-align:center;">${formatMoney(accommodation)}</td>
+      <td style="text-align:center;">${formatMoney(pmc)}</td>
+    `
+    : `
+      <td style="text-align:center;">${formatMoney(accommodation)}</td>
+      <td style="text-align:center;">${formatMoney(pmc)}</td>
+      <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
+      <td style="text-align:center;">${expectedPayoutDate}</td>
+    `
+}
         </tr>
       `;
     });
@@ -1263,20 +1317,27 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
     return toSortableDate(a.checkIn) - toSortableDate(b.checkIn);
   });
 
-      let propertyAccommodation = 0;
-      let propertyPmc = 0;
-      let propertyOwnerPayout = 0;
+      let propertyGrossPayout = 0;
+let propertyCleaning = 0;
+let propertyAccommodation = 0;
+let propertyPmc = 0;
+let propertyOwnerPayout = 0;
 
-      rows.forEach(reservation => {
+rows.forEach(reservation => {
+  const gross = toNumber(reservation.grossPayout || reservation.totalPayout);
+  const cleaning = toNumber(reservation.cleaningFare);
   const accommodation = isDraftView
     ? toNumber(reservation.draftNetAccommodation)
     : toNumber(reservation.accommodationFare);
   const pmc = accommodation * (currentOwner.pmcPercent / 100);
   const ownerPayout = accommodation - pmc;
-        propertyAccommodation += accommodation;
-        propertyPmc += pmc;
-        propertyOwnerPayout += ownerPayout;
-      });
+
+  propertyGrossPayout += gross;
+  propertyCleaning += cleaning;
+  propertyAccommodation += accommodation;
+  propertyPmc += pmc;
+  propertyOwnerPayout += ownerPayout;
+});
 
       const propertyBookedNights = (() => {
         const bookedMap = {};
@@ -1310,23 +1371,50 @@ if (showCalendarBtn && showCalendarBtn.parentNode) {
 
           <h3 style="text-align:center; width:100%; margin:0 0 12px 0;">SUMMARY PER PROPERTY</h3>
 <div style="display:flex; justify-content:center; gap:18px; flex-wrap:wrap; margin-bottom:14px;">
-  <div class="summary-box">
-    <div class="summary-label">Accommodation</div>
-              <div class="summary-value">${formatMoney(propertyAccommodation)}</div>
-            </div>
-            <div class="summary-box">
-              <div class="summary-label">PMC</div>
-              <div class="summary-value">${formatMoney(propertyPmc)}</div>
-            </div>
-            <div class="summary-box">
-              <div class="summary-label">Owner Payout</div>
-              <div class="summary-value">${formatMoney(propertyOwnerPayout)}</div>
-            </div>
-            <div class="summary-box">
-              <div class="summary-label">Booked Nights</div>
-              <div class="summary-value">${propertyBookedNights}</div>
-            </div>
-          </div>
+  ${
+    isDraftView
+      ? `
+        <div class="summary-box">
+          <div class="summary-label">GROSS PAYOUT</div>
+          <div class="summary-value">${formatMoney(propertyGrossPayout)}</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-label">CLEANING</div>
+          <div class="summary-value">${formatMoney(propertyCleaning)}</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-label">NET ACCOMMODATION</div>
+          <div class="summary-value">${formatMoney(propertyAccommodation)}</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-label">PMC</div>
+          <div class="summary-value">${formatMoney(propertyPmc)}</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-label">BOOKED NIGHTS</div>
+          <div class="summary-value">${propertyBookedNights}</div>
+        </div>
+      `
+      : `
+        <div class="summary-box">
+          <div class="summary-label">Accommodation</div>
+          <div class="summary-value">${formatMoney(propertyAccommodation)}</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-label">PMC</div>
+          <div class="summary-value">${formatMoney(propertyPmc)}</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-label">Owner Payout</div>
+          <div class="summary-value">${formatMoney(propertyOwnerPayout)}</div>
+        </div>
+        <div class="summary-box">
+          <div class="summary-label">Booked Nights</div>
+          <div class="summary-value">${propertyBookedNights}</div>
+        </div>
+      `
+  }
+</div>
 
           <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
             <button id="${openBtnId}" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; background:#2f78b7; color:#fff; font-weight:700; cursor:pointer;">
@@ -1340,25 +1428,47 @@ ${isDraftView ? `<button class="toggle-reservations-btn" data-target="prop-table
           <div class="table-wrap">
             <table>
               <thead>
-                <tr>
-                  <th style="text-align:center;">Code</th>
-                  <th style="text-align:center;">Platform</th>
-                  <th style="text-align:center;">Check In</th>
-                  <th style="text-align:center;">Check Out</th>
-                  <th style="text-align:center;">Nights</th>
-                  <th style="text-align:center;">Accommodation</th>
-                  <th style="text-align:center;">PMC</th>
-                  <th style="text-align:center;">Owner Payout</th>
-                  <th style="text-align:center;">Expected Payout</th>
-                </tr>
+               ${
+  isDraftView
+    ? `
+      <tr>
+        <th style="text-align:center;">Code</th>
+        <th style="text-align:center;">Platform</th>
+        <th style="text-align:center;">Check-In</th>
+        <th style="text-align:center;">Check-Out</th>
+        <th style="text-align:center;">Nights</th>
+        <th style="text-align:center;">GROSS PAYOUT</th>
+        <th style="text-align:center;">CLEANING</th>
+        <th style="text-align:center;">NET ACCOMMODATION</th>
+        <th style="text-align:center;">PMC</th>
+      </tr>
+    `
+    : `
+      <tr>
+        <th style="text-align:center;">Code</th>
+        <th style="text-align:center;">Platform</th>
+        <th style="text-align:center;">Check In</th>
+        <th style="text-align:center;">Check Out</th>
+        <th style="text-align:center;">Nights</th>
+        <th style="text-align:center;">Accommodation</th>
+        <th style="text-align:center;">PMC</th>
+        <th style="text-align:center;">Owner Payout</th>
+        <th style="text-align:center;">Expected Payout</th>
+      </tr>
+    `
+}
               </thead>
               <tbody>
                 ${rows.map(reservation => {
-                  const accommodation = toNumber(reservation.accommodationFare);
-                  const pmc = accommodation * (currentOwner.pmcPercent / 100);
-                  const ownerPayout = accommodation - pmc;
-                  const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
-                  const nights = toNumber(reservation.numberOfNights);
+                  const grossPayout = toNumber(reservation.grossPayout || reservation.totalPayout);
+const cleaning = toNumber(reservation.cleaningFare);
+const accommodation = isDraftView
+  ? toNumber(reservation.draftNetAccommodation)
+  : toNumber(reservation.accommodationFare);
+const pmc = accommodation * (currentOwner.pmcPercent / 100);
+const ownerPayout = accommodation - pmc;
+const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
+const nights = toNumber(reservation.numberOfNights);
 
                   return `
                     <tr>
@@ -1367,10 +1477,21 @@ ${isDraftView ? `<button class="toggle-reservations-btn" data-target="prop-table
                       <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
                       <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
                       <td style="text-align:center;">${nights}</td>
-                      <td style="text-align:center;">${formatMoney(accommodation)}</td>
-                      <td style="text-align:center;">${formatMoney(pmc)}</td>
-                      <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
-                      <td style="text-align:center;">${expectedPayoutDate}</td>
+                      ${
+  isDraftView
+    ? `
+      <td style="text-align:center;">${formatMoney(grossPayout)}</td>
+      <td style="text-align:center;">${formatMoney(cleaning)}</td>
+      <td style="text-align:center;">${formatMoney(accommodation)}</td>
+      <td style="text-align:center;">${formatMoney(pmc)}</td>
+    `
+    : `
+      <td style="text-align:center;">${formatMoney(accommodation)}</td>
+      <td style="text-align:center;">${formatMoney(pmc)}</td>
+      <td style="text-align:center;">${formatMoney(ownerPayout)}</td>
+      <td style="text-align:center;">${expectedPayoutDate}</td>
+    `
+}
                     </tr>
                   `;
                 }).join("")}
@@ -1528,7 +1649,7 @@ document.querySelectorAll(".toggle-reservations-btn").forEach((btn) => {
 
   container.appendChild(ownerTable);
 }
-
+if (!isDraftView) {
   const vrboManualRows = getFilteredReservations().filter(res => {
   const source = String(res.source || "").toUpperCase();
   const payout = toNumber(res.totalPayout);
