@@ -931,12 +931,29 @@ const hasPayout = totalPayoutValue > 0;
 const effectiveCleaningFare = (isCancelledStatus && hasPayout) ? 0 : cleaningFareValue;
 
   const taxesCombined = pickNumber(
-    r["money.fareTaxes"]?.value, r.money?.fareTaxes?.value, r.fareTaxes, r.taxes, r.tax
-  );
+  r["money.fareTaxes"]?.value, r.money?.fareTaxes?.value, r.fareTaxes, r.taxes, r.tax
+);
 
-  const airbnbResolutionCenter = pickNumber(
-    r["money.invoiceItems.ARC"]?.value, r["money.invoiceItems.ARC"]?.amount, r.airbnbResolutionCenter, r.resolutionCenter
-  );
+const detailedTaxesCombined =
+  pickNumber(r["money.invoiceItems.CITY_TAX"]?.value, r.money?.invoiceItems?.CITY_TAX?.value) +
+  pickNumber(r["money.invoiceItems.STATE_TAX"]?.value, r.money?.invoiceItems?.STATE_TAX?.value) +
+  pickNumber(r["money.invoiceItems.COUNTY_TAX"]?.value, r.money?.invoiceItems?.COUNTY_TAX?.value) +
+  pickNumber(r["money.invoiceItems.OCCUPANCY_TAX"]?.value, r.money?.invoiceItems?.OCCUPANCY_TAX?.value) +
+  pickNumber(r["taxCounty"]?.value, r.taxCounty?.value, r.taxCounty) +
+  pickNumber(r["taxOccupancy"]?.value, r.taxOccupancy?.value, r.taxOccupancy);
+
+const allTaxesCombined = Math.max(0, taxesCombined, detailedTaxesCombined);
+
+const airbnbResolutionCenter = pickNumber(
+  r["money.invoiceItems.ARC"]?.value,
+  r["money.invoiceItems.Arc"]?.value,
+  r.money?.invoiceItems?.ARC?.value,
+  r.money?.invoiceItems?.Arc?.value,
+  r["money.invoiceItems.ARC"]?.amount,
+  r["money.invoiceItems.Arc"]?.amount,
+  r.airbnbResolutionCenter,
+  r.resolutionCenter
+);
 
 const platformUpper = String(
   pickText(r["integration.platform"], r.platform, r.integration?.platform) || ""
@@ -1041,7 +1058,7 @@ const draftNetAccommodation = Math.max(
     Math.max(0, effectiveCleaningFare) -
     homeAwayChannelCommission -
     Math.max(0, airbnbResolutionCenter) -
-    Math.max(0, taxesCombined)
+    Math.max(0, allTaxesCombined)
 );
 
     return {
