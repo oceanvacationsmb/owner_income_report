@@ -160,7 +160,7 @@ const OWNERS = {
     pmcPercent: 0,
     guestyApiKey: "ada6fa4f86889add1196b0151fec4b77949586b9c1c7459c2bfd05cfab466f34d72197d1bd5beaeefb8ad2295dedb1b60d6c8de7a45985c85623ffdfb22b36a6",
     cleaningFee: 0,
-    viewMode: "draft"
+    viewMode: "draft",
     admin: true
   },
 };
