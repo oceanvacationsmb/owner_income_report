@@ -17,11 +17,12 @@ body {
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 4px 24px 0 rgb(60 60 120 / 15%);
-  padding: 48px 36px 32px 36px;
+  padding: 64px 48px 48px 48px;
   display: flex;
   flex-direction: column;
-  min-width: 340px;
-  max-width: 100vw;
+  min-width: 380px;
+  max-width: 420px;
+  width: 100%;
 }
 .login-header {
   font-size: 2rem;
