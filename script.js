@@ -65,7 +65,7 @@ const OWNERS = {
     postalCode: "29575",
     pmcPercent: 12,
     guestyApiKey: "d6ab951850fef54399e2206f36f4e79fb1b425a8e5c891076036b11f50da8870613a226021487307c8c5f51eae997a08dd7e112d013ef683728ad1d9220ee0b7",
-    cleaningFee: 350,
+    cleaningFee: 325,
     viewMode: "payout"
   },
   "adahabani@gmail.com": {
