@@ -159,7 +159,7 @@ const OWNERS = {
     guestyApiKey: "22265c7b0f6a3a9ec499fe6571adaccc43bda8300ac343b0964ed4b0594856f376ef2593f8519135bf9d31be6c887e9fb68dd10cbfc8c0efe47ce2c91f626213",
     cleaningFee: 200,
     viewMode: "payout"
-  }
+  },
    "oceanvacationsmb@gmail.com: {
     password: "Ocean123++",
     ownerName: "Ocean Vacations",
