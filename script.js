@@ -1380,7 +1380,9 @@ let propertyOwnerPayout = 0;
 
 rows.forEach(reservation => {
   const gross = toNumber(reservation.grossPayout || reservation.totalPayout);
-  const cleaning = toNumber(reservation.cleaningFare);
+  const cleaning = isDraftView
+  ? toNumber(reservation.draftCleaningFare ?? reservation.cleaningFare)
+  : toNumber(reservation.cleaningFare);
   const accommodation = isDraftView
     ? toNumber(reservation.draftNetAccommodation)
     : toNumber(reservation.accommodationFare);
