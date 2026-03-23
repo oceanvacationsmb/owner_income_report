@@ -929,6 +929,7 @@ const numberOfNightsValue = numberOfNightsValueRaw > 0 ? numberOfNightsValueRaw 
 const isCancelledStatus = statusValue === "cancel" || statusValue === "cancelled" || statusValue === "canceled";
 const hasPayout = totalPayoutValue > 0;
 const effectiveCleaningFare = (isCancelledStatus && hasPayout) ? 0 : cleaningFareValue;
+  const draftCleaningFare = Math.min(500, Math.max(0, effectiveCleaningFare));
 
   const taxesCombined = pickNumber(
   r["money.fareTaxes"]?.value, r.money?.fareTaxes?.value, r.fareTaxes, r.taxes, r.tax
@@ -1054,7 +1055,7 @@ const homeAwayChannelCommission =
 const draftNetAccommodation = Math.max(
   0,
   grossPayout -
-    Math.max(0, effectiveCleaningFare) -
+    Math.max(0, draftCleaningFare)
     Math.max(0, allTaxesCombined) -
     Math.max(0, airbnbResolutionCenter) +
     Math.max(0, lengthOfStayDiscount)
@@ -1078,7 +1079,8 @@ checkOut: checkOutValue || "",
 numberOfNights: numberOfNightsValue,
 totalPayout: totalPayoutValue,
 cleaningFare: effectiveCleaningFare,
-    accommodationFare: calculatedAccommodation,
+draftCleaningFare: draftCleaningFare,
+accommodationFare: calculatedAccommodation,
     grossPayout,
     draftNetAccommodation,
     baseAccommodation,
@@ -1148,7 +1150,7 @@ function renderSummaryBoxes() {
     draftRows.forEach((res) => {
       grossPayoutTotal += toNumber(res.grossPayout || res.totalPayout);
       netAccommodationTotal += toNumber(res.draftNetAccommodation);
-      cleaningFeeTotal += toNumber(res.cleaningFare);
+      cleaningFeeTotal += toNumber(res.draftCleaningFare ?? res.cleaningFare);
       pmcTotal += toNumber(res.draftNetAccommodation) * (currentOwner.pmcPercent / 100);
       bookedNightsDraft += toNumber(res.numberOfNights);
     });
@@ -1238,7 +1240,9 @@ const sortedReservations = [...getFilteredReservations()]
   } else {
     sortedReservations.forEach(reservation => {
  const grossPayout = toNumber(reservation.grossPayout || reservation.totalPayout);
-const cleaning = toNumber(reservation.cleaningFare);
+const cleaning = isDraftView
+  ? toNumber(reservation.draftCleaningFare ?? reservation.cleaningFare)
+  : toNumber(reservation.cleaningFare);
 const accommodation = isDraftView
   ? toNumber(reservation.draftNetAccommodation)
   : toNumber(reservation.accommodationFare);
@@ -1489,7 +1493,9 @@ ${isDraftView ? `<button class="toggle-reservations-btn" data-target="prop-table
               <tbody>
                 ${rows.map(reservation => {
                   const grossPayout = toNumber(reservation.grossPayout || reservation.totalPayout);
-const cleaning = toNumber(reservation.cleaningFare);
+const cleaning = isDraftView
+  ? toNumber(reservation.draftCleaningFare ?? reservation.cleaningFare)
+  : toNumber(reservation.cleaningFare);
 const accommodation = isDraftView
   ? toNumber(reservation.draftNetAccommodation)
   : toNumber(reservation.accommodationFare);
