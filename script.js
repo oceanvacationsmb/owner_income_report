@@ -987,6 +987,13 @@ function toNumber(v) {
   return Number(String(v || 0).replace(/[$,]/g, "").trim()) || 0;
 }
 
+function hasDraftFinancialValue(reservation) {
+  const gross = toNumber(reservation.grossPayout || reservation.totalPayout);
+  const net = toNumber(reservation.draftNetAccommodation);
+  const accommodation = toNumber(reservation.accommodationFare);
+  return gross > 0 || net > 0 || accommodation > 0;
+}
+
 function formatDateDisplay(dateStr) {
   if (!dateStr) return "";
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
@@ -1860,7 +1867,7 @@ function renderSummaryBoxes() {
   }, 0);
 
   if (isDraftView) {
-    const draftRows = filteredReservations.filter(res => toNumber(res.grossPayout || res.totalPayout) > 0);
+    const draftRows = filteredReservations.filter(res => hasDraftFinancialValue(res));
     let grossPayoutTotal = 0;
     let netAccommodationTotal = 0;
     let cleaningFeeTotal = 0;
@@ -1971,10 +1978,9 @@ if (tbody) {
 const sortedReservations = [...getFilteredReservations()]
   .filter(res => {
     const source = String(res.source || "").toUpperCase();
-    const payout = toNumber(res.grossPayout || res.totalPayout);
 
     if (isDraftView) {
-      return payout > 0; // draft only
+      return hasDraftFinancialValue(res); // draft/report should not hide valid rows when gross payout field is missing
     }
 
     return source !== "MANUAL_VRBO"; // payout unchanged
