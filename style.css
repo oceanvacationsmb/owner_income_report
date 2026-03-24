@@ -125,8 +125,69 @@ tr:last-child td { border-bottom: none; }
   box-shadow: 0 2px 8px 0 rgb(100 100 125 / 10%);
   text-align:center;
 }
-.summary-label { font-size: .98em; color:#3282b8; }
+.summary-label {
+  font-size: .98em;
+  color:#3282b8;
+  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
 .summary-value { font-size: 1.25em; font-weight: 700; margin-top: 8px;}
+
+.table-wrap thead th {
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+#topCalendarBox #reportFiltersWrap {
+  margin: 10px 0 0 0 !important;
+  justify-content: center;
+  gap: 10px;
+}
+
+#topCalendarBox #reportFiltersWrap > div {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+#showCalendarBtn {
+  width: 52px;
+  height: 44px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+#showCalendarBtn.calendar-btn-active {
+  background: #2f78b7;
+  color: #fff;
+}
+
+#reportLoadingBar {
+  width: min(1000px, calc(100% - 24px));
+  margin: 14px auto 10px;
+  background: #e8eef6;
+  border-radius: 999px;
+  overflow: hidden;
+  height: 8px;
+}
+
+.report-loader-line {
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, #2f78b7 0%, #7ab0dd 100%);
+  border-radius: 999px;
+  animation: loading-slide 1s ease-in-out infinite;
+}
+
+@keyframes loading-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(260%); }
+}
 
 #showCalendarBtn,
 #calendarPrevBtn,
@@ -191,7 +252,7 @@ tr:last-child td { border-bottom: none; }
 }
 
 @media (max-width:600px) {
-  .login-inner { min-width:99vw; border-radius:0; padding: 24px 8px;}
+  .login-inner { min-width:94vw; width:94vw; border-radius:16px; padding: 34px 18px;}
   .container { padding:12px 10px;}
   table { font-size: .93em;}
   .summary-box { min-width:100px;}
@@ -404,7 +465,7 @@ tr:last-child td { border-bottom: none; }
   }
 
   .login-header {
-    font-size: 28px !important;
+    font-size: 34px !important;
     line-height: 1.2 !important;
   }
 
@@ -416,6 +477,17 @@ tr:last-child td { border-bottom: none; }
   .login-btn {
     width: 100% !important;
     box-sizing: border-box;
-    font-size: 16px !important;
+    font-size: 19px !important;
+    min-height: 54px;
+  }
+
+  #topCalendarBox {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  #topCalendarBox #reportFiltersWrap {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

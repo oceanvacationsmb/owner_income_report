@@ -27,6 +27,8 @@ document.getElementById("loginBox").style.display = "none";
   document.getElementById("ownerPortal").style.display = "";
   loginStatus.innerText = "";
 
+  configureHeaderLayoutByMode();
+
 if (currentOwner && currentOwner.admin) {
   window.adminActiveTab = "daily";
 } else {
@@ -175,6 +177,7 @@ let reservationsData = [];
 let ownerStaysData = [];
 let calendarCurrentDate = new Date();
 let calendarResizeBound = false;
+let isLoadingReport = false;
 
 let filterYear = String(new Date().getFullYear());
 let filterMonth = "all";
@@ -228,8 +231,11 @@ function getUniqueYearsFromData() {
 }
 
 function renderFilterControls() {
+  if (isLoadingReport) return;
+
   const summaryBoxes = document.getElementById("summaryBoxes");
-  if (!summaryBoxes) return;
+  const topCalendarBox = document.getElementById("topCalendarBox");
+  if (!summaryBoxes && !topCalendarBox) return;
 
   
 
@@ -242,7 +248,20 @@ function renderFilterControls() {
     wrap.style.gap = "12px";
     wrap.style.margin = "12px 0 18px 0";
     wrap.style.flexWrap = "wrap";
+    wrap.style.alignItems = "center";
+  }
+
+  const ownerPortal = document.getElementById("ownerPortal");
+  const adminTopButtons = document.getElementById("adminTopButtons") || document.getElementById("draftViewModeToggle");
+
+  if (currentOwner && currentOwner.admin && adminTopButtons && adminTopButtons.parentNode) {
+    adminTopButtons.insertAdjacentElement("afterend", wrap);
+  } else if (!isDraftView && topCalendarBox) {
+    topCalendarBox.appendChild(wrap);
+  } else if (summaryBoxes && summaryBoxes.parentNode) {
     summaryBoxes.parentNode.insertBefore(wrap, summaryBoxes);
+  } else if (ownerPortal) {
+    ownerPortal.appendChild(wrap);
   }
 
   const years = getUniqueYearsFromData();
@@ -264,16 +283,16 @@ function renderFilterControls() {
 
   wrap.innerHTML = `
     <div style="display:flex; gap:8px; align-items:center;">
+      <label for="monthFilterSelect" style="font-weight:700;">Month</label>
+      <select id="monthFilterSelect" style="padding:6px 8px; border-radius:8px;">
+        ${monthOptions.map(m => `<option value="${m.v}">${m.t}</option>`).join("")}
+      </select>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
       <label for="yearFilterSelect" style="font-weight:700;">Year</label>
       <select id="yearFilterSelect" style="padding:6px 8px; border-radius:8px;">
         <option value="all">All Years</option>
         ${years.map(y => `<option value="${y}">${y}</option>`).join("")}
-      </select>
-    </div>
-    <div style="display:flex; gap:8px; align-items:center;">
-      <label for="monthFilterSelect" style="font-weight:700;">Month</label>
-      <select id="monthFilterSelect" style="padding:6px 8px; border-radius:8px;">
-        ${monthOptions.map(m => `<option value="${m.v}">${m.t}</option>`).join("")}
       </select>
     </div>
   `;
@@ -296,10 +315,47 @@ function renderFilterControls() {
 }
 
 function applyFiltersAndRender() {
+  if (isLoadingReport) return;
   renderSummaryBoxes();
   renderReservationsTable();
+  renderFilterControls();
   setupCalendarButtons();
   refreshCalendarUI();
+}
+
+function setReportLoadingState(isLoading) {
+  isLoadingReport = isLoading;
+
+  const summaryBoxes = document.getElementById("summaryBoxes");
+  const reservationsBody = document.getElementById("reservationsBody");
+  const reservationsTitle = document.getElementById("reservationsTitle");
+  const ownerPortal = document.getElementById("ownerPortal");
+
+  let loadingBar = document.getElementById("reportLoadingBar");
+  if (isLoading) {
+    if (!loadingBar) {
+      loadingBar = document.createElement("div");
+      loadingBar.id = "reportLoadingBar";
+      loadingBar.innerHTML = '<div class="report-loader-line"></div>';
+      const target = summaryBoxes?.parentNode || ownerPortal;
+      if (target) {
+        target.insertBefore(loadingBar, summaryBoxes || target.firstChild);
+      }
+    }
+
+    if (summaryBoxes) summaryBoxes.style.display = "none";
+    if (reservationsBody && reservationsBody.closest("table")) {
+      reservationsBody.closest("table").style.display = "none";
+    }
+    if (reservationsTitle) reservationsTitle.style.display = "none";
+  } else {
+    if (loadingBar) loadingBar.remove();
+    if (summaryBoxes) summaryBoxes.style.display = "flex";
+    if (reservationsBody && reservationsBody.closest("table")) {
+      reservationsBody.closest("table").style.display = "table";
+    }
+    if (reservationsTitle && !(currentOwner && currentOwner.admin)) reservationsTitle.style.display = "";
+  }
 }
 
 // === EMAILJS CONFIGURATION ===
@@ -735,6 +791,12 @@ function setupCalendarButtons() {
   const panel = document.getElementById("calendarPanel");
   const summary = document.getElementById("calendarToggleSummary");
 
+  if (expandBtn) {
+    expandBtn.innerHTML = '<span aria-hidden="true">&#128197;</span>';
+    expandBtn.title = "Open calendar";
+    expandBtn.setAttribute("aria-label", "Toggle calendar");
+  }
+
   if (prevBtn && !prevBtn.dataset.bound) {
     prevBtn.dataset.bound = "1";
     prevBtn.onclick = function () {
@@ -757,7 +819,7 @@ function setupCalendarButtons() {
       if (!panel) return;
       const opening = panel.style.display === "none" || !panel.style.display;
       panel.style.display = opening ? "block" : "none";
-      expandBtn.innerText = opening ? "Hide Calendar" : "Show Calendar";
+      expandBtn.classList.toggle("calendar-btn-active", opening);
       if (opening) {
         renderCalendar("calendarGrid", "calendarMonthLabel", "calendarBookedNights", calendarCurrentDate, false);
       }
@@ -790,6 +852,33 @@ function refreshCalendarUI() {
   }
 }
 
+function configureHeaderLayoutByMode() {
+  const greetingContainer = document.getElementById("greetingContainer");
+  const topCalendarBox = document.getElementById("topCalendarBox");
+  const calendarPanel = document.getElementById("calendarPanel");
+  const calendarSummary = document.getElementById("calendarToggleSummary");
+  const reportFiltersWrap = document.getElementById("reportFiltersWrap");
+
+  if (!greetingContainer) return;
+
+  if (currentOwner && currentOwner.admin) {
+    greetingContainer.style.display = "none";
+    if (reportFiltersWrap) reportFiltersWrap.style.margin = "8px 0 16px 0";
+    return;
+  }
+
+  greetingContainer.style.display = "";
+
+  if (isDraftView) {
+    if (topCalendarBox) topCalendarBox.style.display = "none";
+    if (calendarPanel) calendarPanel.style.display = "none";
+    if (calendarSummary) calendarSummary.style.display = "none";
+  } else {
+    if (topCalendarBox) topCalendarBox.style.display = "";
+    if (calendarSummary) calendarSummary.style.display = "";
+  }
+}
+
 function getTimeBasedGreeting() {
   const hour = new Date().getHours();
   if (hour < 12) return "Good morning";
@@ -800,9 +889,16 @@ function getTimeBasedGreeting() {
 function renderDashboardHeader() {
   const greeting = document.getElementById("greeting");
   const propertyAddress = document.getElementById("propertyAddress");
-  if (greeting && currentOwner && !currentOwner.admin) greeting.innerText = getTimeBasedGreeting() + " " + currentOwner.ownerName;
-  if (propertyAddress && currentOwner && !currentOwner.admin) propertyAddress.innerText = currentOwner.propertyName || "";
-  if (currentOwner && !currentOwner.admin) renderWeather(currentOwner.postalCode);
+  if (greeting && currentOwner && !currentOwner.admin) {
+    greeting.innerText = getTimeBasedGreeting() + " " + currentOwner.ownerName;
+  }
+  if (propertyAddress && currentOwner && !currentOwner.admin) {
+    propertyAddress.innerText = currentOwner.propertyName || "";
+  }
+  if (currentOwner && !currentOwner.admin) {
+    renderWeather(currentOwner.postalCode);
+  }
+  configureHeaderLayoutByMode();
 }
 
 function renderWeather(zip) {
@@ -1129,8 +1225,15 @@ accommodationFare: calculatedAccommodation,
 
 function renderSummaryBoxes() {
   const summaryBoxes = document.getElementById("summaryBoxes");
-  if (!summaryBoxes || !currentOwner || currentOwner.admin) return;
-  renderFilterControls();  // ← ADD THIS LINE HERE
+  if (!summaryBoxes || !currentOwner) return;
+  renderFilterControls();
+  if (currentOwner.admin) {
+    summaryBoxes.innerHTML = "";
+    summaryBoxes.style.display = "none";
+    return;
+  }
+
+  summaryBoxes.style.display = "flex";
   const filteredReservations = getFilteredReservations();
   const filteredOwnerStays = getFilteredOwnerStays();
 
@@ -1248,6 +1351,40 @@ function renderSummaryBoxes() {
 
 function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
+  const reservationsTitle = document.getElementById("reservationsTitle");
+  if (reservationsTitle) {
+    reservationsTitle.style.display = (currentOwner && currentOwner.admin) ? "none" : "";
+  }
+  const baseTable = tbody ? tbody.closest("table") : null;
+  const baseHeadRow = baseTable ? baseTable.querySelector("thead tr") : null;
+
+  if (baseHeadRow) {
+    baseHeadRow.innerHTML = isDraftView
+      ? `
+          <th style="text-align:center;">Code</th>
+          <th style="text-align:center;">Platform</th>
+          <th style="text-align:center;">Check-In</th>
+          <th style="text-align:center;">Check-Out</th>
+          <th style="text-align:center;">Nights</th>
+          <th style="text-align:center;">Gross Payout</th>
+          <th style="text-align:center;">Cleaning</th>
+          <th style="text-align:center;">Net Accommodation</th>
+          <th style="text-align:center;">PMC</th>
+        `
+      : `
+          <th style="text-align:center;">Code</th>
+          <th style="text-align:center;">Guest Name</th>
+          <th style="text-align:center;">Platform</th>
+          <th style="text-align:center;">Check In</th>
+          <th style="text-align:center;">Check Out</th>
+          <th style="text-align:center;">Nights</th>
+          <th style="text-align:center;">Accommodation</th>
+          <th style="text-align:center;">PMC</th>
+          <th style="text-align:center;">Owner Payout</th>
+          <th style="text-align:center;">Expected Payout</th>
+        `;
+  }
+
 if (tbody) {
   tbody.innerHTML = "";
 }
@@ -1268,9 +1405,10 @@ const sortedReservations = [...getFilteredReservations()]
   
   if (tbody) {
   if (!sortedReservations.length) {
+    const emptyCols = isDraftView ? 9 : 10;
     tbody.innerHTML = `
       <tr>
-        <td colspan="9" style="text-align:center;">No reservations found</td>
+        <td colspan="${emptyCols}" style="text-align:center;">No reservations found</td>
       </tr>
     `;
   } else {
@@ -1290,6 +1428,7 @@ const nights = toNumber(reservation.numberOfNights);
       tbody.innerHTML += `
         <tr>
           <td>${reservation.confirmationCode || ""} ${String(reservation.status || "").toLowerCase().includes("cancel") ? '<span style="color:red; font-weight:700;">Cancelled with payout</span>' : ""}</td>
+          ${isDraftView ? "" : `<td style="text-align:center;">${reservation.guestName || ""}</td>`}
           <td style="text-align:center;">${reservation.platform || ""}</td>
           <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
           <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
@@ -1387,8 +1526,71 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
   dailyPage.style.background = "#fff";
   dailyPage.style.border = "1px solid #e1e6ef";
   dailyPage.style.borderRadius = "12px";
-  dailyPage.style.textAlign = "center";
-  dailyPage.innerHTML = "<h2 style='margin:0;'>DAILY OPERATION</h2>";
+  dailyPage.style.textAlign = "left";
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const rangeDays = 14;
+  const byDate = {};
+
+  const addEvent = (dateStr, type, item) => {
+    if (!dateStr) return;
+    const d = parseLocalDate(String(dateStr).slice(0, 10));
+    if (!d) return;
+    if (d < today) return;
+    const daysOut = Math.floor((d - today) / (1000 * 60 * 60 * 24));
+    if (daysOut > rangeDays) return;
+    const key = toDateKey(d);
+    if (!byDate[key]) byDate[key] = { checkIn: [], checkOut: [] };
+    byDate[key][type].push(item);
+  };
+
+  getFilteredReservations().forEach(r => {
+    addEvent(r.checkIn, "checkIn", r);
+    addEvent(r.checkOut, "checkOut", r);
+  });
+
+  const dateKeys = Object.keys(byDate).sort();
+  const todayKey = toDateKey(today);
+  const todayData = byDate[todayKey] || { checkIn: [], checkOut: [] };
+
+  dailyPage.innerHTML = `
+    <h2 style="margin:0 0 14px 0; text-align:center;">DAILY OPERATION</h2>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin-bottom:18px;">
+      <div class="summary-box" style="margin:0;">
+        <div class="summary-label">TODAY CHECK-INS</div>
+        <div class="summary-value">${todayData.checkIn.length}</div>
+      </div>
+      <div class="summary-box" style="margin:0;">
+        <div class="summary-label">TODAY CHECK-OUTS</div>
+        <div class="summary-value">${todayData.checkOut.length}</div>
+      </div>
+    </div>
+    <h3 style="margin:0 0 10px 0;">Live Calendar (Next ${rangeDays} Days)</h3>
+    <div class="table-wrap" style="margin-bottom:0;">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:center;">Date</th>
+            <th style="text-align:center;">Check-Ins</th>
+            <th style="text-align:center;">Check-Outs</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${dateKeys.length ? dateKeys.map(key => {
+            const item = byDate[key];
+            return `
+              <tr>
+                <td style="text-align:center;">${formatDateDisplay(key)}</td>
+                <td style="text-align:center;">${item.checkIn.length ? item.checkIn.map(r => `${r.listingNickname || "Property"} (${r.guestName || "Guest"})`).join("<br>") : "-"}</td>
+                <td style="text-align:center;">${item.checkOut.length ? item.checkOut.map(r => `${r.listingNickname || "Property"} (${r.guestName || "Guest"})`).join("<br>") : "-"}</td>
+              </tr>
+            `;
+          }).join("") : '<tr><td colspan="3" style="text-align:center;">No upcoming check-ins or check-outs.</td></tr>'}
+        </tbody>
+      </table>
+    </div>
+  `;
 
   if (ownerPortal) ownerPortal.appendChild(dailyPage);
  
@@ -1535,7 +1737,7 @@ const orderedPropertyNames = Object.keys(propertyGroups).sort((a,
 
    if (isDraftView && draftMultiPropertyViewMode === "smart") {
   propertyWrap.innerHTML = `
-    <h3 class="section-title" style="text-align:center; margin:18px 0 10px 0;">SMART VIEW</h3>
+      ${currentOwner && currentOwner.admin ? "" : '<h3 class="section-title" style="text-align:center; margin:18px 0 10px 0;">SMART VIEW</h3>'}
     <div class="table-wrap">
       <table>
         <thead>
@@ -1712,8 +1914,8 @@ rows.forEach(reservation => {
 
           ${isDraftView && draftMultiPropertyViewMode !== "extended" ? "" : `
 <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-  <button id="${openBtnId}" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; background:#2f78b7; color:#fff; font-weight:700; cursor:pointer;">
-    Show Calendar
+  <button id="${openBtnId}" aria-label="Open calendar" title="Open calendar" style="width:44px; height:36px; border-radius:8px; border:1px solid #2f78b7; background:#2f78b7; color:#fff; font-weight:700; cursor:pointer;">
+    &#128197;
   </button>
 </div>
 `}
@@ -1742,6 +1944,7 @@ ${isDraftView && draftMultiPropertyViewMode === "extended" ? `<button class="tog
     : `
       <tr>
         <th style="text-align:center;">Code</th>
+        <th style="text-align:center;">Guest Name</th>
         <th style="text-align:center;">Platform</th>
         <th style="text-align:center;">Check In</th>
         <th style="text-align:center;">Check Out</th>
@@ -1772,6 +1975,7 @@ const nights = toNumber(reservation.numberOfNights);
                     <tr>
                       <td>${reservation.confirmationCode || ""} ${String(reservation.status
  || "").toLowerCase().includes("cancel") ? '<span style="color:red; font-weight:700;">Cancelled with payout</span>' : ""}</td>
+                      ${isDraftView ? "" : `<td style="text-align:center;">${reservation.guestName || ""}</td>`}
                       <td style="text-align:center;">${reservation.platform || ""}</td>
                       <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
                       <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
@@ -2031,6 +2235,7 @@ function fillReservationDropdown() {
 }
 
 function loadOwnerReport() {
+  setReportLoadingState(true);
   setupCalendarButtons();
   refreshCalendarUI();
 
@@ -2040,6 +2245,7 @@ function loadOwnerReport() {
    renderDashboardHeader();
    renderFilterControls();
    applyFiltersAndRender();
+   setReportLoadingState(false);
     return;
   }
 
@@ -2103,6 +2309,7 @@ fetchAllReservations()
       renderDashboardHeader();
       renderFilterControls();
       applyFiltersAndRender();
+      setReportLoadingState(false);
     })
     .catch(err => {
       console.error("Error loading report:", err);
@@ -2110,6 +2317,7 @@ fetchAllReservations()
       renderDashboardHeader();
       renderFilterControls();
       applyFiltersAndRender();
+      setReportLoadingState(false);
     });
 }
 

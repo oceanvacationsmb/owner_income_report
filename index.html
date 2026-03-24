@@ -36,9 +36,9 @@
           <div id="propertyAddress" style="font-size:1.13em;color:#3282b8;font-weight:bold;"></div>
         </div>
 
-        <div id="topCalendarBox" style="width:260px; min-width:260px; background:#eef5fb; border-radius:16px; padding:12px; text-align:center;">
-  <button id="showCalendarBtn" type="button" style="padding:10px 16px; border:none; border-radius:10px; cursor:pointer; font-size:14px; font-weight:700;">
-    Show Calendar
+        <div id="topCalendarBox" style="width:320px; min-width:320px; background:#eef5fb; border-radius:16px; padding:12px; text-align:center;">
+  <button id="showCalendarBtn" type="button" style="padding:10px 16px; border:none; border-radius:10px; cursor:pointer; font-size:18px; font-weight:700;" aria-label="Toggle calendar" title="Toggle calendar">
+    &#128197;
   </button>
   <div id="calendarToggleSummary" style="text-align:center; margin-top:10px; font-weight:700; font-size:12px;"></div>
 </div>
@@ -68,12 +68,13 @@
       <div class="summary-boxes" id="summaryBoxes"></div>
 
       <!-- Regular Reservations Table -->
-      <h2 class="section-title" style="text-align:center;">Reservations</h2>
+      <h2 id="reservationsTitle" class="section-title" style="text-align:center;">Reservations</h2>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th style="text-align:center;">Code</th>
+              <th style="text-align:center;">Guest Name</th>
               <th style="text-align:center;">Platform</th>
               <th style="text-align:center;">Check In</th>
               <th style="text-align:center;">Check Out</th>
