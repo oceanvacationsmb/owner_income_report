@@ -198,6 +198,11 @@ tr:last-child td { border-bottom: none; }
   letter-spacing: 0.02em;
 }
 
+.guest-name-cell {
+  white-space: nowrap;
+  min-width: 170px;
+}
+
 .property-calendar-toggle-wrap,
 .property-open-res-wrap {
   display: flex;
@@ -230,6 +235,147 @@ tr:last-child td { border-bottom: none; }
 .toggle-reservations-btn:hover,
 .property-calendar-toggle-btn:hover {
   filter: brightness(0.96);
+}
+
+.admin-elevator-box {
+  background: #f8fbff;
+  border: 1px solid #d9e6f2;
+  border-radius: 12px;
+  padding: 14px;
+  margin: 0 0 14px 0;
+}
+
+.admin-elevator-title {
+  margin: 0 0 10px 0;
+  font-size: 1rem;
+  color: #1f3552;
+}
+
+.admin-ops-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid #d9e6f2;
+  border-radius: 12px;
+  background: #fff;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-ops-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: max-content;
+}
+
+.admin-ops-table th,
+.admin-ops-table td {
+  border-right: 1px solid #e6edf5;
+  border-bottom: 1px solid #e6edf5;
+  padding: 0;
+  height: 46px;
+  min-width: 92px;
+  width: 92px;
+  background: #fff;
+}
+
+.admin-ops-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.ops-property-col {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  min-width: 230px !important;
+  width: 230px !important;
+  max-width: 230px;
+  text-align: left;
+  padding: 8px 10px !important;
+  background: #f7fbff !important;
+  font-weight: 700;
+  color: #26374d;
+}
+
+.ops-property-head {
+  z-index: 5;
+}
+
+.ops-date-head {
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.05;
+  color: #495a70;
+  background: #f6fbff !important;
+}
+
+.ops-date-head > div:first-child {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #7d8da4;
+}
+
+.ops-date-head.ops-today {
+  background: #e7f3ff !important;
+  box-shadow: inset 0 -2px 0 #2f78b7;
+}
+
+.ops-day-cell {
+  position: relative;
+  background: #fff;
+}
+
+.ops-day-cell.ops-occupied {
+  background: #e2f6ef;
+}
+
+.ops-day-cell.ops-start {
+  border-left: 2px solid #3fb28c;
+}
+
+.ops-day-cell.ops-end {
+  border-right: 2px solid #3fb28c;
+}
+
+.ops-pill {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 6px;
+  color: #0f5f49;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ops-io-markers {
+  position: absolute;
+  right: 4px;
+  top: 3px;
+  display: flex;
+  gap: 3px;
+}
+
+.ops-io-markers span {
+  font-size: 9px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.ops-io-markers .ops-in {
+  background: #e9f8ef;
+  color: #0d8a63;
+}
+
+.ops-io-markers .ops-out {
+  background: #fff1f1;
+  color: #c54545;
 }
 
 #topCalendarBox #reportFiltersWrap {

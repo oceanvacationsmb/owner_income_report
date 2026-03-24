@@ -264,6 +264,29 @@ let isLoadingReport = false;
 let filterYear = String(new Date().getFullYear());
 let filterMonth = "all";
 
+const ADMIN_ELEVATOR_FIELD_ID = "69682ec2a604dc001460d3c5";
+const PROPERTY_ORDER = [
+  "GC - 1211A", "GC - 1463", "GC - 601A", "GC - 601B", "GC - 827B",
+  "GCSSB - 113A-12S", "GCSSB - 113B-12S", "GCSSB - 113B-13N",
+  "MB - Tuscan A", "MB - Tuscan B", "MB - Tuscan C",
+  "MB - 2000", "MB - 209/5112", "MB - 2131", "MB - 4679/204", "MB - 469C", "MB - 4765",
+  "NMB - 1004", "NMB - 204-27N", "NMB - 204-28N", "NMB - 214-2S",
+  "NMB - 304B", "NMB - 400A", "NMB - 400B",
+  "NMB - 508/1-33S", "NMB - 508/2-33S",
+  "NMB - 703-2", "NMB - 705-2", "NMB - 709-2"
+];
+
+function getOrderedPropertyNames(names = []) {
+  return [...names].sort((a, b) => {
+    const ia = PROPERTY_ORDER.indexOf(a);
+    const ib = PROPERTY_ORDER.indexOf(b);
+    const va = ia === -1 ? PROPERTY_ORDER.length + String(a || "").charCodeAt(0) : ia;
+    const vb = ib === -1 ? PROPERTY_ORDER.length + String(b || "").charCodeAt(0) : ib;
+    if (va !== vb) return va - vb;
+    return String(a || "").localeCompare(String(b || ""));
+  });
+}
+
 function getYearMonthFromDate(dateStr) {
   if (!dateStr) return null;
   const s = String(dateStr).trim();
@@ -584,6 +607,30 @@ function toDateKey(dateObj) {
   const m = String(dateObj.getMonth() + 1).padStart(2, "0");
   const d = String(dateObj.getDate()).padStart(2, "0");
   return y + "-" + m + "-" + d;
+}
+
+function getCustomFieldValueById(reservation, fieldId) {
+  const direct = reservation?.customFields?.[fieldId];
+  if (direct != null) {
+    if (typeof direct === "object") {
+      return String(direct.children ?? direct.value ?? "").trim();
+    }
+    return String(direct).trim();
+  }
+
+  const raw = reservation?.rawCustomFields?.[fieldId];
+  if (raw != null) {
+    if (typeof raw === "object") {
+      return String(raw.children ?? raw.value ?? "").trim();
+    }
+    return String(raw).trim();
+  }
+
+  return "";
+}
+
+function isCustomFieldYes(v) {
+  return String(v || "").trim().toLowerCase() === "yes";
 }
 
 function getAllCalendarBlocks() {
@@ -939,19 +986,32 @@ function configureHeaderLayoutByMode() {
   const topCalendarBox = document.getElementById("topCalendarBox");
   const calendarPanel = document.getElementById("calendarPanel");
   const calendarSummary = document.getElementById("calendarToggleSummary");
+  const showCalendarBtn = document.getElementById("showCalendarBtn");
   const reportFiltersWrap = document.getElementById("reportFiltersWrap");
 
   if (!greetingContainer) return;
 
   if (currentOwner && currentOwner.admin) {
     greetingContainer.style.display = "none";
+    if (topCalendarBox) topCalendarBox.style.display = "none";
+    if (calendarPanel) calendarPanel.style.display = "none";
+    if (calendarSummary) calendarSummary.style.display = "none";
     if (reportFiltersWrap) reportFiltersWrap.style.margin = "8px 0 16px 0";
     return;
   }
 
   greetingContainer.style.display = "";
 
+  if (isDraftView) {
+    if (topCalendarBox) topCalendarBox.style.display = "";
+    if (showCalendarBtn) showCalendarBtn.style.display = "none";
+    if (calendarSummary) calendarSummary.style.display = "none";
+    if (calendarPanel) calendarPanel.style.display = "none";
+    return;
+  }
+
   if (topCalendarBox) topCalendarBox.style.display = "";
+  if (showCalendarBtn) showCalendarBtn.style.display = "";
   if (calendarSummary) calendarSummary.style.display = "";
 }
 
@@ -1295,7 +1355,9 @@ accommodationFare: calculatedAccommodation,
     lengthOfStayDiscount,
     guestName: pickText(r["guest.fullName"], r.guestName, r.guest?.fullName, r.guest, r["guest.name"]),
     taxesCombined,
-    airbnbResolutionCenter
+    airbnbResolutionCenter,
+    customFields: pickDeep(r, "customFields", "custom_fields") || {},
+    rawCustomFields: pickDeep(r, "rawCustomFields", "raw_custom_fields") || {}
   };
 }
 
@@ -1303,7 +1365,7 @@ function renderSummaryBoxes() {
   const summaryBoxes = document.getElementById("summaryBoxes");
   if (!summaryBoxes || !currentOwner) return;
   renderFilterControls();
-  if (currentOwner.admin) {
+  if (currentOwner.admin && window.adminActiveTab !== "report") {
     summaryBoxes.innerHTML = "";
     summaryBoxes.style.display = "none";
     return;
@@ -1435,10 +1497,11 @@ function renderReservationsTable() {
   const baseHeadRow = baseTable ? baseTable.querySelector("thead tr") : null;
 
   if (baseHeadRow) {
+    // Code and Platform columns intentionally hidden per UI request (kept commented for quick restore).
+    // <th style="text-align:center;">Code</th>
+    // <th style="text-align:center;">Platform</th>
     baseHeadRow.innerHTML = isDraftView
       ? `
-          <th style="text-align:center;">Code</th>
-          <th style="text-align:center;">Platform</th>
           <th style="text-align:center;">Check-In</th>
           <th style="text-align:center;">Check-Out</th>
           <th style="text-align:center;">Nights</th>
@@ -1448,9 +1511,7 @@ function renderReservationsTable() {
           <th style="text-align:center;">PMC</th>
         `
       : `
-          <th style="text-align:center;">Code</th>
           <th style="text-align:center;">Guest Name</th>
-          <th style="text-align:center;">Platform</th>
           <th style="text-align:center;">Check In</th>
           <th style="text-align:center;">Check Out</th>
           <th style="text-align:center;">Nights</th>
@@ -1481,7 +1542,7 @@ const sortedReservations = [...getFilteredReservations()]
   
   if (tbody) {
   if (!sortedReservations.length) {
-    const emptyCols = isDraftView ? 9 : 10;
+    const emptyCols = isDraftView ? 7 : 8;
     tbody.innerHTML = `
       <tr>
         <td colspan="${emptyCols}" style="text-align:center;">No reservations found</td>
@@ -1501,11 +1562,13 @@ const ownerPayout = accommodation - pmc;
 const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
 const nights = toNumber(reservation.numberOfNights);
 
+      // Code and Platform cells intentionally hidden per UI request (kept commented for quick restore).
+      // <td>${reservation.confirmationCode || ""} ...</td>
+      // <td style="text-align:center;">${reservation.platform || ""}</td>
+
       tbody.innerHTML += `
         <tr>
-          <td>${reservation.confirmationCode || ""} ${String(reservation.status || "").toLowerCase().includes("cancel") ? '<span style="color:red; font-weight:700;">Cancelled with payout</span>' : ""}</td>
-          ${isDraftView ? "" : `<td style="text-align:center;">${reservation.guestName || ""}</td>`}
-          <td style="text-align:center;">${reservation.platform || ""}</td>
+          ${isDraftView ? "" : `<td class="guest-name-cell" style="text-align:left;">${reservation.guestName || ""}${String(reservation.status || "").toLowerCase().includes("cancel") ? ' <span style="color:red; font-weight:700;">Cancelled with payout</span>' : ""}</td>`}
           <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
           <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
           <td style="text-align:center;">${nights}</td>
@@ -1572,9 +1635,9 @@ adminTopButtons.style.justifyContent = "center";
 adminTopButtons.style.gap = "10px";
 adminTopButtons.style.margin = "12px 0 18px 0";
 adminTopButtons.innerHTML = `
-  <button id="adminReportBtnTop" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#fff; color:#2f78b7;">REPORT</button>
-  <button id="adminManageUsersBtnTop" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#fff; color:#2f78b7;">MANAGE USERS</button>
   <button id="adminDailyOperationBtnTop" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#2f78b7; color:#fff;">DAILY OPERATION</button>
+  <button id="adminReportBtnTop" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#fff; color:#2f78b7;">REPORT</button>
+  <button id="adminManageUsersBtnTop" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#fff; color:#2f78b7;">USERS</button>
 `;
 
 const ownerPortal = document.getElementById("ownerPortal");
@@ -1596,9 +1659,9 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
   
   const dailyPage = document.createElement("div");
   dailyPage.id = "adminDailyPage";
-  dailyPage.style.margin = "30px auto";
-  dailyPage.style.maxWidth = "900px";
-  dailyPage.style.padding = "30px";
+  dailyPage.style.margin = "20px auto";
+  dailyPage.style.maxWidth = "1280px";
+  dailyPage.style.padding = "20px";
   dailyPage.style.background = "#fff";
   dailyPage.style.border = "1px solid #e1e6ef";
   dailyPage.style.borderRadius = "12px";
@@ -1606,29 +1669,119 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const rangeDays = 14;
-  const byDate = {};
-
-  const addEvent = (dateStr, type, item) => {
-    if (!dateStr) return;
-    const d = parseLocalDate(String(dateStr).slice(0, 10));
-    if (!d) return;
-    if (d < today) return;
-    const daysOut = Math.floor((d - today) / (1000 * 60 * 60 * 24));
-    if (daysOut > rangeDays) return;
-    const key = toDateKey(d);
-    if (!byDate[key]) byDate[key] = { checkIn: [], checkOut: [] };
-    byDate[key][type].push(item);
+  const isCancelledStatus = (value) => {
+    const s = String(value || "").toLowerCase().trim();
+    return s === "cancel" || s === "cancelled" || s === "canceled";
   };
 
-  getFilteredReservations().forEach(r => {
-    addEvent(r.checkIn, "checkIn", r);
-    addEvent(r.checkOut, "checkOut", r);
+  const operationsRows = getFilteredReservations().filter(r => {
+    if (isCancelledStatus(r.status)) return false;
+    const start = parseLocalDate(String(r.checkIn || "").slice(0, 10));
+    const end = parseLocalDate(String(r.checkOut || "").slice(0, 10));
+    return !!(start && end && end >= today);
   });
 
-  const dateKeys = Object.keys(byDate).sort();
+  const byDate = {};
+  operationsRows.forEach(r => {
+    const inDate = parseLocalDate(String(r.checkIn || "").slice(0, 10));
+    const outDate = parseLocalDate(String(r.checkOut || "").slice(0, 10));
+    if (inDate) {
+      const inKey = toDateKey(inDate);
+      if (!byDate[inKey]) byDate[inKey] = { checkIn: [], checkOut: [] };
+      byDate[inKey].checkIn.push(r);
+    }
+    if (outDate) {
+      const outKey = toDateKey(outDate);
+      if (!byDate[outKey]) byDate[outKey] = { checkIn: [], checkOut: [] };
+      byDate[outKey].checkOut.push(r);
+    }
+  });
+
+  const startDate = new Date(today);
+  startDate.setDate(startDate.getDate() - 2);
+  const totalDays = 42;
+  const dayKeys = [];
+  for (let i = 0; i < totalDays; i++) {
+    const d = new Date(startDate);
+    d.setDate(startDate.getDate() + i);
+    dayKeys.push(toDateKey(d));
+  }
+
+  const propertyGroupsOps = {};
+  operationsRows.forEach(r => {
+    const key = String(r.listingNickname || "Unknown Property").trim();
+    if (!propertyGroupsOps[key]) propertyGroupsOps[key] = [];
+    propertyGroupsOps[key].push(r);
+  });
+  const orderedOpsProperties = getOrderedPropertyNames(Object.keys(propertyGroupsOps));
+
+  const elevatorRows = operationsRows
+    .filter(r => {
+      const checkout = parseLocalDate(String(r.checkOut || "").slice(0, 10));
+      const hasElevator = isCustomFieldYes(getCustomFieldValueById(r, ADMIN_ELEVATOR_FIELD_ID));
+      return hasElevator && checkout && checkout >= today;
+    })
+    .sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
+
   const todayKey = toDateKey(today);
   const todayData = byDate[todayKey] || { checkIn: [], checkOut: [] };
+
+  const renderOpsCell = (propertyRows, dayKey) => {
+    const occupiedRows = propertyRows.filter(r => {
+      const start = parseLocalDate(String(r.checkIn || "").slice(0, 10));
+      const end = parseLocalDate(String(r.checkOut || "").slice(0, 10));
+      if (!start || !end) return false;
+      const day = parseLocalDate(dayKey);
+      return day >= start && day < end;
+    });
+
+    const inCount = propertyRows.filter(r => String(r.checkIn || "").slice(0, 10) === dayKey).length;
+    const outCount = propertyRows.filter(r => String(r.checkOut || "").slice(0, 10) === dayKey).length;
+
+    if (!occupiedRows.length && !inCount && !outCount) {
+      return '<td class="ops-day-cell"></td>';
+    }
+
+    const first = occupiedRows[0];
+    const isStart = occupiedRows.some(r => String(r.checkIn || "").slice(0, 10) === dayKey);
+    const dayDate = parseLocalDate(dayKey);
+    const isEnd = occupiedRows.some(r => {
+      const out = parseLocalDate(String(r.checkOut || "").slice(0, 10));
+      if (!out || !dayDate) return false;
+      const prev = new Date(out);
+      prev.setDate(prev.getDate() - 1);
+      return toDateKey(prev) === dayKey;
+    });
+
+    const cls = ["ops-day-cell", "ops-occupied", isStart ? "ops-start" : "", isEnd ? "ops-end" : ""].join(" ").trim();
+    const markerHtml = (inCount || outCount)
+      ? `<div class="ops-io-markers">${inCount ? `<span class="ops-in">IN ${inCount}</span>` : ""}${outCount ? `<span class="ops-out">OUT ${outCount}</span>` : ""}</div>`
+      : "";
+    const guestName = String(first.guestName || "Guest");
+    const label = isStart ? `${guestName}${occupiedRows.length > 1 ? ` +${occupiedRows.length - 1}` : ""}` : "";
+
+    return `<td class="${cls}"><div class="ops-pill">${label}</div>${markerHtml}</td>`;
+  };
+
+  const dateHeaderHtml = dayKeys.map((key, idx) => {
+    const d = parseLocalDate(key);
+    const todayClass = key === todayKey ? "ops-today" : "";
+    const showMonth = idx === 0 || d.getDate() === 1;
+    const monthLabel = showMonth ? d.toLocaleDateString("en-US", { month: "short" }) : "";
+    return `<th class="ops-date-head ${todayClass}"><div>${monthLabel}</div><div>${String(d.getDate()).padStart(2, "0")}</div></th>`;
+  }).join("");
+
+  const rowsHtml = orderedOpsProperties.length
+    ? orderedOpsProperties.map(propertyName => {
+        const rowsForProperty = propertyGroupsOps[propertyName] || [];
+        return `
+          <tr>
+            <th class="ops-property-col">${propertyName}</th>
+            ${dayKeys.map(dayKey => renderOpsCell(rowsForProperty, dayKey)).join("")}
+          </tr>
+        `;
+      }).join("")
+    : `<tr><th class="ops-property-col">No properties</th><td class="ops-day-cell" colspan="${dayKeys.length}">No upcoming operations.</td></tr>`;
 
   dailyPage.innerHTML = `
     <h2 style="margin:0 0 14px 0; text-align:center;">DAILY OPERATION</h2>
@@ -1642,33 +1795,61 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
         <div class="summary-value">${todayData.checkOut.length}</div>
       </div>
     </div>
-    <h3 style="margin:0 0 10px 0;">Live Calendar (Next ${rangeDays} Days)</h3>
-    <div class="table-wrap" style="margin-bottom:0;">
-      <table>
+    ${elevatorRows.length ? `
+      <div class="admin-elevator-box">
+        <h3 class="admin-elevator-title">Elevator Arrivals (Custom Field = YES)</h3>
+        <div class="table-wrap" style="margin-bottom:0;">
+          <table>
+            <thead>
+              <tr>
+                <th style="text-align:left;">Property</th>
+                <th style="text-align:left;">Guest</th>
+                <th style="text-align:center;">Check-In</th>
+                <th style="text-align:center;">Check-Out</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${elevatorRows.map(r => `
+                <tr>
+                  <td>${r.listingNickname || "Property"}</td>
+                  <td>${r.guestName || "Guest"}</td>
+                  <td style="text-align:center;">${formatDateDisplay(r.checkIn)}</td>
+                  <td style="text-align:center;">${formatDateDisplay(r.checkOut)}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    ` : ""}
+    <h3 style="margin:0 0 10px 0;">Live Operations Calendar</h3>
+    <div class="admin-ops-scroll" id="adminOpsScrollWrap">
+      <table class="admin-ops-table">
         <thead>
           <tr>
-            <th style="text-align:center;">Date</th>
-            <th style="text-align:center;">Check-Ins</th>
-            <th style="text-align:center;">Check-Outs</th>
+            <th class="ops-property-col ops-property-head">Property</th>
+            ${dateHeaderHtml}
           </tr>
         </thead>
         <tbody>
-          ${dateKeys.length ? dateKeys.map(key => {
-            const item = byDate[key];
-            return `
-              <tr>
-                <td style="text-align:center;">${formatDateDisplay(key)}</td>
-                <td style="text-align:center;">${item.checkIn.length ? item.checkIn.map(r => `${r.listingNickname || "Property"} (${r.guestName || "Guest"})`).join("<br>") : "-"}</td>
-                <td style="text-align:center;">${item.checkOut.length ? item.checkOut.map(r => `${r.listingNickname || "Property"} (${r.guestName || "Guest"})`).join("<br>") : "-"}</td>
-              </tr>
-            `;
-          }).join("") : '<tr><td colspan="3" style="text-align:center;">No upcoming check-ins or check-outs.</td></tr>'}
+          ${rowsHtml}
         </tbody>
       </table>
     </div>
+    <div style="font-size:12px; color:#54657c; margin-top:8px;">Drag or scroll left/right to inspect all days. Today is highlighted.</div>
   `;
 
   if (ownerPortal) ownerPortal.appendChild(dailyPage);
+
+  const opsScroll = document.getElementById("adminOpsScrollWrap");
+  if (opsScroll) {
+    const todayIdx = dayKeys.indexOf(todayKey);
+    if (todayIdx >= 0) {
+      const leftStickyWidth = 230;
+      const cellWidth = 92;
+      opsScroll.scrollLeft = Math.max(0, leftStickyWidth + (todayIdx * cellWidth) - 160);
+    }
+  }
  
   const toggleWrap = document.getElementById("draftViewModeToggle");
   if (toggleWrap) toggleWrap.style.display = "none";
@@ -1702,9 +1883,9 @@ if (isDraftMulti) {
 
   toggleWrap.innerHTML = currentOwner && currentOwner.admin
   ? `
-      <button id="adminIncomeBtn" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#2f78b7; color:#fff;">REPORT</button>
-      <button id="adminManageUsersBtn" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#fff; color:#2f78b7;">MANAGE USERS</button>
       <button id="adminDailyOperationBtn" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#fff; color:#2f78b7;">DAILY OPERATION</button>
+      <button id="adminIncomeBtn" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#2f78b7; color:#fff;">REPORT</button>
+      <button id="adminManageUsersBtn" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#fff; color:#2f78b7;">USERS</button>
     `
   : `
       <button id="draftSmartViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; ${draftMultiPropertyViewMode === "smart" ? "background:#2f78b7; color:#fff;" : "background:#fff; color:#2f78b7;"}">SMART VIEW</button>
@@ -1713,7 +1894,7 @@ if (isDraftMulti) {
 
   const summaryBoxes = document.getElementById("summaryBoxes");
   if (summaryBoxes && summaryBoxes.parentNode) {
-    summaryBoxes.parentNode.insertBefore(toggleWrap, summaryBoxes.nextSibling);
+    summaryBoxes.parentNode.insertBefore(toggleWrap, summaryBoxes);
   }
 
   const smartBtn = document.getElementById("draftSmartViewBtn");
@@ -1724,6 +1905,7 @@ if (isDraftMulti) {
 
   if (adminIncomeBtn) {
   adminIncomeBtn.onclick = function() {
+    window.adminActiveTab = "report";
     applyFiltersAndRender();
   };
 }
@@ -1773,22 +1955,7 @@ if (mainTable && mainTable.parentNode) {
     const propertyWrap = document.createElement("div");
     propertyWrap.id = "propertyGroupsWrap";
 
-    const PROPERTY_ORDER = [
-  "GC - 1211A", "GC - 601A", "GC - 601B", "GC - 827B",
-  "GCSSB - 113A-12S", "GCSSB - 113B-12S",
-  "MB - Tuscan A", "MB - Tuscan B", "MB - Tuscan C",
-  "NMB - 1004", "NMB - 204-27N", "NMB - 204-28N",
-  "NMB - 304B", "NMB - 400A", "NMB - 400B", "NMB - 703-2", "NMB - 705-2", "NMB - 709-2"
-];
-
-const orderedPropertyNames = Object.keys(propertyGroups).sort((a,
- b) => {
-  const ia = PROPERTY_ORDER.indexOf(a);
-  const ib = PROPERTY_ORDER.indexOf(b);
-  const va = ia === -1 ? PROPERTY_ORDER.length + a.charCodeAt(0) : ia;
-  const vb = ib === -1 ? PROPERTY_ORDER.length + b.charCodeAt(0) : ib;
-  return va - vb;
-});
+const orderedPropertyNames = getOrderedPropertyNames(Object.keys(propertyGroups));
 
    if (isDraftView && draftMultiPropertyViewMode === "smart") {
   propertyWrap.innerHTML = `
@@ -1982,8 +2149,6 @@ ${isDraftView && draftMultiPropertyViewMode === "extended" ? `<div class="proper
   isDraftView
     ? `
       <tr>
-        <th style="text-align:center;">Code</th>
-        <th style="text-align:center;">Platform</th>
         <th style="text-align:center;">Check-In</th>
         <th style="text-align:center;">Check-Out</th>
         <th style="text-align:center;">Nights</th>
@@ -1995,9 +2160,7 @@ ${isDraftView && draftMultiPropertyViewMode === "extended" ? `<div class="proper
     `
     : `
       <tr>
-        <th style="text-align:center;">Code</th>
         <th style="text-align:center;">Guest Name</th>
-        <th style="text-align:center;">Platform</th>
         <th style="text-align:center;">Check In</th>
         <th style="text-align:center;">Check Out</th>
         <th style="text-align:center;">Nights</th>
@@ -2023,12 +2186,14 @@ const ownerPayout = accommodation - pmc;
 const expectedPayoutDate = getExpectedPayoutDate(reservation.checkOut);
 const nights = toNumber(reservation.numberOfNights);
 
+                  // Code and Platform cells intentionally hidden per UI request (kept commented for quick restore).
+                  // <td>${reservation.confirmationCode || ""} ...</td>
+                  // <td style="text-align:center;">${reservation.platform || ""}</td>
+
                   return `
                     <tr>
-                      <td>${reservation.confirmationCode || ""} ${String(reservation.status
- || "").toLowerCase().includes("cancel") ? '<span style="color:red; font-weight:700;">Cancelled with payout</span>' : ""}</td>
-                      ${isDraftView ? "" : `<td style="text-align:center;">${reservation.guestName || ""}</td>`}
-                      <td style="text-align:center;">${reservation.platform || ""}</td>
+                      ${isDraftView ? "" : `<td class="guest-name-cell" style="text-align:left;">${reservation.guestName || ""}${String(reservation.status
+ || "").toLowerCase().includes("cancel") ? ' <span style="color:red; font-weight:700;">Cancelled with payout</span>' : ""}</td>`}
                       <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
                       <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
                       <td style="text-align:center;">${nights}</td>
