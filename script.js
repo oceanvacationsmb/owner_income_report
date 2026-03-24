@@ -338,7 +338,7 @@ function renderFilterControls() {
 
   if (currentOwner && currentOwner.admin && adminTopButtons && adminTopButtons.parentNode) {
     adminTopButtons.insertAdjacentElement("afterend", wrap);
-  } else if (!isDraftView && topCalendarBox) {
+  } else if (topCalendarBox) {
     topCalendarBox.appendChild(wrap);
   } else if (summaryBoxes && summaryBoxes.parentNode) {
     summaryBoxes.parentNode.insertBefore(wrap, summaryBoxes);
@@ -436,7 +436,7 @@ function setReportLoadingState(isLoading) {
     if (reservationsBody && reservationsBody.closest("table")) {
       reservationsBody.closest("table").style.display = "table";
     }
-    if (reservationsTitle && !(currentOwner && currentOwner.admin)) reservationsTitle.style.display = "";
+    if (reservationsTitle && !(currentOwner && currentOwner.admin) && !isDraftView) reservationsTitle.style.display = "";
   }
 }
 
@@ -951,14 +951,8 @@ function configureHeaderLayoutByMode() {
 
   greetingContainer.style.display = "";
 
-  if (isDraftView) {
-    if (topCalendarBox) topCalendarBox.style.display = "none";
-    if (calendarPanel) calendarPanel.style.display = "none";
-    if (calendarSummary) calendarSummary.style.display = "none";
-  } else {
-    if (topCalendarBox) topCalendarBox.style.display = "";
-    if (calendarSummary) calendarSummary.style.display = "";
-  }
+  if (topCalendarBox) topCalendarBox.style.display = "";
+  if (calendarSummary) calendarSummary.style.display = "";
 }
 
 function getTimeBasedGreeting() {
@@ -1435,7 +1429,7 @@ function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
   const reservationsTitle = document.getElementById("reservationsTitle");
   if (reservationsTitle) {
-    reservationsTitle.style.display = (currentOwner && currentOwner.admin) ? "none" : "";
+    reservationsTitle.style.display = (currentOwner && currentOwner.admin) || isDraftView ? "none" : "";
   }
   const baseTable = tbody ? tbody.closest("table") : null;
   const baseHeadRow = baseTable ? baseTable.querySelector("thead tr") : null;
@@ -1767,27 +1761,6 @@ if (mainTable && mainTable.parentNode) {
   mainTable.parentNode.removeChild(mainTable);
 }
 
-const calendarPanel = document.getElementById("calendarPanel");
-if (calendarPanel && calendarPanel.parentNode) {
-  calendarPanel.parentNode.removeChild(calendarPanel);
-} else if (calendarPanel) {
-  calendarPanel.style.display = "none";
-}
-    
-const showCalendarBtn = document.getElementById("showCalendarBtn");
-if (showCalendarBtn && showCalendarBtn.parentNode) {
-  showCalendarBtn.parentNode.removeChild(showCalendarBtn);
-} else if (showCalendarBtn) {
-  showCalendarBtn.style.display = "none";
-}
-
-  const calendarToggleSummary = document.getElementById("calendarToggleSummary");
-  if (calendarToggleSummary && calendarToggleSummary.parentNode) {
-    calendarToggleSummary.parentNode.removeChild(calendarToggleSummary);
-  } else if (calendarToggleSummary) {
-    calendarToggleSummary.style.display = "none";
-  }
-    
     const tableWraps = document.getElementsByClassName("table-wrap");
     let container = null;
 
@@ -1819,7 +1792,6 @@ const orderedPropertyNames = Object.keys(propertyGroups).sort((a,
 
    if (isDraftView && draftMultiPropertyViewMode === "smart") {
   propertyWrap.innerHTML = `
-      ${currentOwner && currentOwner.admin ? "" : '<h3 class="section-title" style="text-align:center; margin:18px 0 10px 0;">SMART VIEW</h3>'}
     <div class="table-wrap">
       <table>
         <thead>
@@ -1938,8 +1910,6 @@ rows.forEach(reservation => {
       propertyWrap.innerHTML += `
        <div style="margin-top:40px; padding-top:20px; border-top:1px solid #d9e6f2;">
           <h3 class="section-title" style="text-align:center; margin-bottom:12px;">${propertyName}</h3>
-
- <h3 style="text-align:center; width:100%; margin:0 0 12px 0;">SUMMARY PER PROPERTY</h3>
 <div style="display:flex; justify-content:center; gap:18px; flex-wrap:wrap; margin-bottom:14px;">
   ${
     isDraftView
@@ -1995,14 +1965,14 @@ rows.forEach(reservation => {
 </div>
 
           ${isDraftView && draftMultiPropertyViewMode !== "extended" ? "" : `
-<div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-  <button id="${openBtnId}" aria-label="Open calendar" title="Open calendar" style="width:44px; height:36px; border-radius:8px; border:1px solid #2f78b7; background:#2f78b7; color:#fff; font-weight:700; cursor:pointer;">
+<div class="property-calendar-toggle-wrap">
+  <button id="${openBtnId}" class="property-calendar-toggle-btn" aria-label="Open calendar" title="Open calendar">
     &#128197;
   </button>
 </div>
 `}
 
-${isDraftView && draftMultiPropertyViewMode === "extended" ? `<button class="toggle-reservations-btn" data-target="prop-table-${propIdSafe}">Open Reservations</button>` : ""}
+${isDraftView && draftMultiPropertyViewMode === "extended" ? `<div class="property-open-res-wrap"><button class="toggle-reservations-btn" data-target="prop-table-${propIdSafe}">Open Reservations</button></div>` : ""}
 <div id="prop-table-${propIdSafe}" style="display:${isDraftView ? (draftMultiPropertyViewMode === "extended" ? "none" : "none") : "block"};">
 
           <div class="table-wrap">
