@@ -734,7 +734,11 @@ function matchesFilters(dateStr) {
 }
 
 function getFilteredReservations() {
-  return reservationsData.filter(r => matchesFilters(r.checkIn));
+  return reservationsData.filter(r => {
+    const inMatch = matchesFilters(r.checkIn);
+    const outMatch = matchesFilters(r.checkOut);
+    return inMatch || outMatch;
+  });
 }
 
 function getFilteredOwnerStays() {
@@ -1814,6 +1818,8 @@ accommodationFare: calculatedAccommodation,
 function renderSummaryBoxes() {
   const summaryBoxes = document.getElementById("summaryBoxes");
   if (!summaryBoxes || !currentOwner) return;
+  const isAdminReport = !!(currentOwner && currentOwner.admin && window.adminActiveTab === "report");
+  const useDraftMode = isDraftView && !isAdminReport;
   renderFilterControls();
   if (currentOwner.admin && window.adminActiveTab !== "report") {
     summaryBoxes.innerHTML = "";
@@ -1866,7 +1872,7 @@ function renderSummaryBoxes() {
     return sum + toNumber(reservation.numberOfNights);
   }, 0);
 
-  if (isDraftView) {
+  if (useDraftMode) {
     const draftRows = filteredReservations.filter(res => hasDraftFinancialValue(res));
     let grossPayoutTotal = 0;
     let netAccommodationTotal = 0;
@@ -1939,9 +1945,11 @@ function renderSummaryBoxes() {
 
 function renderReservationsTable() {
   const tbody = document.getElementById("reservationsBody");
+  const isAdminReport = !!(currentOwner && currentOwner.admin && window.adminActiveTab === "report");
+  const useDraftMode = isDraftView && !isAdminReport;
   const reservationsTitle = document.getElementById("reservationsTitle");
   if (reservationsTitle) {
-    reservationsTitle.style.display = (currentOwner && currentOwner.admin) || isDraftView ? "none" : "";
+    reservationsTitle.style.display = (currentOwner && currentOwner.admin) || useDraftMode ? "none" : "";
   }
   const baseTable = tbody ? tbody.closest("table") : null;
   const baseHeadRow = baseTable ? baseTable.querySelector("thead tr") : null;
@@ -1950,7 +1958,7 @@ function renderReservationsTable() {
     // Code and Platform columns intentionally hidden per UI request (kept commented for quick restore).
     // <th style="text-align:center;">Code</th>
     // <th style="text-align:center;">Platform</th>
-    baseHeadRow.innerHTML = isDraftView
+    baseHeadRow.innerHTML = useDraftMode
       ? `
           <th style="text-align:center;">Check-In</th>
           <th style="text-align:center;">Check-Out</th>
@@ -1991,7 +1999,7 @@ const sortedReservations = [...getFilteredReservations()]
   
   if (tbody) {
   if (!sortedReservations.length) {
-    const emptyCols = isDraftView ? 7 : 8;
+    const emptyCols = useDraftMode ? 7 : 8;
     tbody.innerHTML = `
       <tr>
         <td colspan="${emptyCols}" style="text-align:center;">No reservations found</td>
@@ -2017,12 +2025,12 @@ const nights = toNumber(reservation.numberOfNights);
 
       tbody.innerHTML += `
         <tr>
-          ${isDraftView ? "" : `<td class="guest-name-cell" style="text-align:left;">${reservation.guestName || ""}${String(reservation.status || "").toLowerCase().includes("cancel") ? ' <span style="color:red; font-weight:700;">Cancelled with payout</span>' : ""}</td>`}
+          ${useDraftMode ? "" : `<td class="guest-name-cell" style="text-align:left;">${reservation.guestName || ""}${String(reservation.status || "").toLowerCase().includes("cancel") ? ' <span style="color:red; font-weight:700;">Cancelled with payout</span>' : ""}</td>`}
           <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
           <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
           <td style="text-align:center;">${nights}</td>
-          ${
-  isDraftView
+            ${
+          useDraftMode
     ? `
       <td style="text-align:center;">${formatMoney(grossPayout)}</td>
       <td style="text-align:center;">${formatMoney(cleaning)}</td>
@@ -2172,7 +2180,13 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
     return s <= defaultWindowEnd && e >= startDate;
   });
 
-  if (!hasVisibleInDefaultWindow && operationsRows.length) {
+  const hasUpcomingStartInDefaultWindow = operationsRows.some(r => {
+    const s = parseLocalDate(r.checkIn || "");
+    if (!s) return false;
+    return s >= today && s <= defaultWindowEnd;
+  });
+
+  if ((!hasVisibleInDefaultWindow || !hasUpcomingStartInDefaultWindow) && operationsRows.length) {
     const upcomingStarts = operationsRows
       .map(r => parseLocalDate(r.checkIn || ""))
       .filter(d => d && d >= today)
@@ -2229,6 +2243,14 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
 
     if (!occupiedRows.length && !inCount && !outCount) {
       return '<td class="ops-day-cell"></td>';
+    }
+
+    // Guard against marker-only days where no row is technically occupied in this date slice.
+    if (!occupiedRows.length) {
+      const markerHtml = (inCount || outCount)
+        ? `<div class="ops-io-markers">${inCount ? `<span class="ops-in">IN ${inCount}</span>` : ""}${outCount ? `<span class="ops-out">OUT ${outCount}</span>` : ""}</div>`
+        : "";
+      return `<td class="ops-day-cell">${markerHtml}</td>`;
     }
 
     const first = occupiedRows[0];
@@ -2459,7 +2481,7 @@ if (currentOwner && currentOwner.admin) {
   const propertyNames = Object.keys(propertyGroups);
 
   if (propertyNames.length > 1) {
-    const isDraftMulti = isDraftView && propertyNames.length > 1;
+    const isDraftMulti = useDraftMode && propertyNames.length > 1;
 
 let oldDraftViewToggle = document.getElementById("draftViewModeToggle");
 if (oldDraftViewToggle && oldDraftViewToggle.parentNode) {
@@ -2567,7 +2589,7 @@ if (mainTable && mainTable.parentNode) {
 
 const orderedPropertyNames = getOrderedPropertyNames(Object.keys(propertyGroups));
 
-   if (isDraftView && draftMultiPropertyViewMode === "smart") {
+  if (useDraftMode && draftMultiPropertyViewMode === "smart") {
   propertyWrap.innerHTML = `
     <div class="table-wrap">
       <table>
@@ -2635,10 +2657,10 @@ const orderedPropertyNames = getOrderedPropertyNames(Object.keys(propertyGroups)
 
 rows.forEach(reservation => {
   const gross = toNumber(reservation.grossPayout || reservation.totalPayout);
-  const cleaning = isDraftView
+  const cleaning = useDraftMode
   ? toNumber(reservation.draftCleaningFare ?? reservation.cleaningFare)
   : toNumber(reservation.cleaningFare);
-  const accommodation = isDraftView
+  const accommodation = useDraftMode
     ? toNumber(reservation.draftNetAccommodation)
     : toNumber(reservation.accommodationFare);
   const pmc = accommodation * (currentOwner.pmcPercent / 100);
@@ -2689,7 +2711,7 @@ rows.forEach(reservation => {
           <h3 class="section-title" style="text-align:center; margin-bottom:12px;">${propertyName}</h3>
 <div style="display:flex; justify-content:center; gap:18px; flex-wrap:wrap; margin-bottom:14px;">
   ${
-    isDraftView
+    useDraftMode
       ? `
         <div class="summary-box">
           <div class="summary-label">GROSS PAYOUT</div>
@@ -2741,7 +2763,7 @@ rows.forEach(reservation => {
   }
 </div>
 
-          ${isDraftView && draftMultiPropertyViewMode !== "extended" ? "" : `
+          ${useDraftMode && draftMultiPropertyViewMode !== "extended" ? "" : `
 <div class="property-calendar-toggle-wrap">
   <button id="${openBtnId}" class="property-calendar-toggle-btn" aria-label="Open calendar" title="Open calendar">
     &#128197;
@@ -2749,14 +2771,14 @@ rows.forEach(reservation => {
 </div>
 `}
 
-${isDraftView && draftMultiPropertyViewMode === "extended" ? `<div class="property-open-res-wrap"><button class="toggle-reservations-btn" data-target="prop-table-${propIdSafe}">Open Reservations</button></div>` : ""}
-<div id="prop-table-${propIdSafe}" style="display:${isDraftView ? (draftMultiPropertyViewMode === "extended" ? "none" : "none") : "block"};">
+${useDraftMode && draftMultiPropertyViewMode === "extended" ? `<div class="property-open-res-wrap"><button class="toggle-reservations-btn" data-target="prop-table-${propIdSafe}">Open Reservations</button></div>` : ""}
+<div id="prop-table-${propIdSafe}" style="display:${useDraftMode ? (draftMultiPropertyViewMode === "extended" ? "none" : "none") : "block"};">
 
           <div class="table-wrap">
             <table>
               <thead>
                ${
-  isDraftView
+  useDraftMode
     ? `
       <tr>
         <th style="text-align:center;">Check-In</th>
@@ -2785,10 +2807,10 @@ ${isDraftView && draftMultiPropertyViewMode === "extended" ? `<div class="proper
               <tbody>
                 ${rows.map(reservation => {
                   const grossPayout = toNumber(reservation.grossPayout || reservation.totalPayout);
-const cleaning = isDraftView
+const cleaning = useDraftMode
   ? toNumber(reservation.draftCleaningFare ?? reservation.cleaningFare)
   : toNumber(reservation.cleaningFare);
-const accommodation = isDraftView
+const accommodation = useDraftMode
   ? toNumber(reservation.draftNetAccommodation)
   : toNumber(reservation.accommodationFare);
 const pmc = accommodation * (currentOwner.pmcPercent / 100);
@@ -2802,13 +2824,13 @@ const nights = toNumber(reservation.numberOfNights);
 
                   return `
                     <tr>
-                      ${isDraftView ? "" : `<td class="guest-name-cell" style="text-align:left;">${reservation.guestName || ""}${String(reservation.status
+                      ${useDraftMode ? "" : `<td class="guest-name-cell" style="text-align:left;">${reservation.guestName || ""}${String(reservation.status
  || "").toLowerCase().includes("cancel") ? ' <span style="color:red; font-weight:700;">Cancelled with payout</span>' : ""}</td>`}
                       <td style="text-align:center;">${formatDateDisplay(reservation.checkIn) || ""}</td>
                       <td style="text-align:center;">${formatDateDisplay(reservation.checkOut) || ""}</td>
                       <td style="text-align:center;">${nights}</td>
                       ${
-  isDraftView
+  useDraftMode
     ? `
       <td style="text-align:center;">${formatMoney(grossPayout)}</td>
       <td style="text-align:center;">${formatMoney(cleaning)}</td>
@@ -2979,7 +3001,7 @@ document.querySelectorAll(".toggle-reservations-btn").forEach((btn) => {
 
   container.appendChild(ownerTable);
 }
-if (!isDraftView) {
+if (!useDraftMode) {
   const vrboManualRows = getFilteredReservations().filter(res => {
   const source = String(res.source || "").toUpperCase();
   const payout = toNumber(res.totalPayout);
