@@ -1619,6 +1619,8 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
 
   const summaryBoxes = document.getElementById("summaryBoxes");
   if (summaryBoxes) summaryBoxes.style.display = "none";
+  const baseReportContainer = summaryBoxes ? summaryBoxes.closest(".container") : null;
+  if (baseReportContainer) baseReportContainer.style.display = "none";
 
   const mainTable = tbody ? tbody.closest("table") : null;
   if (mainTable) mainTable.style.display = "none";
@@ -1713,7 +1715,12 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
     if (!propertyGroupsOps[key]) propertyGroupsOps[key] = [];
     propertyGroupsOps[key].push(r);
   });
-  const orderedOpsProperties = getOrderedPropertyNames(Object.keys(propertyGroupsOps));
+
+  const allFilteredRows = getFilteredReservations().filter(r => !isCancelledStatus(r.status));
+  const propertyNamesFromData = allFilteredRows
+    .map(r => String(r.listingNickname || "").trim())
+    .filter(Boolean);
+  const orderedOpsProperties = getOrderedPropertyNames(Array.from(new Set(PROPERTY_ORDER.concat(propertyNamesFromData))));
 
   const elevatorRows = operationsRows
     .filter(r => {
@@ -1854,6 +1861,12 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
   const toggleWrap = document.getElementById("draftViewModeToggle");
   if (toggleWrap) toggleWrap.style.display = "none";
   return;
+}
+
+if (currentOwner && currentOwner.admin) {
+  const summaryBoxes = document.getElementById("summaryBoxes");
+  const baseReportContainer = summaryBoxes ? summaryBoxes.closest(".container") : null;
+  if (baseReportContainer) baseReportContainer.style.display = "";
 }
   
   const propertyGroups = {};
