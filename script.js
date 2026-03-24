@@ -1750,6 +1750,8 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
     }
 
     const first = occupiedRows[0];
+    const startRows = occupiedRows.filter(r => String(r.checkIn || "").slice(0, 10) === dayKey);
+    const primaryRow = startRows[0] || first;
     const isStart = occupiedRows.some(r => String(r.checkIn || "").slice(0, 10) === dayKey);
     const dayDate = parseLocalDate(dayKey);
     const isEnd = occupiedRows.some(r => {
@@ -1764,10 +1766,26 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
     const markerHtml = (inCount || outCount)
       ? `<div class="ops-io-markers">${inCount ? `<span class="ops-in">IN ${inCount}</span>` : ""}${outCount ? `<span class="ops-out">OUT ${outCount}</span>` : ""}</div>`
       : "";
-    const guestName = String(first.guestName || "Guest");
-    const label = isStart ? `${guestName}${occupiedRows.length > 1 ? ` +${occupiedRows.length - 1}` : ""}` : "";
+    const guestName = String(primaryRow.guestName || "Guest");
+    const startDate = parseLocalDate(String(primaryRow.checkIn || "").slice(0, 10));
+    const endDate = parseLocalDate(String(primaryRow.checkOut || "").slice(0, 10));
+    const nights = (startDate && endDate) ? Math.max(0, Math.round((endDate - startDate) / (1000 * 60 * 60 * 24))) : 0;
 
-    return `<td class="${cls}"><div class="ops-pill">${label}</div>${markerHtml}</td>`;
+    const label = isStart
+      ? `${guestName}${startRows.length > 1 ? ` +${startRows.length - 1}` : ""}`
+      : "";
+    const durationText = nights > 0 ? `${nights}N` : "";
+
+    const hoverText = occupiedRows.map(r => {
+      const rStart = String(r.checkIn || "").slice(0, 10);
+      const rEnd = String(r.checkOut || "").slice(0, 10);
+      const startObj = parseLocalDate(rStart);
+      const endObj = parseLocalDate(rEnd);
+      const rowNights = (startObj && endObj) ? Math.max(0, Math.round((endObj - startObj) / (1000 * 60 * 60 * 24))) : 0;
+      return `${String(r.guestName || "Guest")} | ${formatDateDisplay(rStart)} - ${formatDateDisplay(rEnd)} | ${rowNights}N`;
+    }).join("\n").replace(/\"/g, "&quot;");
+
+    return `<td class="${cls}" title="${hoverText}"><div class="ops-pill">${label}${durationText ? `<span class="ops-pill-duration">${durationText}</span>` : ""}</div>${markerHtml}</td>`;
   };
 
   const dateHeaderHtml = dayKeys.map((key, idx) => {

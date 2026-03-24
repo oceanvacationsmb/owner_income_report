@@ -343,6 +343,7 @@ tr:last-child td { border-bottom: none; }
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  gap: 6px;
   padding: 0 6px;
   color: #0f5f49;
   font-size: 11px;
@@ -350,6 +351,16 @@ tr:last-child td { border-bottom: none; }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.ops-pill-duration {
+  font-size: 10px;
+  font-weight: 700;
+  color: #2f6f96;
+  background: #edf6ff;
+  border-radius: 999px;
+  padding: 2px 6px;
+  line-height: 1;
 }
 
 .ops-io-markers {
