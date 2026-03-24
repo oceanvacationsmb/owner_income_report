@@ -1,6 +1,88 @@
 let currentOwner = null;
 let isDraftView = false;
 let draftMultiPropertyViewMode = "smart"; // "smart" | "extended"
+
+const ownerPasswordInput = document.getElementById("ownerPassword");
+const showPwdBtn = document.getElementById("showPwd");
+
+if (ownerPasswordInput && showPwdBtn) {
+  showPwdBtn.addEventListener("click", () => {
+    const visible = ownerPasswordInput.type === "text";
+    ownerPasswordInput.type = visible ? "password" : "text";
+    showPwdBtn.classList.toggle("is-visible", !visible);
+    showPwdBtn.setAttribute("aria-label", visible ? "Show password" : "Hide password");
+    showPwdBtn.setAttribute("title", visible ? "Show password" : "Hide password");
+  });
+}
+
+function signOut() {
+  currentOwner = null;
+  isDraftView = false;
+  draftMultiPropertyViewMode = "smart";
+  reservationsData = [];
+  ownerStaysData = [];
+  filterYear = String(new Date().getFullYear());
+  filterMonth = "all";
+  isLoadingReport = false;
+
+  const adminPanel = document.getElementById("adminPanel");
+  if (adminPanel) adminPanel.remove();
+
+  const reportFiltersWrap = document.getElementById("reportFiltersWrap");
+  if (reportFiltersWrap) reportFiltersWrap.remove();
+
+  const propertyGroupsWrap = document.getElementById("propertyGroupsWrap");
+  if (propertyGroupsWrap) propertyGroupsWrap.remove();
+
+  const ownerStaysTable = document.getElementById("ownerStaysTable");
+  if (ownerStaysTable) ownerStaysTable.remove();
+
+  const vrboManualTable = document.getElementById("vrboManualTable");
+  if (vrboManualTable) vrboManualTable.remove();
+
+  const adminDailyPage = document.getElementById("adminDailyPage");
+  if (adminDailyPage) adminDailyPage.remove();
+
+  const adminTopButtons = document.getElementById("adminTopButtons");
+  if (adminTopButtons) adminTopButtons.remove();
+
+  const draftViewModeToggle = document.getElementById("draftViewModeToggle");
+  if (draftViewModeToggle) draftViewModeToggle.remove();
+
+  const calendarPanel = document.getElementById("calendarPanel");
+  if (calendarPanel) calendarPanel.style.display = "none";
+
+  const showCalendarBtn = document.getElementById("showCalendarBtn");
+  if (showCalendarBtn) showCalendarBtn.classList.remove("calendar-btn-active");
+
+  const loginBox = document.getElementById("loginBox");
+  const ownerPortal = document.getElementById("ownerPortal");
+  if (ownerPortal) ownerPortal.style.display = "none";
+  if (loginBox) loginBox.style.display = "";
+
+  const loginStatus = document.getElementById("loginStatus");
+  if (loginStatus) loginStatus.innerText = "";
+
+  const emailInput = document.getElementById("ownerEmail");
+  if (emailInput) emailInput.value = "";
+
+  if (ownerPasswordInput) {
+    ownerPasswordInput.value = "";
+    ownerPasswordInput.type = "password";
+  }
+
+  if (showPwdBtn) {
+    showPwdBtn.classList.remove("is-visible");
+    showPwdBtn.setAttribute("aria-label", "Show password");
+    showPwdBtn.setAttribute("title", "Show password");
+  }
+}
+
+const logoutBtn = document.getElementById("logoutBtn");
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", signOut);
+}
+
 document.getElementById("loginBtn").onclick = function() {
   const email = (document.getElementById("ownerEmail").value || "").trim().toLowerCase();
   const pw = (document.getElementById("ownerPassword").value || "");
@@ -2243,9 +2325,9 @@ function loadOwnerReport() {
     console.error("No owner or API key configured");
     reservationsData = [];
    renderDashboardHeader();
+   setReportLoadingState(false);
    renderFilterControls();
    applyFiltersAndRender();
-   setReportLoadingState(false);
     return;
   }
 
@@ -2307,17 +2389,17 @@ fetchAllReservations()
 });
 
       renderDashboardHeader();
+      setReportLoadingState(false);
       renderFilterControls();
       applyFiltersAndRender();
-      setReportLoadingState(false);
     })
     .catch(err => {
       console.error("Error loading report:", err);
       reservationsData = [];
       renderDashboardHeader();
+      setReportLoadingState(false);
       renderFilterControls();
       applyFiltersAndRender();
-      setReportLoadingState(false);
     });
 }
 

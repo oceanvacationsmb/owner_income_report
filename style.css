@@ -77,16 +77,55 @@ body {
   text-align: center;
   min-height: 24px;
 }
+.password-wrap {
+  position: relative;
+}
+
 /* Show/hide password icon */
 .show-password {
   position: absolute;
   right: 12px;
-  top: 32%;
+  top: 50%;
   transform: translateY(-50%);
-  font-size: 1.1em;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  color: #aaa;
+  color: #6b7a90;
   user-select: none;
+  padding: 0;
+}
+
+.show-password:hover {
+  background: #e8eff7;
+}
+
+.show-password:focus-visible {
+  outline: 2px solid #2f78b7;
+  outline-offset: 2px;
+}
+
+.eye-icon {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.eye-closed {
+  display: none;
+}
+
+.show-password.is-visible .eye-open {
+  display: none;
+}
+
+.show-password.is-visible .eye-closed {
+  display: block;
 }
 
 /* General Page & Tables */
@@ -104,6 +143,25 @@ body {
   padding: 22px 0 12px 0;
   text-align: center;
   border-radius: 0 0 15px 15px;
+  position: relative;
+}
+.topbar-actions {
+  position: absolute;
+  right: 14px;
+  top: 12px;
+}
+.logout-btn {
+  border: 1px solid #a8c9e3;
+  background: #f5fbff;
+  color: #1f3552;
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.logout-btn:hover {
+  background: #deefff;
 }
 .brand { font-size: 2.1rem; font-weight: 700; letter-spacing:1px; }
 .subtitle { font-size: 1.1rem; color: #bbe1fa; letter-spacing:1px; margin-top: 2px; }
@@ -329,6 +387,13 @@ tr:last-child td { border-bottom: none; }
   .brand {
     font-size: 22px !important;
     line-height: 1.2 !important;
+  }
+
+  .topbar-actions {
+    position: static;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 8px;
   }
 
   .subtitle {
