@@ -7,6 +7,7 @@ const crypto = require("crypto");
 const app = express();
 const PORT = process.env.PORT || 3001;
 const OWNERS_FILE = process.env.OWNERS_FILE || path.join(__dirname, "owners.private.json");
+const TASKS_FILE = process.env.TASKS_FILE || path.join(__dirname, "tasks.private.json");
 
 const sessions = new Map();
 
@@ -35,6 +36,37 @@ function getPublicOwner(owner, email) {
     pmcPercent: owner.pmcPercent,
     cleaningFee: owner.cleaningFee
   };
+}
+
+function normalizeTask(task) {
+  if (!task || typeof task !== "object") return null;
+  const normalized = {
+    id: String(task.id || "").trim(),
+    property: String(task.property || "").trim(),
+    priority: ["urgent", "standard", "follow_up"].includes(String(task.priority)) ? String(task.priority) : "standard",
+    description: String(task.description || "").trim(),
+    status: String(task.status || "new") === "completed" ? "completed" : "new",
+    createdAt: String(task.createdAt || new Date().toISOString()),
+    completedAt: task.completedAt ? String(task.completedAt) : null
+  };
+  if (!normalized.id || !normalized.property || !normalized.description) return null;
+  return normalized;
+}
+
+function readTasks() {
+  if (!fs.existsSync(TASKS_FILE)) return [];
+  try {
+    const raw = fs.readFileSync(TASKS_FILE, "utf8");
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map(normalizeTask).filter(Boolean);
+  } catch (_) {
+    return [];
+  }
+}
+
+function writeTasks(tasks) {
+  fs.writeFileSync(TASKS_FILE, JSON.stringify(tasks, null, 2), "utf8");
 }
 
 function authRequired(req, res, next) {
@@ -118,6 +150,96 @@ app.get("/api/reservations", authRequired, async (req, res) => {
   } catch (err) {
     console.error("/api/reservations error", err);
     res.status(500).json({ message: "Reservations service error." });
+  }
+});
+
+app.get("/api/tasks", (req, res) => {
+  try {
+    const tasks = readTasks();
+    res.json({ tasks });
+  } catch (err) {
+    console.error("/api/tasks GET error", err);
+    res.status(500).json({ message: "Tasks service error." });
+  }
+});
+
+app.post("/api/tasks", (req, res) => {
+  try {
+    const incoming = normalizeTask(req.body || {});
+    if (!incoming) {
+      res.status(400).json({ message: "Invalid task payload." });
+      return;
+    }
+
+    const tasks = readTasks();
+    tasks.unshift(incoming);
+    writeTasks(tasks);
+    res.status(201).json({ task: incoming });
+  } catch (err) {
+    console.error("/api/tasks POST error", err);
+    res.status(500).json({ message: "Tasks service error." });
+  }
+});
+
+app.patch("/api/tasks/:id", (req, res) => {
+  try {
+    const id = String(req.params.id || "").trim();
+    if (!id) {
+      res.status(400).json({ message: "Task id is required." });
+      return;
+    }
+
+    const tasks = readTasks();
+    const idx = tasks.findIndex(task => task.id === id);
+    if (idx === -1) {
+      res.status(404).json({ message: "Task not found." });
+      return;
+    }
+
+    const patch = req.body || {};
+    const merged = {
+      ...tasks[idx],
+      status: patch.status === "completed" ? "completed" : tasks[idx].status,
+      completedAt: patch.status === "completed"
+        ? String(patch.completedAt || new Date().toISOString())
+        : tasks[idx].completedAt
+    };
+
+    const normalized = normalizeTask(merged);
+    if (!normalized) {
+      res.status(400).json({ message: "Invalid update payload." });
+      return;
+    }
+
+    tasks[idx] = normalized;
+    writeTasks(tasks);
+    res.json({ task: normalized });
+  } catch (err) {
+    console.error("/api/tasks PATCH error", err);
+    res.status(500).json({ message: "Tasks service error." });
+  }
+});
+
+app.delete("/api/tasks/:id", (req, res) => {
+  try {
+    const id = String(req.params.id || "").trim();
+    if (!id) {
+      res.status(400).json({ message: "Task id is required." });
+      return;
+    }
+
+    const tasks = readTasks();
+    const next = tasks.filter(task => task.id !== id);
+    if (next.length === tasks.length) {
+      res.status(404).json({ message: "Task not found." });
+      return;
+    }
+
+    writeTasks(next);
+    res.status(204).end();
+  } catch (err) {
+    console.error("/api/tasks DELETE error", err);
+    res.status(500).json({ message: "Tasks service error." });
   }
 });
 

@@ -277,7 +277,15 @@ const PROPERTY_ORDER = [
 ];
 
 const TASKS_STORAGE_KEY = "ocean_vacations_tasks";
+const TASKS_API_CANDIDATES = [
+  (typeof window !== "undefined" && window.TASKS_API_URL) ? String(window.TASKS_API_URL).trim() : "",
+  "/api/tasks",
+  "http://localhost:3001/api/tasks"
+].filter(Boolean);
 let isUpcomingCheckInsExpanded = false;
+let tasksPersistenceMode = "local";
+let tasksInitPromise = null;
+let resolvedTasksApiBase = "";
 
 function getOrderedPropertyNames(names = []) {
   return [...names].sort((a, b) => {
@@ -296,19 +304,7 @@ function loadTasksFromStorage() {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-
-    return parsed
-      .filter(task => task && typeof task === "object")
-      .map(task => ({
-        id: String(task.id || ""),
-        property: String(task.property || "").trim(),
-        priority: ["urgent", "standard", "follow_up"].includes(String(task.priority)) ? String(task.priority) : "standard",
-        description: String(task.description || "").trim(),
-        status: String(task.status || "new") === "completed" ? "completed" : "new",
-        createdAt: String(task.createdAt || new Date().toISOString()),
-        completedAt: task.completedAt ? String(task.completedAt) : null
-      }))
-      .filter(task => task.id && task.property && task.description);
+    return normalizeTasks(parsed);
   } catch (_) {
     return [];
   }
@@ -316,11 +312,132 @@ function loadTasksFromStorage() {
 
 let tasksData = loadTasksFromStorage();
 
+function normalizeTask(task) {
+  if (!task || typeof task !== "object") return null;
+  const normalized = {
+    id: String(task.id || ""),
+    property: String(task.property || "").trim(),
+    priority: ["urgent", "standard", "follow_up"].includes(String(task.priority)) ? String(task.priority) : "standard",
+    description: String(task.description || "").trim(),
+    status: String(task.status || "new") === "completed" ? "completed" : "new",
+    createdAt: String(task.createdAt || new Date().toISOString()),
+    completedAt: task.completedAt ? String(task.completedAt) : null
+  };
+  if (!normalized.id || !normalized.property || !normalized.description) return null;
+  return normalized;
+}
+
+function normalizeTasks(tasks) {
+  if (!Array.isArray(tasks)) return [];
+  return tasks
+    .map(normalizeTask)
+    .filter(Boolean);
+}
+
 function saveTasksToStorage() {
   try {
     localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasksData));
   } catch (_) {
   }
+}
+
+async function fetchTasksFromApi() {
+  const candidates = resolvedTasksApiBase ? [resolvedTasksApiBase] : TASKS_API_CANDIDATES;
+  for (const base of candidates) {
+    try {
+      const res = await fetch(base, { headers: { accept: "application/json" } });
+      if (!res.ok) continue;
+      const payload = await res.json();
+      resolvedTasksApiBase = base;
+      return normalizeTasks(payload?.tasks ?? payload);
+    } catch (_) {
+    }
+  }
+  throw new Error("tasks-api-unavailable");
+}
+
+async function ensureTasksInitialized() {
+  if (!(currentOwner && currentOwner.admin)) return tasksData;
+  if (tasksInitPromise) return tasksInitPromise;
+
+  tasksInitPromise = (async () => {
+    try {
+      const apiTasks = await fetchTasksFromApi();
+      tasksData = apiTasks;
+      tasksPersistenceMode = "server";
+      saveTasksToStorage();
+    } catch (_) {
+      tasksPersistenceMode = "local";
+    }
+
+    refreshTaskListModalView();
+    rerenderDailyOperationsIfActive();
+    return tasksData;
+  })();
+
+  return tasksInitPromise;
+}
+
+async function createTask(task) {
+  const apiBase = resolvedTasksApiBase || TASKS_API_CANDIDATES[0];
+  if (tasksPersistenceMode === "server") {
+    try {
+      await fetch(apiBase, {
+        method: "POST",
+        headers: { "content-type": "application/json", accept: "application/json" },
+        body: JSON.stringify(task)
+      });
+      tasksData = await fetchTasksFromApi();
+      saveTasksToStorage();
+      return;
+    } catch (_) {
+      tasksPersistenceMode = "local";
+    }
+  }
+
+  tasksData = [task, ...tasksData];
+  saveTasksToStorage();
+}
+
+async function updateTask(taskId, patch) {
+  const apiBase = resolvedTasksApiBase || TASKS_API_CANDIDATES[0];
+  if (tasksPersistenceMode === "server") {
+    try {
+      await fetch(`${apiBase}/${encodeURIComponent(taskId)}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json", accept: "application/json" },
+        body: JSON.stringify(patch)
+      });
+      tasksData = await fetchTasksFromApi();
+      saveTasksToStorage();
+      return;
+    } catch (_) {
+      tasksPersistenceMode = "local";
+    }
+  }
+
+  tasksData = tasksData.map(item => item.id === taskId ? { ...item, ...patch } : item);
+  saveTasksToStorage();
+}
+
+async function removeTask(taskId) {
+  const apiBase = resolvedTasksApiBase || TASKS_API_CANDIDATES[0];
+  if (tasksPersistenceMode === "server") {
+    try {
+      await fetch(`${apiBase}/${encodeURIComponent(taskId)}`, {
+        method: "DELETE",
+        headers: { accept: "application/json" }
+      });
+      tasksData = await fetchTasksFromApi();
+      saveTasksToStorage();
+      return;
+    } catch (_) {
+      tasksPersistenceMode = "local";
+    }
+  }
+
+  tasksData = tasksData.filter(item => item.id !== taskId);
+  saveTasksToStorage();
 }
 
 function getAllPropertyNamesForTasks() {
@@ -409,6 +526,7 @@ function rerenderDailyOperationsIfActive() {
 }
 
 function openTaskListModal() {
+  ensureTasksInitialized();
   const existing = document.getElementById("taskListModalOverlay");
   if (existing) existing.remove();
 
@@ -473,9 +591,8 @@ function openTaskDetailModal(taskId) {
     if (e.target === overlay) closeDetail();
   };
 
-  document.getElementById("taskDeleteBtn").onclick = () => {
-    tasksData = tasksData.filter(item => item.id !== task.id);
-    saveTasksToStorage();
+  document.getElementById("taskDeleteBtn").onclick = async () => {
+    await removeTask(task.id);
     closeDetail();
     refreshTaskListModalView();
     rerenderDailyOperationsIfActive();
@@ -483,12 +600,8 @@ function openTaskDetailModal(taskId) {
 
   const completeBtn = document.getElementById("taskCompleteBtn");
   if (completeBtn && task.status !== "completed") {
-    completeBtn.onclick = () => {
-      tasksData = tasksData.map(item => item.id === task.id
-        ? { ...item, status: "completed", completedAt: new Date().toISOString() }
-        : item
-      );
-      saveTasksToStorage();
+    completeBtn.onclick = async () => {
+      await updateTask(task.id, { status: "completed", completedAt: new Date().toISOString() });
       closeDetail();
       refreshTaskListModalView();
       rerenderDailyOperationsIfActive();
@@ -572,7 +685,7 @@ function openAddTaskModal() {
     };
   });
 
-  saveBtn.onclick = () => {
+  saveBtn.onclick = async () => {
     const property = String(propertySelect.value || "").trim();
     const description = String(descriptionInput.value || "").trim();
     if (!property || !description) return;
@@ -587,8 +700,7 @@ function openAddTaskModal() {
       completedAt: null
     };
 
-    tasksData = [task, ...tasksData];
-    saveTasksToStorage();
+    await createTask(task);
     closeModal();
     rerenderDailyOperationsIfActive();
     refreshTaskListModalView();
@@ -1945,6 +2057,7 @@ if (oldAdminDailyPage && oldAdminDailyPage.parentNode) {
 }
 
 if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
+  ensureTasksInitialized();
   const reservationsTitle = document.getElementById("reservationsTitle");
   if (reservationsTitle) reservationsTitle.style.display = "none";
 
@@ -2040,7 +2153,8 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
 
   const startDate = new Date(today);
   startDate.setDate(startDate.getDate() - 2);
-  const totalDays = 42;
+  const isMobileDaily = window.innerWidth <= 768;
+  const totalDays = isMobileDaily ? 14 : 42;
 
   const defaultWindowEnd = new Date(startDate);
   defaultWindowEnd.setDate(startDate.getDate() + totalDays - 1);
@@ -2285,8 +2399,8 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
   if (opsScroll) {
     const todayIdx = dayKeys.indexOf(todayKey);
     if (todayIdx >= 0) {
-      const leftStickyWidth = 230;
-      const cellWidth = 92;
+      const leftStickyWidth = isMobileDaily ? 154 : 230;
+      const cellWidth = isMobileDaily ? 56 : 92;
       opsScroll.scrollLeft = Math.max(0, leftStickyWidth + (todayIdx * cellWidth) - 160);
     }
   }
@@ -2306,8 +2420,8 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
       const dayIndex = dayKeys.indexOf(targetDate);
       if (dayIndex < 0) return;
 
-      const leftStickyWidth = 230;
-      const cellWidth = 92;
+      const leftStickyWidth = isMobileDaily ? 154 : 230;
+      const cellWidth = isMobileDaily ? 56 : 92;
       opsScroll.scrollLeft = Math.max(0, leftStickyWidth + (dayIndex * cellWidth) - 160);
 
       const headerCell = document.querySelector(`.ops-date-head[data-date="${targetDate}"]`);
