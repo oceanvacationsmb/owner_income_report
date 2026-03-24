@@ -276,6 +276,9 @@ const PROPERTY_ORDER = [
   "NMB - 703-2", "NMB - 705-2", "NMB - 709-2"
 ];
 
+const TASKS_STORAGE_KEY = "ocean_vacations_tasks";
+let isUpcomingCheckInsExpanded = false;
+
 function getOrderedPropertyNames(names = []) {
   return [...names].sort((a, b) => {
     const ia = PROPERTY_ORDER.indexOf(a);
@@ -285,6 +288,311 @@ function getOrderedPropertyNames(names = []) {
     if (va !== vb) return va - vb;
     return String(a || "").localeCompare(String(b || ""));
   });
+}
+
+function loadTasksFromStorage() {
+  try {
+    const raw = localStorage.getItem(TASKS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .filter(task => task && typeof task === "object")
+      .map(task => ({
+        id: String(task.id || ""),
+        property: String(task.property || "").trim(),
+        priority: ["urgent", "standard", "follow_up"].includes(String(task.priority)) ? String(task.priority) : "standard",
+        description: String(task.description || "").trim(),
+        status: String(task.status || "new") === "completed" ? "completed" : "new",
+        createdAt: String(task.createdAt || new Date().toISOString()),
+        completedAt: task.completedAt ? String(task.completedAt) : null
+      }))
+      .filter(task => task.id && task.property && task.description);
+  } catch (_) {
+    return [];
+  }
+}
+
+let tasksData = loadTasksFromStorage();
+
+function saveTasksToStorage() {
+  try {
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasksData));
+  } catch (_) {
+  }
+}
+
+function getAllPropertyNamesForTasks() {
+  const fromData = reservationsData
+    .map(r => String(r.listingNickname || "").trim())
+    .filter(Boolean);
+  return getOrderedPropertyNames(Array.from(new Set(PROPERTY_ORDER.concat(fromData))));
+}
+
+function getOpenTaskCount() {
+  return tasksData.filter(task => task.status === "new").length;
+}
+
+function getSortedTasksForDisplay() {
+  return [...tasksData].sort((a, b) => {
+    if (a.status !== b.status) return a.status === "new" ? -1 : 1;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function getPriorityLabel(priority) {
+  if (priority === "urgent") return "Urgent";
+  if (priority === "follow_up") return "Follow Up";
+  return "Standard";
+}
+
+function getPriorityIcon(priority) {
+  if (priority === "urgent") return "⚠";
+  if (priority === "follow_up") return "◷";
+  return "○";
+}
+
+function closeTaskModals() {
+  ["taskAddModalOverlay", "taskListModalOverlay", "taskDetailModalOverlay"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  });
+}
+
+function refreshTaskListModalView() {
+  const listWrap = document.getElementById("taskListItems");
+  if (!listWrap) return;
+
+  const sortedTasks = getSortedTasksForDisplay();
+  if (!sortedTasks.length) {
+    listWrap.innerHTML = `
+      <div class="task-empty-state">
+        <div class="task-empty-icon">📋</div>
+        <div class="task-empty-text">No tasks yet</div>
+      </div>
+    `;
+    return;
+  }
+
+  listWrap.innerHTML = sortedTasks.map(task => `
+    <button type="button" class="task-row ${task.status === "completed" ? "task-row-completed" : ""}" data-task-id="${escapeHtml(task.id)}">
+      <div class="task-row-top">
+        <strong>${escapeHtml(task.property)}</strong>
+        <span class="task-priority-badge task-priority-${escapeHtml(task.priority)}">${getPriorityIcon(task.priority)} ${getPriorityLabel(task.priority)}</span>
+      </div>
+      <div class="task-row-description">${escapeHtml(task.description)}</div>
+    </button>
+  `).join("");
+
+  listWrap.querySelectorAll(".task-row").forEach(btn => {
+    btn.onclick = () => {
+      const taskId = btn.getAttribute("data-task-id");
+      if (taskId) openTaskDetailModal(taskId);
+    };
+  });
+}
+
+function rerenderDailyOperationsIfActive() {
+  if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
+    renderReservationsTable();
+  }
+}
+
+function openTaskListModal() {
+  const existing = document.getElementById("taskListModalOverlay");
+  if (existing) existing.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "taskListModalOverlay";
+  overlay.className = "ov-modal-overlay";
+  overlay.innerHTML = `
+    <div class="ov-modal-card" role="dialog" aria-modal="true" aria-label="All Tasks">
+      <div class="ov-modal-head">
+        <h3>🗂 All Tasks</h3>
+        <button type="button" class="ov-modal-close-btn" id="closeTaskListModalBtn">✕ Close</button>
+      </div>
+      <div class="task-list-scroll" id="taskListItems"></div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  document.getElementById("closeTaskListModalBtn").onclick = () => overlay.remove();
+  overlay.onclick = e => {
+    if (e.target === overlay) overlay.remove();
+  };
+
+  refreshTaskListModalView();
+}
+
+function openTaskDetailModal(taskId) {
+  const task = tasksData.find(item => item.id === taskId);
+  if (!task) return;
+
+  const existing = document.getElementById("taskDetailModalOverlay");
+  if (existing) existing.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "taskDetailModalOverlay";
+  overlay.className = "ov-modal-overlay";
+  overlay.innerHTML = `
+    <div class="ov-modal-card" role="dialog" aria-modal="true" aria-label="Task Detail">
+      <div class="ov-modal-head">
+        <h3>${escapeHtml(task.property)}</h3>
+        <button type="button" class="ov-modal-close-btn" id="closeTaskDetailModalBtn">✕ Close</button>
+      </div>
+      <div class="task-detail-priority-wrap">
+        <span class="task-priority-badge task-priority-${escapeHtml(task.priority)}">${getPriorityIcon(task.priority)} ${getPriorityLabel(task.priority)}</span>
+      </div>
+      <div class="task-description-box">${escapeHtml(task.description)}</div>
+      <div class="task-detail-actions">
+        <button type="button" class="task-btn task-btn-danger" id="taskDeleteBtn">🗑 Delete</button>
+        <button type="button" class="task-btn task-btn-ghost" id="taskCloseBtn">✕ Close</button>
+        <button type="button" class="task-btn task-btn-success" id="taskCompleteBtn" ${task.status === "completed" ? "disabled" : ""}>✓ Completed</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const closeDetail = () => overlay.remove();
+
+  document.getElementById("closeTaskDetailModalBtn").onclick = closeDetail;
+  document.getElementById("taskCloseBtn").onclick = closeDetail;
+  overlay.onclick = e => {
+    if (e.target === overlay) closeDetail();
+  };
+
+  document.getElementById("taskDeleteBtn").onclick = () => {
+    tasksData = tasksData.filter(item => item.id !== task.id);
+    saveTasksToStorage();
+    closeDetail();
+    refreshTaskListModalView();
+    rerenderDailyOperationsIfActive();
+  };
+
+  const completeBtn = document.getElementById("taskCompleteBtn");
+  if (completeBtn && task.status !== "completed") {
+    completeBtn.onclick = () => {
+      tasksData = tasksData.map(item => item.id === task.id
+        ? { ...item, status: "completed", completedAt: new Date().toISOString() }
+        : item
+      );
+      saveTasksToStorage();
+      closeDetail();
+      refreshTaskListModalView();
+      rerenderDailyOperationsIfActive();
+    };
+  }
+}
+
+function openAddTaskModal() {
+  const existing = document.getElementById("taskAddModalOverlay");
+  if (existing) existing.remove();
+
+  const properties = getAllPropertyNamesForTasks();
+  let selectedPriority = "standard";
+
+  const overlay = document.createElement("div");
+  overlay.id = "taskAddModalOverlay";
+  overlay.className = "ov-modal-overlay";
+  overlay.innerHTML = `
+    <div class="ov-modal-card" role="dialog" aria-modal="true" aria-label="New Task">
+      <div class="ov-modal-head">
+        <h3>📝 New Task</h3>
+        <button type="button" class="ov-modal-close-btn" id="closeTaskAddModalBtn">✕ Close</button>
+      </div>
+
+      <div class="task-field-group">
+        <label class="task-label" for="taskPropertySelect">Property</label>
+        <select id="taskPropertySelect" class="task-input">
+          <option value="">Select property</option>
+          ${properties.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("")}
+        </select>
+      </div>
+
+      <div class="task-field-group">
+        <label class="task-label">Priority</label>
+        <div class="task-priority-grid" id="taskPriorityGrid">
+          <button type="button" class="task-priority-btn" data-priority="urgent"><span>⚠</span><span>Urgent</span></button>
+          <button type="button" class="task-priority-btn task-priority-btn-active" data-priority="standard"><span>○</span><span>Standard</span></button>
+          <button type="button" class="task-priority-btn" data-priority="follow_up"><span>◷</span><span>Follow Up</span></button>
+        </div>
+      </div>
+
+      <div class="task-field-group">
+        <label class="task-label" for="taskDescriptionInput">Description</label>
+        <textarea id="taskDescriptionInput" class="task-input task-textarea" placeholder="Describe the task..."></textarea>
+      </div>
+
+      <div class="task-modal-actions">
+        <button type="button" class="task-btn task-btn-ghost" id="taskCloseAddBtn">✕ Close</button>
+        <button type="button" class="task-btn task-btn-primary" id="taskSaveBtn" disabled>💾 Save Task</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const closeModal = () => overlay.remove();
+  const propertySelect = document.getElementById("taskPropertySelect");
+  const descriptionInput = document.getElementById("taskDescriptionInput");
+  const saveBtn = document.getElementById("taskSaveBtn");
+
+  const updateSaveState = () => {
+    const hasProperty = String(propertySelect.value || "").trim().length > 0;
+    const hasDescription = String(descriptionInput.value || "").trim().length > 0;
+    saveBtn.disabled = !(hasProperty && hasDescription);
+  };
+
+  document.getElementById("closeTaskAddModalBtn").onclick = closeModal;
+  document.getElementById("taskCloseAddBtn").onclick = closeModal;
+  overlay.onclick = e => {
+    if (e.target === overlay) closeModal();
+  };
+
+  propertySelect.onchange = updateSaveState;
+  descriptionInput.oninput = updateSaveState;
+
+  document.querySelectorAll("#taskPriorityGrid .task-priority-btn").forEach(btn => {
+    btn.onclick = () => {
+      selectedPriority = btn.getAttribute("data-priority") || "standard";
+      document.querySelectorAll("#taskPriorityGrid .task-priority-btn").forEach(item => item.classList.remove("task-priority-btn-active"));
+      btn.classList.add("task-priority-btn-active");
+    };
+  });
+
+  saveBtn.onclick = () => {
+    const property = String(propertySelect.value || "").trim();
+    const description = String(descriptionInput.value || "").trim();
+    if (!property || !description) return;
+
+    const task = {
+      id: (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()),
+      property,
+      priority: selectedPriority,
+      description,
+      status: "new",
+      createdAt: new Date().toISOString(),
+      completedAt: null
+    };
+
+    tasksData = [task, ...tasksData];
+    saveTasksToStorage();
+    closeModal();
+    rerenderDailyOperationsIfActive();
+    refreshTaskListModalView();
+  };
 }
 
 function getYearMonthFromDate(dateStr) {
@@ -342,12 +650,19 @@ function renderFilterControls() {
   const topCalendarBox = document.getElementById("topCalendarBox");
   if (!summaryBoxes && !topCalendarBox) return;
 
+  const existingWrap = document.getElementById("reportFiltersWrap");
+  if (currentOwner && currentOwner.admin && window.adminActiveTab !== "report") {
+    if (existingWrap) existingWrap.remove();
+    return;
+  }
+
   
 
   let wrap = document.getElementById("reportFiltersWrap");
   if (!wrap) {
     wrap = document.createElement("div");
     wrap.id = "reportFiltersWrap";
+    wrap.className = "report-filters-wrap";
     wrap.style.display = "flex";
     wrap.style.justifyContent = "center";
     wrap.style.gap = "12px";
@@ -387,15 +702,15 @@ function renderFilterControls() {
   ];
 
   wrap.innerHTML = `
-    <div style="display:flex; gap:8px; align-items:center;">
-      <label for="monthFilterSelect" style="font-weight:700;">Month</label>
-      <select id="monthFilterSelect" style="padding:6px 8px; border-radius:8px;">
+    <div class="filter-field-wrap">
+      <label for="monthFilterSelect" class="filter-label">Month</label>
+      <select id="monthFilterSelect" class="filter-select">
         ${monthOptions.map(m => `<option value="${m.v}">${m.t}</option>`).join("")}
       </select>
     </div>
-    <div style="display:flex; gap:8px; align-items:center;">
-      <label for="yearFilterSelect" style="font-weight:700;">Year</label>
-      <select id="yearFilterSelect" style="padding:6px 8px; border-radius:8px;">
+    <div class="filter-field-wrap">
+      <label for="yearFilterSelect" class="filter-label">Year</label>
+      <select id="yearFilterSelect" class="filter-select">
         <option value="all">All Years</option>
         ${years.map(y => `<option value="${y}">${y}</option>`).join("")}
       </select>
@@ -1648,14 +1963,15 @@ if (oldAdminTopButtons && oldAdminTopButtons.parentNode) {
 
 const adminTopButtons = document.createElement("div");
 adminTopButtons.id = "adminTopButtons";
+adminTopButtons.className = "mode-tabs";
 adminTopButtons.style.display = "flex";
 adminTopButtons.style.justifyContent = "center";
 adminTopButtons.style.gap = "10px";
 adminTopButtons.style.margin = "12px 0 18px 0";
 adminTopButtons.innerHTML = `
-  <button id="adminDailyOperationBtnTop" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#2f78b7; color:#fff;">DAILY OPERATION</button>
-  <button id="adminReportBtnTop" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#fff; color:#2f78b7;">REPORT</button>
-  <button id="adminManageUsersBtnTop" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#fff; color:#2f78b7;">USERS</button>
+  <button id="adminDailyOperationBtnTop" class="mode-tab-btn mode-tab-btn-active">Daily Operation</button>
+  <button id="adminReportBtnTop" class="mode-tab-btn">Report</button>
+  <button id="adminManageUsersBtnTop" class="mode-tab-btn">Users</button>
 `;
 
 const ownerPortal = document.getElementById("ownerPortal");
@@ -1839,8 +2155,19 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
     const todayClass = key === todayKey ? "ops-today" : "";
     const showMonth = idx === 0 || d.getDate() === 1;
     const monthLabel = showMonth ? d.toLocaleDateString("en-US", { month: "short" }) : "";
-    return `<th class="ops-date-head ${todayClass}"><div>${monthLabel}</div><div>${String(d.getDate()).padStart(2, "0")}</div></th>`;
+    return `<th class="ops-date-head ${todayClass}" data-date="${key}"><div>${monthLabel}</div><div>${String(d.getDate()).padStart(2, "0")}</div></th>`;
   }).join("");
+
+  const openTaskCount = getOpenTaskCount();
+  const upcomingWindowEnd = new Date(today);
+  upcomingWindowEnd.setDate(upcomingWindowEnd.getDate() + 14);
+
+  const upcomingCheckIns = operationsRows
+    .filter(row => {
+      const inDate = parseLocalDate(row.checkIn || "");
+      return inDate && inDate >= today && inDate <= upcomingWindowEnd;
+    })
+    .sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
 
   const rowsHtml = orderedOpsProperties.length
     ? orderedOpsProperties.map(propertyName => {
@@ -1854,18 +2181,55 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
       }).join("")
     : `<tr><th class="ops-property-col">No properties</th><td class="ops-day-cell" colspan="${dayKeys.length}">No upcoming operations.</td></tr>`;
 
+  const upcomingRowsHtml = upcomingCheckIns.length
+    ? upcomingCheckIns.map(row => {
+        const inDateObj = parseLocalDate(row.checkIn || "");
+        const dateKey = inDateObj ? toDateKey(inDateObj) : "";
+        const daysAway = inDateObj ? Math.ceil((inDateObj - today) / (1000 * 60 * 60 * 24)) : 99;
+        const urgencyClass = daysAway <= 3 ? "upcoming-dot-soon" : "upcoming-dot-safe";
+        return `
+          <button type="button" class="upcoming-item" data-date="${dateKey}">
+            <span class="upcoming-dot ${urgencyClass}"></span>
+            <span class="upcoming-item-text"><strong>${escapeHtml(row.listingNickname || "Property")}</strong> — ${escapeHtml(formatDateDisplay(row.checkIn))}</span>
+          </button>
+        `;
+      }).join("")
+    : `<div class="upcoming-empty">No upcoming check-ins in the next 14 days.</div>`;
+
   dailyPage.innerHTML = `
-    <h2 style="margin:0 0 14px 0; text-align:center;">DAILY OPERATION</h2>
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin-bottom:18px;">
-      <div class="summary-box" style="margin:0;">
+    <h2 style="margin:0 0 14px 0; text-align:center;">Daily Operation</h2>
+    <div class="daily-top-grid">
+      <div class="summary-box daily-metric-card" style="margin:0;">
         <div class="summary-label">TODAY CHECK-INS</div>
         <div class="summary-value">${todayData.checkIn.length}</div>
       </div>
-      <div class="summary-box" style="margin:0;">
+      <div class="summary-box daily-metric-card" style="margin:0;">
         <div class="summary-label">TODAY CHECK-OUTS</div>
         <div class="summary-value">${todayData.checkOut.length}</div>
       </div>
+      <div class="summary-box tasks-panel-card" style="margin:0;">
+        <div class="tasks-panel-head">
+          <div class="tasks-head-title">📋 Tasks</div>
+          <span class="tasks-count-badge ${openTaskCount > 0 ? "tasks-count-badge-pulse" : ""}">${openTaskCount}</span>
+        </div>
+        <div class="tasks-panel-actions">
+          <button type="button" class="task-btn task-btn-outline" id="viewTasksBtn">🗂 View Tasks</button>
+          <button type="button" class="task-btn task-btn-primary" id="addTaskBtn">＋ Add Task</button>
+        </div>
+      </div>
     </div>
+
+    <div class="upcoming-panel ${isUpcomingCheckInsExpanded ? "upcoming-panel-open" : ""}">
+      <button type="button" class="upcoming-panel-header" id="upcomingPanelToggleBtn" aria-expanded="${isUpcomingCheckInsExpanded ? "true" : "false"}">
+        <span class="upcoming-head-left">🏢 Upcoming Check-Ins</span>
+        <span class="upcoming-head-count">${upcomingCheckIns.length} upcoming</span>
+        <span class="upcoming-chevron ${isUpcomingCheckInsExpanded ? "upcoming-chevron-open" : ""}">⌄</span>
+      </button>
+      <div class="upcoming-panel-body ${isUpcomingCheckInsExpanded ? "upcoming-panel-body-open" : ""}" id="upcomingPanelBody">
+        ${upcomingRowsHtml}
+      </div>
+    </div>
+
     ${elevatorRows.length ? `
       <div class="admin-elevator-box">
         <h3 class="admin-elevator-title">Elevator Arrivals (Custom Field = YES)</h3>
@@ -1912,6 +2276,11 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
 
   if (ownerPortal) ownerPortal.appendChild(dailyPage);
 
+  const viewTasksBtn = document.getElementById("viewTasksBtn");
+  const addTaskBtn = document.getElementById("addTaskBtn");
+  if (viewTasksBtn) viewTasksBtn.onclick = () => openTaskListModal();
+  if (addTaskBtn) addTaskBtn.onclick = () => openAddTaskModal();
+
   const opsScroll = document.getElementById("adminOpsScrollWrap");
   if (opsScroll) {
     const todayIdx = dayKeys.indexOf(todayKey);
@@ -1921,6 +2290,33 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
       opsScroll.scrollLeft = Math.max(0, leftStickyWidth + (todayIdx * cellWidth) - 160);
     }
   }
+
+  const toggleUpcomingBtn = document.getElementById("upcomingPanelToggleBtn");
+  if (toggleUpcomingBtn) {
+    toggleUpcomingBtn.onclick = () => {
+      isUpcomingCheckInsExpanded = !isUpcomingCheckInsExpanded;
+      rerenderDailyOperationsIfActive();
+    };
+  }
+
+  document.querySelectorAll(".upcoming-item").forEach(itemBtn => {
+    itemBtn.onclick = () => {
+      if (!opsScroll) return;
+      const targetDate = String(itemBtn.getAttribute("data-date") || "");
+      const dayIndex = dayKeys.indexOf(targetDate);
+      if (dayIndex < 0) return;
+
+      const leftStickyWidth = 230;
+      const cellWidth = 92;
+      opsScroll.scrollLeft = Math.max(0, leftStickyWidth + (dayIndex * cellWidth) - 160);
+
+      const headerCell = document.querySelector(`.ops-date-head[data-date="${targetDate}"]`);
+      if (headerCell) {
+        headerCell.classList.add("ops-date-focus");
+        setTimeout(() => headerCell.classList.remove("ops-date-focus"), 900);
+      }
+    };
+  });
  
   const toggleWrap = document.getElementById("draftViewModeToggle");
   if (toggleWrap) toggleWrap.style.display = "none";
@@ -1959,6 +2355,7 @@ if (isDraftMulti) {
   const toggleWrap = document.createElement("div");
   const isAdminMode = !!(currentOwner && currentOwner.admin);
   toggleWrap.id = isAdminMode ? "adminTopButtons" : "draftViewModeToggle";
+  toggleWrap.className = "mode-tabs";
   toggleWrap.style.display = "flex";
   toggleWrap.style.justifyContent = "center";
   toggleWrap.style.gap = "10px";
@@ -1966,13 +2363,13 @@ if (isDraftMulti) {
 
   toggleWrap.innerHTML = currentOwner && currentOwner.admin
   ? `
-      <button id="adminDailyOperationBtn" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#fff; color:#2f78b7;">DAILY OPERATION</button>
-      <button id="adminIncomeBtn" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#2f78b7; color:#fff;">REPORT</button>
-      <button id="adminManageUsersBtn" style="padding:8px 14px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; background:#fff; color:#2f78b7;">USERS</button>
+      <button id="adminDailyOperationBtn" class="mode-tab-btn">Daily Operation</button>
+      <button id="adminIncomeBtn" class="mode-tab-btn mode-tab-btn-active">Report</button>
+      <button id="adminManageUsersBtn" class="mode-tab-btn">Users</button>
     `
   : `
-      <button id="draftSmartViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; ${draftMultiPropertyViewMode === "smart" ? "background:#2f78b7; color:#fff;" : "background:#fff; color:#2f78b7;"}">SMART VIEW</button>
-      <button id="draftExtendedViewBtn" style="padding:8px 12px; border-radius:8px; border:1px solid #2f78b7; cursor:pointer; ${draftMultiPropertyViewMode === "extended" ? "background:#2f78b7; color:#fff;" : "background:#fff; color:#2f78b7;"}">EXTENDED VIEW</button>
+      <button id="draftSmartViewBtn" class="mode-tab-btn ${draftMultiPropertyViewMode === "smart" ? "mode-tab-btn-active" : ""}">Smart View</button>
+      <button id="draftExtendedViewBtn" class="mode-tab-btn ${draftMultiPropertyViewMode === "extended" ? "mode-tab-btn-active" : ""}">Extended View</button>
     `;
 
   const summaryBoxes = document.getElementById("summaryBoxes");
