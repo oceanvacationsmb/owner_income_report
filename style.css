@@ -168,6 +168,12 @@ body {
 
 .section-title { margin: 40px 0 16px 0; font-size: 1.35rem; color: #3282b8; }
 
+#reservationsTitle {
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
 .table-wrap { width:100%; overflow-x:auto; margin-bottom: 40px;}
 table { width:100%; border-collapse:collapse; background: #f8fbff; }
 th, td { padding: 12px 10px; border-bottom: 1px solid #e1e1ef; font-size:1rem;}
@@ -235,6 +241,66 @@ tr:last-child td { border-bottom: none; }
 .toggle-reservations-btn:hover,
 .property-calendar-toggle-btn:hover {
   filter: brightness(0.96);
+}
+
+#adminPanel {
+  border-radius: 14px !important;
+  border: 1px solid #d7e4f0 !important;
+  box-shadow: 0 18px 44px rgb(20 40 70 / 22%) !important;
+  padding: 18px !important;
+}
+
+#adminPanel h3 {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #1f3552;
+}
+
+#adminPanel label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #47617d;
+}
+
+#adminPanel select,
+#adminPanel input {
+  height: 38px;
+  border: 1px solid #bfd2e5;
+  border-radius: 8px;
+  padding: 0 10px;
+  font-size: 14px;
+  background: #f7fbff;
+  color: #1f3552;
+}
+
+#adminPanel button {
+  height: 38px;
+  border-radius: 8px !important;
+  border: 1px solid #2f78b7 !important;
+  background: #f1f8ff !important;
+  color: #1f3552 !important;
+  font-weight: 700;
+  padding: 0 14px !important;
+  cursor: pointer;
+}
+
+#adminPanel button:hover {
+  background: #e4f1ff !important;
+}
+
+#adminLoadOwner,
+#adminOwnerSave {
+  background: #2f78b7 !important;
+  color: #fff !important;
+}
+
+#adminLoadOwner:hover,
+#adminOwnerSave:hover {
+  background: #27679d !important;
 }
 
 .admin-elevator-box {

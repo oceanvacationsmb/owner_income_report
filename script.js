@@ -593,13 +593,29 @@ function getCleaningFee() {
 
 function parseLocalDate(dateStr) {
   if (!dateStr) return null;
-  const parts = String(dateStr).split("-");
-  if (parts.length !== 3) return null;
-  const year = Number(parts[0]);
-  const month = Number(parts[1]) - 1;
-  const day = Number(parts[2]);
-  const d = new Date(year, month, day);
-  return isNaN(d) ? null : d;
+  const s = String(dateStr).trim();
+
+  const isoMatch = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    const year = Number(isoMatch[1]);
+    const month = Number(isoMatch[2]) - 1;
+    const day = Number(isoMatch[3]);
+    const d = new Date(year, month, day);
+    return isNaN(d) ? null : d;
+  }
+
+  const usMatch = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (usMatch) {
+    const month = Number(usMatch[1]) - 1;
+    const day = Number(usMatch[2]);
+    const year = Number(usMatch[3]);
+    const d = new Date(year, month, day);
+    return isNaN(d) ? null : d;
+  }
+
+  const fallback = new Date(s);
+  if (isNaN(fallback)) return null;
+  return new Date(fallback.getFullYear(), fallback.getMonth(), fallback.getDate());
 }
 
 function toDateKey(dateObj) {
@@ -1643,7 +1659,14 @@ adminTopButtons.innerHTML = `
 `;
 
 const ownerPortal = document.getElementById("ownerPortal");
-if (ownerPortal) ownerPortal.appendChild(adminTopButtons);
+const greetingAnchor = document.getElementById("greetingContainer");
+if (ownerPortal) {
+  if (greetingAnchor && greetingAnchor.nextSibling) {
+    ownerPortal.insertBefore(adminTopButtons, greetingAnchor.nextSibling);
+  } else {
+    ownerPortal.appendChild(adminTopButtons);
+  }
+}
 
 document.getElementById("adminReportBtnTop").onclick = function() {
   window.adminActiveTab = "report";
@@ -1676,17 +1699,17 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
     return s === "cancel" || s === "cancelled" || s === "canceled";
   };
 
-  const operationsRows = getFilteredReservations().filter(r => {
+  const operationsRows = reservationsData.filter(r => {
     if (isCancelledStatus(r.status)) return false;
-    const start = parseLocalDate(String(r.checkIn || "").slice(0, 10));
-    const end = parseLocalDate(String(r.checkOut || "").slice(0, 10));
+    const start = parseLocalDate(r.checkIn || "");
+    const end = parseLocalDate(r.checkOut || "");
     return !!(start && end && end >= today);
   });
 
   const byDate = {};
   operationsRows.forEach(r => {
-    const inDate = parseLocalDate(String(r.checkIn || "").slice(0, 10));
-    const outDate = parseLocalDate(String(r.checkOut || "").slice(0, 10));
+    const inDate = parseLocalDate(r.checkIn || "");
+    const outDate = parseLocalDate(r.checkOut || "");
     if (inDate) {
       const inKey = toDateKey(inDate);
       if (!byDate[inKey]) byDate[inKey] = { checkIn: [], checkOut: [] };
@@ -1702,6 +1725,29 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
   const startDate = new Date(today);
   startDate.setDate(startDate.getDate() - 2);
   const totalDays = 42;
+
+  const defaultWindowEnd = new Date(startDate);
+  defaultWindowEnd.setDate(startDate.getDate() + totalDays - 1);
+
+  const hasVisibleInDefaultWindow = operationsRows.some(r => {
+    const s = parseLocalDate(r.checkIn || "");
+    const e = parseLocalDate(r.checkOut || "");
+    if (!s || !e) return false;
+    return s <= defaultWindowEnd && e >= startDate;
+  });
+
+  if (!hasVisibleInDefaultWindow && operationsRows.length) {
+    const upcomingStarts = operationsRows
+      .map(r => parseLocalDate(r.checkIn || ""))
+      .filter(d => d && d >= today)
+      .sort((a, b) => a - b);
+
+    if (upcomingStarts.length) {
+      startDate.setTime(upcomingStarts[0].getTime());
+      startDate.setDate(startDate.getDate() - 2);
+    }
+  }
+
   const dayKeys = [];
   for (let i = 0; i < totalDays; i++) {
     const d = new Date(startDate);
@@ -1716,7 +1762,7 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
     propertyGroupsOps[key].push(r);
   });
 
-  const allFilteredRows = getFilteredReservations().filter(r => !isCancelledStatus(r.status));
+  const allFilteredRows = reservationsData.filter(r => !isCancelledStatus(r.status));
   const propertyNamesFromData = allFilteredRows
     .map(r => String(r.listingNickname || "").trim())
     .filter(Boolean);
@@ -1724,7 +1770,7 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
 
   const elevatorRows = operationsRows
     .filter(r => {
-      const checkout = parseLocalDate(String(r.checkOut || "").slice(0, 10));
+      const checkout = parseLocalDate(r.checkOut || "");
       const hasElevator = isCustomFieldYes(getCustomFieldValueById(r, ADMIN_ELEVATOR_FIELD_ID));
       return hasElevator && checkout && checkout >= today;
     })
@@ -1735,8 +1781,8 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
 
   const renderOpsCell = (propertyRows, dayKey) => {
     const occupiedRows = propertyRows.filter(r => {
-      const start = parseLocalDate(String(r.checkIn || "").slice(0, 10));
-      const end = parseLocalDate(String(r.checkOut || "").slice(0, 10));
+      const start = parseLocalDate(r.checkIn || "");
+      const end = parseLocalDate(r.checkOut || "");
       if (!start || !end) return false;
       const day = parseLocalDate(dayKey);
       return day >= start && day < end;
@@ -1904,9 +1950,15 @@ if (oldDraftViewToggle && oldDraftViewToggle.parentNode) {
   oldDraftViewToggle.parentNode.removeChild(oldDraftViewToggle);
 }
 
+let oldAdminTopButtons = document.getElementById("adminTopButtons");
+if (oldAdminTopButtons && oldAdminTopButtons.parentNode) {
+  oldAdminTopButtons.parentNode.removeChild(oldAdminTopButtons);
+}
+
 if (isDraftMulti) {
   const toggleWrap = document.createElement("div");
-  toggleWrap.id = "draftViewModeToggle";
+  const isAdminMode = !!(currentOwner && currentOwner.admin);
+  toggleWrap.id = isAdminMode ? "adminTopButtons" : "draftViewModeToggle";
   toggleWrap.style.display = "flex";
   toggleWrap.style.justifyContent = "center";
   toggleWrap.style.gap = "10px";
@@ -1924,7 +1976,17 @@ if (isDraftMulti) {
     `;
 
   const summaryBoxes = document.getElementById("summaryBoxes");
-  if (summaryBoxes && summaryBoxes.parentNode) {
+  if (isAdminMode) {
+    const ownerPortal = document.getElementById("ownerPortal");
+    const greetingAnchor = document.getElementById("greetingContainer");
+    if (ownerPortal) {
+      if (greetingAnchor && greetingAnchor.nextSibling) {
+        ownerPortal.insertBefore(toggleWrap, greetingAnchor.nextSibling);
+      } else {
+        ownerPortal.appendChild(toggleWrap);
+      }
+    }
+  } else if (summaryBoxes && summaryBoxes.parentNode) {
     summaryBoxes.parentNode.insertBefore(toggleWrap, summaryBoxes);
   }
 
