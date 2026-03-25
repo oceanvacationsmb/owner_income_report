@@ -16,6 +16,7 @@ if (ownerPasswordInput && showPwdBtn) {
 }
 
 function signOut() {
+  activeReportLoadId += 1;
   currentOwner = null;
   isDraftView = false;
   draftMultiPropertyViewMode = "smart";
@@ -260,6 +261,7 @@ let ownerStaysData = [];
 let calendarCurrentDate = new Date();
 let calendarResizeBound = false;
 let isLoadingReport = false;
+let activeReportLoadId = 0;
 
 let filterYear = String(new Date().getFullYear());
 let filterMonth = "all";
@@ -1835,6 +1837,7 @@ function renderSummaryBoxes() {
   let totalAccommodation = 0;
   let totalPMC = 0;
   let totalOwnerPayout = 0;
+  let totalGrossPayout = 0;
 
   filteredReservations
   .filter(res => {
@@ -1842,6 +1845,7 @@ function renderSummaryBoxes() {
     return source !== "MANUAL_VRBO";
   })
   .forEach(reservation => {
+    totalGrossPayout += toNumber(reservation.grossPayout || reservation.totalPayout);
     const accommodation = toNumber(reservation.accommodationFare);
     const pmc = accommodation * (currentOwner.pmcPercent / 100);
     const ownerPayout = accommodation - pmc;
@@ -1864,10 +1868,16 @@ function renderSummaryBoxes() {
     0
   );
 
+  const vrboGrossPayoutTotal = vrboManualRows.reduce(
+    (sum, res) => sum + toNumber(res.grossPayout || res.totalPayout),
+    0
+  );
+
   totalAccommodation += vrboAccommodationTotal;
   totalPMC
  += vrboPmcTotal;
   totalOwnerPayout = totalAccommodation - totalPMC;
+  totalGrossPayout += vrboGrossPayoutTotal;
 
   const bookedNightsCount = filteredReservations.reduce((sum, reservation) => {
     return sum + toNumber(reservation.numberOfNights);
@@ -1924,7 +1934,7 @@ function renderSummaryBoxes() {
       <h2 style="text-align:center; width:100%; margin-bottom:12px;">SUMMARY</h2>
       <div class="summary-box">
         <div class="summary-label">GROSS PAYOUT</div>
-        <div class="summary-value">${formatMoney(totalOwnerPayout)}</div>
+        <div class="summary-value">${formatMoney(totalGrossPayout)}</div>
       </div>
       <div class="summary-box">
         <div class="summary-label">NET ACCOMMODATION</div>
@@ -1981,6 +1991,7 @@ function renderReservationsTable() {
     reservationsTitle.style.display = (currentOwner && currentOwner.admin) || useDraftMode ? "none" : "";
   }
   const baseTable = tbody ? tbody.closest("table") : null;
+  if (baseTable) baseTable.style.display = "table";
   const baseHeadRow = baseTable ? baseTable.querySelector("thead tr") : null;
 
   if (baseHeadRow) {
@@ -2564,17 +2575,16 @@ if (currentOwner && currentOwner.admin) {
             ${orderedPropertyNames.length ? orderedPropertyNames.map(propertyName => {
               const rows = propertyGroups[propertyName] || [];
               let accommodationTotal = 0;
+              let grossPayoutTotal = 0;
               let pmcTotal = 0;
-              let ownerPayoutTotal = 0;
               const bookedMap = {};
 
               rows.forEach(res => {
+                grossPayoutTotal += toNumber(res.grossPayout || res.totalPayout);
                 const accommodation = toNumber(res.accommodationFare);
                 const pmc = accommodation * (currentOwner.pmcPercent / 100);
-                const ownerPayout = accommodation - pmc;
                 accommodationTotal += accommodation;
                 pmcTotal += pmc;
-                ownerPayoutTotal += ownerPayout;
 
                 const start = parseLocalDate(res.checkIn);
                 const end = parseLocalDate(res.checkOut);
@@ -2592,7 +2602,7 @@ if (currentOwner && currentOwner.admin) {
                   <td style="text-align:left;">${propertyName}</td>
                   <td style="text-align:center;">${formatMoney(accommodationTotal)}</td>
                   <td style="text-align:center;">${formatMoney(pmcTotal)}</td>
-                  <td style="text-align:center;">${formatMoney(ownerPayoutTotal)}</td>
+                  <td style="text-align:center;">${formatMoney(grossPayoutTotal)}</td>
                   <td style="text-align:center;">${Object.keys(bookedMap).length}</td>
                   <td style="text-align:center;">${rows.length}</td>
                 </tr>
@@ -2699,7 +2709,7 @@ if (adminDailyOperationBtn) {
 
 const mainTable = tbody ? tbody.closest("table") : null;
 if (mainTable && mainTable.parentNode) {
-  mainTable.parentNode.removeChild(mainTable);
+  mainTable.style.display = "none";
 }
 
     const tableWraps = document.getElementsByClassName("table-wrap");
@@ -3211,6 +3221,13 @@ function fillReservationDropdown() {
 }
 
 function loadOwnerReport() {
+  const reportLoadId = ++activeReportLoadId;
+  const ownerAtLoadStart = currentOwner;
+  const apiKeyAtLoadStart = currentOwner ? currentOwner.guestyApiKey : "";
+  const isDraftModeForLoad = ownerAtLoadStart && ownerAtLoadStart.admin
+    ? true
+    : String(ownerAtLoadStart?.viewMode || "payout").toLowerCase() === "draft";
+
   setReportLoadingState(true);
   setupCalendarButtons();
   refreshCalendarUI();
@@ -3228,18 +3245,30 @@ function loadOwnerReport() {
   const reportBaseUrl = "https://report.guesty.com/api/shared-reservations-reports?timezone=America/New_York";
 const PAGE_LIMIT = 1000;
 
-function fetchReservationsPage(skip) {
+function fetchReservationsPage(skip, attempt = 0) {
   const reportUrl = `${reportBaseUrl}&skip=${skip}&limit=${PAGE_LIMIT}`;
   return fetch(reportUrl, {
     headers: {
       accept: "*/*",
-      authorization: currentOwner.guestyApiKey,
+      authorization: apiKeyAtLoadStart,
       "content-type": "application/json"
     }
   })
     .then(r => {
-      if (!r.ok) throw new Error("Guesty fetch failed: " + r.status);
+      if (!r.ok) {
+        const shouldRetry = (r.status === 429 || r.status >= 500) && attempt < 1;
+        if (shouldRetry) {
+          return new Promise(resolve => setTimeout(resolve, 700)).then(() => fetchReservationsPage(skip, attempt + 1));
+        }
+        throw new Error("Guesty fetch failed: " + r.status);
+      }
       return r.json();
+    })
+    .catch(err => {
+      if (attempt < 1) {
+        return new Promise(resolve => setTimeout(resolve, 700)).then(() => fetchReservationsPage(skip, attempt + 1));
+      }
+      throw err;
     })
     .then(payload => Array.isArray(payload) ? payload : (payload.results || payload.data || []));
 }
@@ -3254,6 +3283,8 @@ function fetchAllReservations(skip = 0, acc = []) {
 
 fetchAllReservations()
   .then(rows => {
+    if (reportLoadId !== activeReportLoadId || currentOwner !== ownerAtLoadStart) return;
+
     const mappedRows = rows.map(mapGuestyReservation);
 
     ownerStaysData = mappedRows.filter(res =>
@@ -3267,7 +3298,7 @@ fetchAllReservations()
   const isOwnerStay = String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY");
 
   // Draft mode: include all non-owner reservations
-  if (isDraftView) return !isOwnerStay;
+  if (isDraftModeForLoad) return !isOwnerStay;
 
   const status = String(res.status || "").toLowerCase().trim();
   const payout = toNumber(res.grossPayout || res.totalPayout);
@@ -3288,6 +3319,8 @@ fetchAllReservations()
       applyFiltersAndRender();
     })
     .catch(err => {
+      if (reportLoadId !== activeReportLoadId || currentOwner !== ownerAtLoadStart) return;
+
       console.error("Error loading report:", err);
       reservationsData = [];
       renderDashboardHeader();
