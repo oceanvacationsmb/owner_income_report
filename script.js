@@ -2631,7 +2631,7 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
         </div>
       </div>
     </div>
-    <div style="display:flex; justify-content:flex-end; margin:0 0 10px 0;">
+    <div style="display:flex; justify-content:center; margin:0 0 10px 0;">
       <button type="button" class="task-btn task-btn-outline" id="opsTodayBtn">TODAY</button>
     </div>
     <div class="admin-ops-scroll" id="adminOpsScrollWrap">
