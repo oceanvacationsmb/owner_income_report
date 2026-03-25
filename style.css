@@ -404,6 +404,18 @@ tr:last-child td { border-bottom: none; }
   border-right: 2px solid #3fb28c;
 }
 
+.ops-day-cell.ops-start {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+  overflow: hidden;
+}
+
+.ops-day-cell.ops-end {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+  overflow: hidden;
+}
+
 .ops-pill {
   height: 100%;
   display: flex;
@@ -434,13 +446,15 @@ tr:last-child td { border-bottom: none; }
   right: 4px;
   top: 3px;
   display: flex;
-  gap: 3px;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-end;
 }
 
 .ops-io-markers span {
   font-size: 9px;
   line-height: 1;
-  padding: 2px 4px;
+  padding: 2px 5px;
   border-radius: 999px;
   font-weight: 700;
 }
@@ -1302,12 +1316,18 @@ tbody tr:hover td {
   color: #fff;
 }
 
+.upcoming-panels-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 14px 0;
+}
+
 .upcoming-panel {
   border: 1px solid var(--line-0);
   border-radius: var(--radius-md);
   background: linear-gradient(180deg, #fcfeff 0%, #f3f8ff 100%);
   box-shadow: var(--shadow-sm);
-  margin: 0 0 14px 0;
   overflow: hidden;
 }
 
@@ -1767,6 +1787,10 @@ tbody tr:hover td {
   .tasks-panel-card {
     grid-column: span 12;
   }
+
+  .upcoming-panels-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 600px) {
@@ -1829,8 +1853,8 @@ tbody tr:hover td {
 
   .admin-ops-table th,
   .admin-ops-table td {
-    min-width: 56px !important;
-    width: 56px !important;
+    min-width: 64px !important;
+    width: 64px !important;
     height: 52px;
   }
 

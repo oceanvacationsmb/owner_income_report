@@ -286,6 +286,7 @@ let isUpcomingCheckInsExpanded = false;
 let tasksPersistenceMode = "local";
 let tasksInitPromise = null;
 let resolvedTasksApiBase = "";
+let isUpcomingElevatorsExpanded = false;
 
 function getOrderedPropertyNames(names = []) {
   return [...names].sort((a, b) => {
@@ -2070,6 +2071,59 @@ if (oldAdminDailyPage && oldAdminDailyPage.parentNode) {
   oldAdminDailyPage.parentNode.removeChild(oldAdminDailyPage);
 }
 
+const renderAdminTopButtons = (activeTab) => {
+  let oldAdminTopButtons = document.getElementById("adminTopButtons");
+  if (oldAdminTopButtons && oldAdminTopButtons.parentNode) {
+    oldAdminTopButtons.parentNode.removeChild(oldAdminTopButtons);
+  }
+
+  const adminTopButtons = document.createElement("div");
+  adminTopButtons.id = "adminTopButtons";
+  adminTopButtons.className = "mode-tabs";
+  adminTopButtons.style.display = "flex";
+  adminTopButtons.style.justifyContent = "center";
+  adminTopButtons.style.gap = "10px";
+  adminTopButtons.style.margin = "12px 0 18px 0";
+  adminTopButtons.innerHTML = `
+    <button id="adminDailyOperationBtnTop" class="mode-tab-btn ${activeTab === "daily" ? "mode-tab-btn-active" : ""}">Daily Operation</button>
+    <button id="adminReportBtnTop" class="mode-tab-btn ${activeTab === "report" ? "mode-tab-btn-active" : ""}">Report</button>
+    <button id="adminManageUsersBtnTop" class="mode-tab-btn">Users</button>
+  `;
+
+  const ownerPortal = document.getElementById("ownerPortal");
+  const greetingAnchor = document.getElementById("greetingContainer");
+  if (ownerPortal) {
+    if (greetingAnchor && greetingAnchor.nextSibling) {
+      ownerPortal.insertBefore(adminTopButtons, greetingAnchor.nextSibling);
+    } else {
+      ownerPortal.appendChild(adminTopButtons);
+    }
+  }
+
+  const adminReportBtnTop = document.getElementById("adminReportBtnTop");
+  if (adminReportBtnTop) {
+    adminReportBtnTop.onclick = function() {
+      window.adminActiveTab = "report";
+      applyFiltersAndRender();
+    };
+  }
+
+  const adminDailyOperationBtnTop = document.getElementById("adminDailyOperationBtnTop");
+  if (adminDailyOperationBtnTop) {
+    adminDailyOperationBtnTop.onclick = function() {
+      window.adminActiveTab = "daily";
+      applyFiltersAndRender();
+    };
+  }
+
+  const adminManageUsersBtnTop = document.getElementById("adminManageUsersBtnTop");
+  if (adminManageUsersBtnTop) {
+    adminManageUsersBtnTop.onclick = function() {
+      renderAdminPanel();
+    };
+  }
+};
+
 if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
   ensureTasksInitialized();
   const reservationsTitle = document.getElementById("reservationsTitle");
@@ -2082,48 +2136,7 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
 
   const mainTable = tbody ? tbody.closest("table") : null;
   if (mainTable) mainTable.style.display = "none";
-
-let oldAdminTopButtons = document.getElementById("adminTopButtons");
-if (oldAdminTopButtons && oldAdminTopButtons.parentNode) {
-  oldAdminTopButtons.parentNode.removeChild(oldAdminTopButtons);
-}
-
-const adminTopButtons = document.createElement("div");
-adminTopButtons.id = "adminTopButtons";
-adminTopButtons.className = "mode-tabs";
-adminTopButtons.style.display = "flex";
-adminTopButtons.style.justifyContent = "center";
-adminTopButtons.style.gap = "10px";
-adminTopButtons.style.margin = "12px 0 18px 0";
-adminTopButtons.innerHTML = `
-  <button id="adminDailyOperationBtnTop" class="mode-tab-btn mode-tab-btn-active">Daily Operation</button>
-  <button id="adminReportBtnTop" class="mode-tab-btn">Report</button>
-  <button id="adminManageUsersBtnTop" class="mode-tab-btn">Users</button>
-`;
-
-const ownerPortal = document.getElementById("ownerPortal");
-const greetingAnchor = document.getElementById("greetingContainer");
-if (ownerPortal) {
-  if (greetingAnchor && greetingAnchor.nextSibling) {
-    ownerPortal.insertBefore(adminTopButtons, greetingAnchor.nextSibling);
-  } else {
-    ownerPortal.appendChild(adminTopButtons);
-  }
-}
-
-document.getElementById("adminReportBtnTop").onclick = function() {
-  window.adminActiveTab = "report";
-  applyFiltersAndRender();
-};
-
-document.getElementById("adminManageUsersBtnTop").onclick = function() {
-  renderAdminPanel();
-};
-
-document.getElementById("adminDailyOperationBtnTop").onclick = function() {
-  window.adminActiveTab = "daily";
-  applyFiltersAndRender();
-};
+  renderAdminTopButtons("daily");
   
   const dailyPage = document.createElement("div");
   dailyPage.id = "adminDailyPage";
@@ -2168,7 +2181,7 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
   const startDate = new Date(today);
   startDate.setDate(startDate.getDate() - 2);
   const isMobileDaily = window.innerWidth <= 768;
-  const totalDays = isMobileDaily ? 14 : 42;
+  const totalDays = isMobileDaily ? 10 : 42;
 
   const defaultWindowEnd = new Date(startDate);
   defaultWindowEnd.setDate(startDate.getDate() + totalDays - 1);
@@ -2218,14 +2231,6 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
     .filter(Boolean);
   const orderedOpsProperties = getOrderedPropertyNames(Array.from(new Set(PROPERTY_ORDER.concat(propertyNamesFromData))));
 
-  const elevatorRows = operationsRows
-    .filter(r => {
-      const checkout = parseLocalDate(r.checkOut || "");
-      const hasElevator = isCustomFieldYes(getCustomFieldValueById(r, ADMIN_ELEVATOR_FIELD_ID));
-      return hasElevator && checkout && checkout >= today;
-    })
-    .sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
-
   const todayKey = toDateKey(today);
   const todayData = byDate[todayKey] || { checkIn: [], checkOut: [] };
 
@@ -2248,7 +2253,7 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
     // Guard against marker-only days where no row is technically occupied in this date slice.
     if (!occupiedRows.length) {
       const markerHtml = (inCount || outCount)
-        ? `<div class="ops-io-markers">${inCount ? `<span class="ops-in">IN ${inCount}</span>` : ""}${outCount ? `<span class="ops-out">OUT ${outCount}</span>` : ""}</div>`
+        ? `<div class="ops-io-markers">${outCount ? `<span class="ops-out">OUT ${outCount}</span>` : ""}${inCount ? `<span class="ops-in">IN ${inCount}</span>` : ""}</div>`
         : "";
       return `<td class="ops-day-cell">${markerHtml}</td>`;
     }
@@ -2268,7 +2273,7 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
 
     const cls = ["ops-day-cell", "ops-occupied", isStart ? "ops-start" : "", isEnd ? "ops-end" : ""].join(" ").trim();
     const markerHtml = (inCount || outCount)
-      ? `<div class="ops-io-markers">${inCount ? `<span class="ops-in">IN ${inCount}</span>` : ""}${outCount ? `<span class="ops-out">OUT ${outCount}</span>` : ""}</div>`
+      ? `<div class="ops-io-markers">${outCount ? `<span class="ops-out">OUT ${outCount}</span>` : ""}${inCount ? `<span class="ops-in">IN ${inCount}</span>` : ""}</div>`
       : "";
     const guestName = String(primaryRow.guestName || "Guest");
     const startDate = parseLocalDate(String(primaryRow.checkIn || "").slice(0, 10));
@@ -2278,7 +2283,7 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
     const label = isStart
       ? `${guestName}${startRows.length > 1 ? ` +${startRows.length - 1}` : ""}`
       : "";
-    const durationText = nights > 0 ? `${nights}N` : "";
+    const durationText = (isStart && nights > 0) ? `${nights}N` : "";
 
     const hoverText = occupiedRows.map(r => {
       const rStart = String(r.checkIn || "").slice(0, 10);
@@ -2289,7 +2294,7 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
       return `${String(r.guestName || "Guest")} | ${formatDateDisplay(rStart)} - ${formatDateDisplay(rEnd)} | ${rowNights}N`;
     }).join("\n").replace(/\"/g, "&quot;");
 
-    return `<td class="${cls}" title="${hoverText}"><div class="ops-pill">${label}${durationText ? `<span class="ops-pill-duration">${durationText}</span>` : ""}</div>${markerHtml}</td>`;
+    return `<td class="${cls}" title="${hoverText}"><div class="ops-pill ${isStart ? "ops-pill-start" : ""} ${isEnd ? "ops-pill-end" : ""}">${label}${durationText ? `<span class="ops-pill-duration">${durationText}</span>` : ""}</div>${markerHtml}</td>`;
   };
 
   const dateHeaderHtml = dayKeys.map((key, idx) => {
@@ -2308,6 +2313,14 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
     .filter(row => {
       const inDate = parseLocalDate(row.checkIn || "");
       return inDate && inDate >= today && inDate <= upcomingWindowEnd;
+    })
+    .sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
+
+  const upcomingElevators = operationsRows
+    .filter(row => {
+      const inDate = parseLocalDate(row.checkIn || "");
+      const hasElevator = isCustomFieldYes(getCustomFieldValueById(row, ADMIN_ELEVATOR_FIELD_ID));
+      return hasElevator && inDate && inDate >= today && inDate <= upcomingWindowEnd;
     })
     .sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
 
@@ -2338,6 +2351,21 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
       }).join("")
     : `<div class="upcoming-empty">No upcoming check-ins in the next 14 days.</div>`;
 
+  const upcomingElevatorRowsHtml = upcomingElevators.length
+    ? upcomingElevators.map(row => {
+        const inDateObj = parseLocalDate(row.checkIn || "");
+        const dateKey = inDateObj ? toDateKey(inDateObj) : "";
+        const daysAway = inDateObj ? Math.ceil((inDateObj - today) / (1000 * 60 * 60 * 24)) : 99;
+        const urgencyClass = daysAway <= 3 ? "upcoming-dot-soon" : "upcoming-dot-safe";
+        return `
+          <button type="button" class="upcoming-item" data-date="${dateKey}">
+            <span class="upcoming-dot ${urgencyClass}"></span>
+            <span class="upcoming-item-text"><strong>${escapeHtml(row.listingNickname || "Property")}</strong> — ${escapeHtml(formatDateDisplay(row.checkIn))}</span>
+          </button>
+        `;
+      }).join("")
+    : `<div class="upcoming-empty">No upcoming elevator arrivals in the next 14 days.</div>`;
+
   dailyPage.innerHTML = `
     <h2 style="margin:0 0 14px 0; text-align:center;">Daily Operation</h2>
     <div class="daily-top-grid">
@@ -2361,44 +2389,28 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
       </div>
     </div>
 
-    <div class="upcoming-panel ${isUpcomingCheckInsExpanded ? "upcoming-panel-open" : ""}">
-      <button type="button" class="upcoming-panel-header" id="upcomingPanelToggleBtn" aria-expanded="${isUpcomingCheckInsExpanded ? "true" : "false"}">
-        <span class="upcoming-head-left">🏢 Upcoming Check-Ins</span>
-        <span class="upcoming-head-count">${upcomingCheckIns.length} upcoming</span>
-        <span class="upcoming-chevron ${isUpcomingCheckInsExpanded ? "upcoming-chevron-open" : ""}">⌄</span>
-      </button>
-      <div class="upcoming-panel-body ${isUpcomingCheckInsExpanded ? "upcoming-panel-body-open" : ""}" id="upcomingPanelBody">
-        ${upcomingRowsHtml}
-      </div>
-    </div>
-
-    ${elevatorRows.length ? `
-      <div class="admin-elevator-box">
-        <h3 class="admin-elevator-title">Elevator Arrivals (Custom Field = YES)</h3>
-        <div class="table-wrap" style="margin-bottom:0;">
-          <table>
-            <thead>
-              <tr>
-                <th style="text-align:left;">Property</th>
-                <th style="text-align:left;">Guest</th>
-                <th style="text-align:center;">Check-In</th>
-                <th style="text-align:center;">Check-Out</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${elevatorRows.map(r => `
-                <tr>
-                  <td>${r.listingNickname || "Property"}</td>
-                  <td>${r.guestName || "Guest"}</td>
-                  <td style="text-align:center;">${formatDateDisplay(r.checkIn)}</td>
-                  <td style="text-align:center;">${formatDateDisplay(r.checkOut)}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
+    <div class="upcoming-panels-grid">
+      <div class="upcoming-panel ${isUpcomingCheckInsExpanded ? "upcoming-panel-open" : ""}">
+        <button type="button" class="upcoming-panel-header" id="upcomingPanelToggleBtn" aria-expanded="${isUpcomingCheckInsExpanded ? "true" : "false"}">
+          <span class="upcoming-head-left">🏢 Upcoming Check-Ins</span>
+          <span class="upcoming-head-count">${upcomingCheckIns.length} upcoming</span>
+          <span class="upcoming-chevron ${isUpcomingCheckInsExpanded ? "upcoming-chevron-open" : ""}">⌄</span>
+        </button>
+        <div class="upcoming-panel-body ${isUpcomingCheckInsExpanded ? "upcoming-panel-body-open" : ""}" id="upcomingPanelBody">
+          ${upcomingRowsHtml}
         </div>
       </div>
-    ` : ""}
+      <div class="upcoming-panel ${isUpcomingElevatorsExpanded ? "upcoming-panel-open" : ""}">
+        <button type="button" class="upcoming-panel-header" id="upcomingElevatorToggleBtn" aria-expanded="${isUpcomingElevatorsExpanded ? "true" : "false"}">
+          <span class="upcoming-head-left">🛗 Upcoming Elevators</span>
+          <span class="upcoming-head-count">${upcomingElevators.length} upcoming</span>
+          <span class="upcoming-chevron ${isUpcomingElevatorsExpanded ? "upcoming-chevron-open" : ""}">⌄</span>
+        </button>
+        <div class="upcoming-panel-body ${isUpcomingElevatorsExpanded ? "upcoming-panel-body-open" : ""}" id="upcomingElevatorBody">
+          ${upcomingElevatorRowsHtml}
+        </div>
+      </div>
+    </div>
     <h3 style="margin:0 0 10px 0;">Live Operations Calendar</h3>
     <div class="admin-ops-scroll" id="adminOpsScrollWrap">
       <table class="admin-ops-table">
@@ -2428,7 +2440,7 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
     const todayIdx = dayKeys.indexOf(todayKey);
     if (todayIdx >= 0) {
       const leftStickyWidth = isMobileDaily ? 154 : 230;
-      const cellWidth = isMobileDaily ? 56 : 92;
+      const cellWidth = isMobileDaily ? 64 : 92;
       opsScroll.scrollLeft = Math.max(0, leftStickyWidth + (todayIdx * cellWidth) - 160);
     }
   }
@@ -2441,6 +2453,14 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
     };
   }
 
+  const toggleUpcomingElevatorBtn = document.getElementById("upcomingElevatorToggleBtn");
+  if (toggleUpcomingElevatorBtn) {
+    toggleUpcomingElevatorBtn.onclick = () => {
+      isUpcomingElevatorsExpanded = !isUpcomingElevatorsExpanded;
+      rerenderDailyOperationsIfActive();
+    };
+  }
+
   document.querySelectorAll(".upcoming-item").forEach(itemBtn => {
     itemBtn.onclick = () => {
       if (!opsScroll) return;
@@ -2449,7 +2469,7 @@ document.getElementById("adminDailyOperationBtnTop").onclick = function() {
       if (dayIndex < 0) return;
 
       const leftStickyWidth = isMobileDaily ? 154 : 230;
-      const cellWidth = isMobileDaily ? 56 : 92;
+      const cellWidth = isMobileDaily ? 64 : 92;
       opsScroll.scrollLeft = Math.max(0, leftStickyWidth + (dayIndex * cellWidth) - 160);
 
       const headerCell = document.querySelector(`.ops-date-head[data-date="${targetDate}"]`);
@@ -2479,6 +2499,85 @@ if (currentOwner && currentOwner.admin) {
   });
 
   const propertyNames = Object.keys(propertyGroups);
+
+  if (isAdminReport) {
+    renderAdminTopButtons("report");
+
+    const mainTable = tbody ? tbody.closest("table") : null;
+    if (mainTable) mainTable.style.display = "none";
+
+    const tableWraps = document.getElementsByClassName("table-wrap");
+    let container = null;
+    if (tableWraps.length > 0) {
+      container = tableWraps[0].parentNode;
+    } else {
+      container = document.body;
+    }
+
+    const propertyWrap = document.createElement("div");
+    propertyWrap.id = "propertyGroupsWrap";
+    const orderedPropertyNames = getOrderedPropertyNames(Object.keys(propertyGroups));
+
+    propertyWrap.innerHTML = `
+      <h3 class="section-title" style="text-align:center; margin-top:20px;">Totals Per Property</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align:left;">Property</th>
+              <th style="text-align:center;">Accommodation</th>
+              <th style="text-align:center;">PMC</th>
+              <th style="text-align:center;">Owner Payout</th>
+              <th style="text-align:center;">Booked Nights</th>
+              <th style="text-align:center;">Stays</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${orderedPropertyNames.length ? orderedPropertyNames.map(propertyName => {
+              const rows = propertyGroups[propertyName] || [];
+              let accommodationTotal = 0;
+              let pmcTotal = 0;
+              let ownerPayoutTotal = 0;
+              const bookedMap = {};
+
+              rows.forEach(res => {
+                const accommodation = toNumber(res.accommodationFare);
+                const pmc = accommodation * (currentOwner.pmcPercent / 100);
+                const ownerPayout = accommodation - pmc;
+                accommodationTotal += accommodation;
+                pmcTotal += pmc;
+                ownerPayoutTotal += ownerPayout;
+
+                const start = parseLocalDate(res.checkIn);
+                const end = parseLocalDate(res.checkOut);
+                if (start && end) {
+                  const cur = new Date(start);
+                  while (cur < end) {
+                    bookedMap[toDateKey(cur)] = true;
+                    cur.setDate(cur.getDate() + 1);
+                  }
+                }
+              });
+
+              return `
+                <tr>
+                  <td style="text-align:left;">${propertyName}</td>
+                  <td style="text-align:center;">${formatMoney(accommodationTotal)}</td>
+                  <td style="text-align:center;">${formatMoney(pmcTotal)}</td>
+                  <td style="text-align:center;">${formatMoney(ownerPayoutTotal)}</td>
+                  <td style="text-align:center;">${Object.keys(bookedMap).length}</td>
+                  <td style="text-align:center;">${rows.length}</td>
+                </tr>
+              `;
+            }).join("") : `<tr><td colspan="6" style="text-align:center;">No reservations found for selected filters.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    container.appendChild(propertyWrap);
+    return;
+  }
 
   if (propertyNames.length > 1) {
     const isDraftMulti = useDraftMode && propertyNames.length > 1;
