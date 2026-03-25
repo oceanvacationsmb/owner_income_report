@@ -168,6 +168,47 @@ body {
 
 .section-title { margin: 40px 0 16px 0; font-size: 1.35rem; color: #3282b8; }
 
+#ownerPortal .section-title,
+#ownerPortal h2,
+#ownerPortal h3,
+#ownerPortal .mode-tab-btn,
+#ownerPortal .task-btn,
+#ownerPortal .logout-btn,
+#ownerPortal .toggle-reservations-btn,
+#ownerPortal .filter-label,
+#ownerPortal .upcoming-panel-header,
+#ownerPortal #showCalendarBtn,
+#ownerPortal #calendarPrevBtn,
+#ownerPortal #calendarNextBtn,
+#ownerPortal #adminLoadOwner,
+#ownerPortal #adminOwnerSave,
+#ownerPortal #adminOwnerCancel,
+#ownerPortal #closeAdminPanel {
+  text-transform: uppercase;
+}
+
+.property-category-row,
+.ops-category-head,
+.property-category-title {
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 800;
+}
+
+.property-category-row {
+  background: #f1f6fc;
+  color: #1f3552;
+  text-align: left;
+}
+
+.ops-category-head {
+  background: #eef5fd;
+  color: #1f3552;
+  text-align: left;
+  font-size: 0.82rem;
+  padding: 7px 10px;
+}
+
 #reservationsTitle {
   text-transform: uppercase;
   font-weight: 800;

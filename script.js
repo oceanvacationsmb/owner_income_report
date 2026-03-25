@@ -271,14 +271,42 @@ let filterMonth = "all";
 
 const ADMIN_ELEVATOR_FIELD_ID = "69682ec2a604dc001460d3c5";
 const PROPERTY_ORDER = [
-  "GC - 1211A", "GC - 1463", "GC - 601A", "GC - 601B", "GC - 827B",
-  "GCSSB - 113A-12S", "GCSSB - 113B-12S", "GCSSB - 113B-13N",
-  "MB - Tuscan A", "MB - Tuscan B", "MB - Tuscan C",
-  "MB - 2000", "MB - 209/5112", "MB - 2131", "MB - 4679/204", "MB - 469C", "MB - 4765",
-  "NMB - 1004", "NMB - 204-27N", "NMB - 204-28N", "NMB - 214-2S",
-  "NMB - 304B", "NMB - 400A", "NMB - 400B",
-  "NMB - 508/1-33S", "NMB - 508/2-33S",
-  "NMB - 703-2", "NMB - 705-2", "NMB - 709-2"
+  "GC - 1463",
+  "GC - 601A",
+  "GC - 601B",
+  "GC - 827B",
+  "GC - 1211A",
+  "GCSSB - 113A-12S",
+  "GCSSB - 113B-12S",
+  "GCSSB - 113B-15S",
+  "GCSSB - 115C 15N",
+  "GCSSB - 113B-13N",
+  "GCSSB - 204-2D",
+  "MB - Tuscan A",
+  "MB - Tuscan B",
+  "MB - Tuscan C",
+  "MB - 209/5112",
+  "MB - 209/5113",
+  "MB - 7500",
+  "MB - 4765",
+  "MB - 4631/301",
+  "MB - 4679/204",
+  "MB - 1552",
+  "MB - 2000",
+  "MB - 2131",
+  "MB - 469C",
+  "NMB - 204-28N",
+  "NMB - 204-27N",
+  "NMB - 1004",
+  "NMB - 214-2S",
+  "NMB - 304B",
+  "NMB - 400A",
+  "NMB - 400B",
+  "NMB - 508/1-33S",
+  "NMB - 508/2-33S",
+  "NMB - 703-2",
+  "NMB - 705-2",
+  "NMB - 709-2"
 ];
 
 const TASKS_STORAGE_KEY = "ocean_vacations_tasks";
@@ -329,6 +357,23 @@ function getOrderedPropertyNames(names = []) {
     if (va !== vb) return va - vb;
     return String(a || "").localeCompare(String(b || ""));
   });
+}
+
+function getPropertyCategory(propertyName) {
+  const name = String(propertyName || "").trim().toUpperCase();
+  if (name.startsWith("GC -") || name.startsWith("GCSSB -")) return "SOUTH";
+  if (name.startsWith("MB -")) return "MYRTLE BEACH";
+  if (name.startsWith("NMB -")) return "NORTH MYRTLE BEACH";
+  return "OTHER";
+}
+
+function getGroupedPropertyNames(orderedNames = []) {
+  const orderedCategories = ["SOUTH", "MYRTLE BEACH", "NORTH MYRTLE BEACH", "OTHER"];
+  const groups = orderedCategories.map(category => ({
+    category,
+    names: orderedNames.filter(name => getPropertyCategory(name) === category)
+  }));
+  return groups.filter(group => group.names.length);
 }
 
 function loadTasksFromStorage() {
@@ -2321,6 +2366,7 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
     .map(r => String(r.listingNickname || "").trim())
     .filter(Boolean);
   const orderedOpsProperties = getOrderedPropertyNames(Array.from(new Set(PROPERTY_ORDER.concat(propertyNamesFromData))));
+  const groupedOpsProperties = getGroupedPropertyNames(orderedOpsProperties);
 
   const todayKey = toDateKey(today);
   const todayData = byDate[todayKey] || { checkIn: [], checkOut: [] };
@@ -2415,15 +2461,23 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
     })
     .sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
 
-  const rowsHtml = orderedOpsProperties.length
-    ? orderedOpsProperties.map(propertyName => {
-        const rowsForProperty = propertyGroupsOps[propertyName] || [];
-        return `
+  const rowsHtml = groupedOpsProperties.length
+    ? groupedOpsProperties.map(group => {
+        const categoryRow = `
           <tr>
-            <th class="ops-property-col">${propertyName}</th>
-            ${dayKeys.map(dayKey => renderOpsCell(rowsForProperty, dayKey)).join("")}
+            <th class="ops-category-head" colspan="${dayKeys.length + 1}">${group.category}</th>
           </tr>
         `;
+        const propertyRows = group.names.map(propertyName => {
+          const rowsForProperty = propertyGroupsOps[propertyName] || [];
+          return `
+            <tr>
+              <th class="ops-property-col">${propertyName}</th>
+              ${dayKeys.map(dayKey => renderOpsCell(rowsForProperty, dayKey)).join("")}
+            </tr>
+          `;
+        }).join("");
+        return categoryRow + propertyRows;
       }).join("")
     : `<tr><th class="ops-property-col">No properties</th><td class="ops-day-cell" colspan="${dayKeys.length}">No upcoming operations.</td></tr>`;
 
@@ -2608,6 +2662,7 @@ if (currentOwner && currentOwner.admin) {
     const propertyWrap = document.createElement("div");
     propertyWrap.id = "propertyGroupsWrap";
     const orderedPropertyNames = getOrderedPropertyNames(Object.keys(propertyGroups));
+    const groupedPropertyNames = getGroupedPropertyNames(orderedPropertyNames);
 
     propertyWrap.innerHTML = `
       <h3 class="section-title" style="text-align:center; margin-top:20px;">Totals Per Property</h3>
@@ -2624,7 +2679,13 @@ if (currentOwner && currentOwner.admin) {
             </tr>
           </thead>
           <tbody>
-            ${orderedPropertyNames.length ? orderedPropertyNames.map(propertyName => {
+            ${groupedPropertyNames.length ? groupedPropertyNames.map(group => {
+              const categoryRow = `
+                <tr>
+                  <td colspan="6" class="property-category-row">${group.category}</td>
+                </tr>
+              `;
+              const propertyRows = group.names.map(propertyName => {
               const rows = propertyGroups[propertyName] || [];
               let accommodationTotal = 0;
               let grossPayoutTotal = 0;
@@ -2659,6 +2720,8 @@ if (currentOwner && currentOwner.admin) {
                   <td style="text-align:center;">${rows.length}</td>
                 </tr>
               `;
+            }).join("");
+              return categoryRow + propertyRows;
             }).join("") : `<tr><td colspan="6" style="text-align:center;">No reservations found for selected filters.</td></tr>`}
           </tbody>
         </table>
@@ -2777,6 +2840,7 @@ if (mainTable && mainTable.parentNode) {
     propertyWrap.id = "propertyGroupsWrap";
 
 const orderedPropertyNames = getOrderedPropertyNames(Object.keys(propertyGroups));
+const groupedPropertyNames = getGroupedPropertyNames(orderedPropertyNames);
 
   if (useDraftMode && draftMultiPropertyViewMode === "smart") {
   propertyWrap.innerHTML = `
@@ -2792,8 +2856,14 @@ const orderedPropertyNames = getOrderedPropertyNames(Object.keys(propertyGroups)
           </tr>
         </thead>
         <tbody>
-          ${orderedPropertyNames.map(propertyName => {
-            const rows = propertyGroups[propertyName]
+          ${groupedPropertyNames.map(group => {
+            const categoryRow = `
+              <tr>
+                <td colspan="5" class="property-category-row">${group.category}</td>
+              </tr>
+            `;
+            const propertyRows = group.names.map(propertyName => {
+              const rows = propertyGroups[propertyName]
               .filter(r => matchesFilters(r.checkIn))
               .sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
 
@@ -2821,6 +2891,8 @@ const orderedPropertyNames = getOrderedPropertyNames(Object.keys(propertyGroups)
                 <td style="text-align:center;">${formatMoney(pmcTotal)}</td>
               </tr>
             `;
+            }).join("");
+            return categoryRow + propertyRows;
           }).join("")}
         </tbody>
       </table>
@@ -2831,7 +2903,14 @@ const orderedPropertyNames = getOrderedPropertyNames(Object.keys(propertyGroups)
   return;
 }
 
-    propertyNames.forEach(propertyName => {
+    let lastCategory = "";
+    orderedPropertyNames.forEach(propertyName => {
+      const category = getPropertyCategory(propertyName);
+      if (category !== lastCategory) {
+        propertyWrap.innerHTML += `<h3 class="section-title property-category-title" style="text-align:center; margin:26px 0 8px 0;">${category}</h3>`;
+        lastCategory = category;
+      }
+
       const rows = propertyGroups[propertyName]
   .filter(r => matchesFilters(r.checkIn))
   .sort((a, b) => {
@@ -3077,7 +3156,7 @@ document.querySelectorAll(".toggle-reservations-btn").forEach((btn) => {
   };
 });
     
-    propertyNames.forEach(propertyName => {
+    orderedPropertyNames.forEach(propertyName => {
       const rows = propertyGroups[propertyName]
   .filter(r => matchesFilters(r.checkIn))
   .sort((a, b) => {
