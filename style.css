@@ -424,8 +424,12 @@ tr:last-child td { border-bottom: none; }
 }
 
 .ops-date-head.ops-today {
-  background: #e7f3ff !important;
-  box-shadow: inset 0 -2px 0 #2f78b7;
+  background: #fff5b8 !important;
+  box-shadow: inset 0 -2px 0 #cf9d00;
+}
+
+.ops-day-cell.ops-today-col {
+  background: #fff8cc !important;
 }
 
 .ops-day-cell {

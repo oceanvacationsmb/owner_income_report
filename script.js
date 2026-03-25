@@ -2388,7 +2388,7 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
     const outCount = propertyRows.filter(r => String(r.checkOut || "").slice(0, 10) === dayKey).length;
 
     if (!occupiedRows.length && !inCount && !outCount) {
-      return '<td class="ops-day-cell"></td>';
+      return `<td class="ops-day-cell ${dayKey === todayKey ? "ops-today-col" : ""}"></td>`;
     }
 
     // Guard against marker-only days where no row is technically occupied in this date slice.
@@ -2396,7 +2396,7 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
       const markerHtml = (inCount || outCount)
         ? `<div class="ops-io-markers">${outCount ? `<span class="ops-out" title="CHECK-OUTS">${outCount}</span>` : ""}${inCount ? `<span class="ops-in" title="CHECK-INS">${inCount}</span>` : ""}</div>`
         : "";
-      return `<td class="ops-day-cell">${markerHtml}</td>`;
+      return `<td class="ops-day-cell ${dayKey === todayKey ? "ops-today-col" : ""}">${markerHtml}</td>`;
     }
 
     const first = occupiedRows[0];
@@ -2412,7 +2412,7 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
       return toDateKey(prev) === dayKey;
     });
 
-    const cls = ["ops-day-cell", "ops-occupied", isStart ? "ops-start" : "", isEnd ? "ops-end" : ""].join(" ").trim();
+    const cls = ["ops-day-cell", "ops-occupied", dayKey === todayKey ? "ops-today-col" : "", isStart ? "ops-start" : "", isEnd ? "ops-end" : ""].join(" ").trim();
     const markerHtml = (inCount || outCount)
       ? `<div class="ops-io-markers">${outCount ? `<span class="ops-out" title="CHECK-OUTS">${outCount}</span>` : ""}${inCount ? `<span class="ops-in" title="CHECK-INS">${inCount}</span>` : ""}</div>`
       : "";
@@ -2520,7 +2520,7 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
     : `<div class="upcoming-empty">No upcoming elevator arrivals in the next 14 days.</div>`;
 
   dailyPage.innerHTML = `
-    <h2 style="margin:0 0 14px 0; text-align:center;">Daily Operation</h2>
+    <h2 style="margin:0 0 14px 0; text-align:center;">DAILY OPERATION</h2>
     <div class="daily-top-grid">
       <div class="summary-box daily-metric-card" style="margin:0;">
         <div class="summary-label">TODAY CHECK-INS</div>
@@ -2564,7 +2564,9 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
         </div>
       </div>
     </div>
-    <h3 style="margin:0 0 10px 0;">Live Operations Calendar</h3>
+    <div style="display:flex; justify-content:flex-end; margin:0 0 10px 0;">
+      <button type="button" class="task-btn task-btn-outline" id="opsTodayBtn">TODAY</button>
+    </div>
     <div class="admin-ops-scroll" id="adminOpsScrollWrap">
       <table class="admin-ops-table">
         <thead>
@@ -2611,6 +2613,25 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
     toggleUpcomingElevatorBtn.onclick = () => {
       isUpcomingElevatorsExpanded = !isUpcomingElevatorsExpanded;
       rerenderDailyOperationsIfActive();
+    };
+  }
+
+  const opsTodayBtn = document.getElementById("opsTodayBtn");
+  if (opsTodayBtn) {
+    opsTodayBtn.onclick = () => {
+      if (!opsScroll) return;
+      const dayIndex = dayKeys.indexOf(todayKey);
+      if (dayIndex < 0) return;
+
+      const leftStickyWidth = isMobileDaily ? 154 : 230;
+      const cellWidth = isMobileDaily ? 64 : 92;
+      opsScroll.scrollLeft = Math.max(0, leftStickyWidth + (dayIndex * cellWidth) - 160);
+
+      const headerCell = document.querySelector(`.ops-date-head[data-date="${todayKey}"]`);
+      if (headerCell) {
+        headerCell.classList.add("ops-date-focus");
+        setTimeout(() => headerCell.classList.remove("ops-date-focus"), 900);
+      }
     };
   }
 
