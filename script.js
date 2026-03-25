@@ -2452,6 +2452,8 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
     const inCount = propertyRows.filter(r => String(r.checkIn || "").slice(0, 10) === dayKey).length;
     const outCount = propertyRows.filter(r => String(r.checkOut || "").slice(0, 10) === dayKey).length;
 
+    const isSplitDay = inCount > 0 && outCount > 0;
+
     if (!occupiedRows.length && !inCount && !outCount) {
       return `<td class="ops-day-cell ${dayKey === todayKey ? "ops-today-col" : ""}"></td>`;
     }
@@ -2461,7 +2463,7 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
       const markerHtml = (inCount || outCount)
         ? `<div class="ops-io-markers">${outCount ? `<span class="ops-out" title="CHECK-OUTS">${outCount}</span>` : ""}${inCount ? `<span class="ops-in" title="CHECK-INS">${inCount}</span>` : ""}</div>`
         : "";
-      return `<td class="ops-day-cell ${dayKey === todayKey ? "ops-today-col" : ""}">${markerHtml}</td>`;
+      return `<td class="ops-day-cell ${dayKey === todayKey ? "ops-today-col" : ""} ${isSplitDay ? "ops-day-split" : ""}">${markerHtml}</td>`;
     }
 
     const first = occupiedRows[0];
@@ -2477,7 +2479,7 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
       return toDateKey(prev) === dayKey;
     });
 
-    const cls = ["ops-day-cell", "ops-occupied", dayKey === todayKey ? "ops-today-col" : "", isStart ? "ops-start" : "", isEnd ? "ops-end" : ""].join(" ").trim();
+    const cls = ["ops-day-cell", "ops-occupied", dayKey === todayKey ? "ops-today-col" : "", isSplitDay ? "ops-day-split" : "", isStart ? "ops-start" : "", isEnd ? "ops-end" : ""].join(" ").trim();
     const markerHtml = (inCount || outCount)
       ? `<div class="ops-io-markers">${outCount ? `<span class="ops-out" title="CHECK-OUTS">${outCount}</span>` : ""}${inCount ? `<span class="ops-in" title="CHECK-INS">${inCount}</span>` : ""}</div>`
       : "";
@@ -2491,8 +2493,8 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
       ? `${guestName}${startRows.length > 1 ? ` +${startRows.length - 1}` : ""}`
       : "";
     const durationText = (isStart && nights > 0) ? `${nights}N` : "";
-    const elevatorAlertHtml = (isStart && !hasElevator)
-      ? `<span class="ops-pill-elevator-alert">NOT ELEVATOR</span>`
+    const elevatorAlertHtml = (isStart && hasElevator)
+      ? `<span class="ops-pill-elevator-alert">ELEVATOR</span>`
       : "";
 
     const hoverText = occupiedRows.map(r => {
