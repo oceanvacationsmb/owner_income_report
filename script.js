@@ -1580,7 +1580,11 @@ function renderDashboardHeader() {
   const greeting = document.getElementById("greeting");
   const propertyAddress = document.getElementById("propertyAddress");
   if (greeting && currentOwner && !currentOwner.admin) {
-    greeting.innerText = getTimeBasedGreeting() + " " + currentOwner.ownerName;
+    const propertyName = String(currentOwner.propertyName || "").toLowerCase();
+    const displayOwnerName = propertyName.includes("2131 sanibel")
+      ? "GSD INVESTMENTS LLC"
+      : currentOwner.ownerName;
+    greeting.innerText = getTimeBasedGreeting() + " " + displayOwnerName;
   }
   if (propertyAddress && currentOwner && !currentOwner.admin) {
     propertyAddress.innerText = currentOwner.propertyName || "";
