@@ -1989,7 +1989,9 @@ function renderSummaryBoxes() {
   }
 
   summaryBoxes.style.display = "flex";
-  const filteredReservations = getFilteredReservations();
+  const filteredReservations = useDraftMode
+    ? reservationsData.filter(r => matchesFilters(r.checkIn))
+    : getFilteredReservations();
   const filteredOwnerStays = getFilteredOwnerStays();
 
   let totalAccommodation = 0;
