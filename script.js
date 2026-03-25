@@ -314,9 +314,7 @@ const PROPERTY_ORDER = [
 const TASKS_STORAGE_KEY = "ocean_vacations_tasks";
 const OWNER_OVERRIDES_STORAGE_KEY = "owner_settings_overrides";
 const TASKS_API_CANDIDATES = [
-  (typeof window !== "undefined" && window.TASKS_API_URL) ? String(window.TASKS_API_URL).trim() : "",
-  "/api/tasks",
-  "http://localhost:3001/api/tasks"
+  (typeof window !== "undefined" && window.TASKS_API_URL) ? String(window.TASKS_API_URL).trim() : ""
 ].filter(Boolean);
 let isUpcomingCheckInsExpanded = false;
 let tasksPersistenceMode = "local";
