@@ -311,6 +311,19 @@ const PROPERTY_ORDER = [
   "NMB - 709-2"
 ];
 
+const PROPERTY_PMC_PERCENT_OVERRIDES = {
+  "GCSSB - 204-2D": 10,
+  "MB - 209/5112": 10,
+  "MB - 209/5113": 10,
+  "MB - 7500": 10,
+  "MB - 4765": 10,
+  "MB - 1552": 15,
+  "MB - 2000": 10,
+  "MB - 2131": 15,
+  "NMB - 508/1-33S": 15,
+  "NMB - 508/2-33S": 15
+};
+
 const TASKS_STORAGE_KEY = "ocean_vacations_tasks";
 const OWNER_OVERRIDES_STORAGE_KEY = "owner_settings_overrides";
 const TASKS_API_CANDIDATES = [
@@ -375,6 +388,14 @@ function getGroupedPropertyNames(orderedNames = []) {
     names: orderedNames.filter(name => getPropertyCategory(name) === category)
   }));
   return groups.filter(group => group.names.length);
+}
+
+function getPmcPercentForListing(listingName, fallbackPercent = 12) {
+  const key = String(listingName || "").trim();
+  if (Object.prototype.hasOwnProperty.call(PROPERTY_PMC_PERCENT_OVERRIDES, key)) {
+    return Number(PROPERTY_PMC_PERCENT_OVERRIDES[key]) || fallbackPercent;
+  }
+  return Number(fallbackPercent) || 12;
 }
 
 function loadTasksFromStorage() {
@@ -1984,7 +2005,10 @@ function renderSummaryBoxes() {
   .forEach(reservation => {
     totalGrossPayout += toNumber(reservation.grossPayout || reservation.totalPayout);
     const accommodation = toNumber(reservation.accommodationFare);
-    const pmc = accommodation * (currentOwner.pmcPercent / 100);
+    const pmcPercent = isAdminReport
+      ? getPmcPercentForListing(reservation.listingNickname, 12)
+      : currentOwner.pmcPercent;
+    const pmc = accommodation * (pmcPercent / 100);
     const ownerPayout = accommodation - pmc;
     totalAccommodation += accommodation;
     totalPMC += pmc;
@@ -2001,7 +2025,12 @@ function renderSummaryBoxes() {
   );
 
   const vrboPmcTotal = vrboManualRows.reduce(
-    (sum, res) => sum + (toNumber(res.accommodationFare) * (currentOwner.pmcPercent / 100)),
+    (sum, res) => {
+      const pmcPercent = isAdminReport
+        ? getPmcPercentForListing(res.listingNickname, 12)
+        : currentOwner.pmcPercent;
+      return sum + (toNumber(res.accommodationFare) * (pmcPercent / 100));
+    },
     0
   );
 
@@ -2760,7 +2789,8 @@ if (currentOwner && currentOwner.admin) {
               rows.forEach(res => {
                 grossPayoutTotal += toNumber(res.grossPayout || res.totalPayout);
                 const accommodation = toNumber(res.accommodationFare);
-                const pmc = accommodation * (currentOwner.pmcPercent / 100);
+                const pmcPercent = getPmcPercentForListing(res.listingNickname, 12);
+                const pmc = accommodation * (pmcPercent / 100);
                 accommodationTotal += accommodation;
                 pmcTotal += pmc;
 
