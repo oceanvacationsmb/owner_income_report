@@ -198,10 +198,10 @@ const OWNERS = {
   },
   "office@rodriguezlc.com": {
     password: "owner5574$$",
-    ownerName: "GSD INVESTMENTS LLC",
+    ownerName: "GSD INVESTMENTS",
     propertyName: "2131 Sanibel Ct. Myrtle Beach SC 29577",
     postalCode: "29577",
-    pmcPercent: 12,
+    pmcPercent: 15,
     guestyApiKey: "e30ca84498f8e9ef64c9ff7ed2f0b40312a0e1df2a2e07044a86518a1233cd332d79595d24282bab03cf63c1d96b5237ba9ca14d35fd450c952b5f36f03eb5a1",
     cleaningFee: 300,
     viewMode: "payout"
@@ -259,6 +259,8 @@ const OWNERS = {
   },
 };
 
+applyOwnerOverridesFromStorage();
+
 let reservationsData = [];
 let ownerStaysData = [];
 let calendarCurrentDate = new Date();
@@ -310,6 +312,7 @@ const PROPERTY_ORDER = [
 ];
 
 const TASKS_STORAGE_KEY = "ocean_vacations_tasks";
+const OWNER_OVERRIDES_STORAGE_KEY = "owner_settings_overrides";
 const TASKS_API_CANDIDATES = [
   (typeof window !== "undefined" && window.TASKS_API_URL) ? String(window.TASKS_API_URL).trim() : "",
   "/api/tasks",
@@ -385,6 +388,41 @@ function loadTasksFromStorage() {
     return normalizeTasks(parsed);
   } catch (_) {
     return [];
+  }
+}
+
+function loadOwnerOverridesFromStorage() {
+  try {
+    const raw = localStorage.getItem(OWNER_OVERRIDES_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch (_) {
+    return {};
+  }
+}
+
+function applyOwnerOverridesFromStorage() {
+  const overrides = loadOwnerOverridesFromStorage();
+  Object.keys(overrides).forEach(email => {
+    if (!OWNERS[email] || !overrides[email] || typeof overrides[email] !== "object") return;
+    OWNERS[email] = { ...OWNERS[email], ...overrides[email] };
+  });
+}
+
+function saveOwnerOverrideToStorage(email) {
+  if (!email || !OWNERS[email]) return;
+  const overrides = loadOwnerOverridesFromStorage();
+  overrides[email] = {
+    ownerName: String(OWNERS[email].ownerName || "").trim(),
+    pmcPercent: Number(OWNERS[email].pmcPercent) || 0,
+    cleaningFee: Number(OWNERS[email].cleaningFee) || 0,
+    viewMode: String(OWNERS[email].viewMode || "payout")
+  };
+  try {
+    localStorage.setItem(OWNER_OVERRIDES_STORAGE_KEY, JSON.stringify(overrides));
+  } catch (_) {
+    // Best-effort persistence only.
   }
 }
 
@@ -1582,7 +1620,7 @@ function renderDashboardHeader() {
   if (greeting && currentOwner && !currentOwner.admin) {
     const propertyName = String(currentOwner.propertyName || "").toLowerCase();
     const displayOwnerName = propertyName.includes("2131 sanibel")
-      ? "GSD INVESTMENTS LLC"
+      ? "GSD INVESTMENTS"
       : currentOwner.ownerName;
     greeting.innerText = getTimeBasedGreeting() + " " + displayOwnerName;
   }
@@ -3569,6 +3607,7 @@ adminDiv.style.borderRadius = "8px";
     OWNERS[email].pmcPercent = Number(document.getElementById("adminOwnerPmc").value) || OWNERS[email].pmcPercent;
     OWNERS[email].cleaningFee = Number(document.getElementById("adminOwnerCleaning").value) || OWNERS[email].cleaningFee;
     OWNERS[email].viewMode = document.getElementById("adminOwnerViewMode").value || "payout";
+    saveOwnerOverrideToStorage(email);
     alert("Owner settings saved");
   };
 
@@ -3647,6 +3686,7 @@ function renderAdminPanel() {
     OWNERS[email].pmcPercent = Number(document.getElementById("adminOwnerPmc").value) || OWNERS[email].pmcPercent;
     OWNERS[email].cleaningFee = Number(document.getElementById("adminOwnerCleaning").value) || OWNERS[email].cleaningFee;
     OWNERS[email].viewMode = document.getElementById("adminOwnerViewMode").value || "payout";
+    saveOwnerOverrideToStorage(email);
     alert("Owner settings saved");
   };
 
