@@ -748,6 +748,16 @@ function getFilteredOwnerStays() {
   return ownerStaysData.filter(s => matchesFilters(s.checkIn || s.checkInDate));
 }
 
+function shouldUseInlinePropertyCalendarsForOwner() {
+  if (!currentOwner || currentOwner.admin || isDraftView) return false;
+  const propertyNames = new Set(
+    getFilteredReservations()
+      .map(r => String(r.listingNickname || "").trim())
+      .filter(Boolean)
+  );
+  return propertyNames.size > 1;
+}
+
 function getUniqueYearsFromData() {
   const years = new Set();
   reservationsData.forEach(r => {
@@ -792,10 +802,11 @@ function renderFilterControls() {
 
   const ownerPortal = document.getElementById("ownerPortal");
   const adminTopButtons = document.getElementById("adminTopButtons") || document.getElementById("draftViewModeToggle");
+  const useInlinePropertyCalendars = shouldUseInlinePropertyCalendarsForOwner();
 
   if (currentOwner && currentOwner.admin && adminTopButtons && adminTopButtons.parentNode) {
     adminTopButtons.insertAdjacentElement("afterend", wrap);
-  } else if (topCalendarBox) {
+  } else if (!useInlinePropertyCalendars && topCalendarBox) {
     topCalendarBox.appendChild(wrap);
   } else if (summaryBoxes && summaryBoxes.parentNode) {
     summaryBoxes.parentNode.insertBefore(wrap, summaryBoxes);
@@ -855,6 +866,7 @@ function renderFilterControls() {
 
 function applyFiltersAndRender() {
   if (isLoadingReport) return;
+  configureHeaderLayoutByMode();
   renderSummaryBoxes();
   renderReservationsTable();
   renderFilterControls();
@@ -1458,6 +1470,16 @@ function configureHeaderLayoutByMode() {
   }
 
   greetingContainer.style.display = "";
+  const useInlinePropertyCalendars = shouldUseInlinePropertyCalendarsForOwner();
+
+  if (useInlinePropertyCalendars) {
+    if (topCalendarBox) topCalendarBox.style.display = "none";
+    if (showCalendarBtn) showCalendarBtn.style.display = "none";
+    if (calendarSummary) calendarSummary.style.display = "none";
+    if (calendarPanel) calendarPanel.style.display = "none";
+    if (reportFiltersWrap) reportFiltersWrap.style.margin = "8px 0 16px 0";
+    return;
+  }
 
   if (isDraftView) {
     if (topCalendarBox) topCalendarBox.style.display = "";
