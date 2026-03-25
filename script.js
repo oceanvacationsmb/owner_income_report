@@ -1873,6 +1873,10 @@ function renderSummaryBoxes() {
     return sum + toNumber(reservation.numberOfNights);
   }, 0);
 
+  const totalCleaning = filteredReservations.reduce((sum, reservation) => {
+    return sum + toNumber(reservation.cleaningFare);
+  }, 0);
+
   if (useDraftMode) {
     const draftRows = filteredReservations.filter(res => hasDraftFinancialValue(res));
     let grossPayoutTotal = 0;
@@ -1915,29 +1919,53 @@ function renderSummaryBoxes() {
     return;
   }
 
-  summaryBoxes.innerHTML = `
-    <h2 style="text-align:center; width:100%; margin-bottom:12px;">SUMMARY</h2>
-    <div class="summary-box">
-      <div class="summary-label">PMC %</div>
-      <div class="summary-value">${currentOwner.pmcPercent}%</div>
-    </div>
-    <div class="summary-box">
-      <div class="summary-label">Total Accommodation</div>
-      <div class="summary-value">${formatMoney(totalAccommodation)}</div>
-    </div>
-    <div class="summary-box">
-      <div class="summary-label">Total PMC</div>
-      <div class="summary-value">${formatMoney(totalPMC)}</div>
-    </div>
-    <div class="summary-box">
-      <div class="summary-label">Total Owner Payout</div>
-      <div class="summary-value">${formatMoney(totalOwnerPayout)}</div>
-    </div>
-    <div class="summary-box">
-      <div class="summary-label">Booked Nights</div>
-      <div class="summary-value">${bookedNightsCount}</div>
-    </div>
-  `;
+  summaryBoxes.innerHTML = isAdminReport
+    ? `
+      <h2 style="text-align:center; width:100%; margin-bottom:12px;">SUMMARY</h2>
+      <div class="summary-box">
+        <div class="summary-label">GROSS PAYOUT</div>
+        <div class="summary-value">${formatMoney(totalOwnerPayout)}</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-label">NET ACCOMMODATION</div>
+        <div class="summary-value">${formatMoney(totalAccommodation)}</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-label">PMC</div>
+        <div class="summary-value">${formatMoney(totalPMC)}</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-label">CLEANING</div>
+        <div class="summary-value">${formatMoney(totalCleaning)}</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-label">BOOKED NIGHTS</div>
+        <div class="summary-value">${bookedNightsCount}</div>
+      </div>
+    `
+    : `
+      <h2 style="text-align:center; width:100%; margin-bottom:12px;">SUMMARY</h2>
+      <div class="summary-box">
+        <div class="summary-label">PMC %</div>
+        <div class="summary-value">${currentOwner.pmcPercent}%</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-label">Total Accommodation</div>
+        <div class="summary-value">${formatMoney(totalAccommodation)}</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-label">Total PMC</div>
+        <div class="summary-value">${formatMoney(totalPMC)}</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-label">Total Owner Payout</div>
+        <div class="summary-value">${formatMoney(totalOwnerPayout)}</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-label">Booked Nights</div>
+        <div class="summary-value">${bookedNightsCount}</div>
+      </div>
+    `;
 
   summaryBoxes.style.textAlign = "center";
   summaryBoxes.style.display = "flex";
@@ -2524,12 +2552,12 @@ if (currentOwner && currentOwner.admin) {
         <table>
           <thead>
             <tr>
-              <th style="text-align:left;">Property</th>
-              <th style="text-align:center;">Accommodation</th>
+              <th style="text-align:left;">PROPERTY</th>
+              <th style="text-align:center;">NET ACCOMMODATION</th>
               <th style="text-align:center;">PMC</th>
-              <th style="text-align:center;">Owner Payout</th>
-              <th style="text-align:center;">Booked Nights</th>
-              <th style="text-align:center;">Stays</th>
+              <th style="text-align:center;">GROSS PAYOUT</th>
+              <th style="text-align:center;">BOOKED NIGHTS</th>
+              <th style="text-align:center;">STAYS</th>
             </tr>
           </thead>
           <tbody>
