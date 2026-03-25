@@ -1211,27 +1211,54 @@ function toDateKey(dateObj) {
 }
 
 function getCustomFieldValueById(reservation, fieldId) {
-  const direct = reservation?.customFields?.[fieldId];
-  if (direct != null) {
-    if (typeof direct === "object") {
-      return String(direct.children ?? direct.value ?? "").trim();
+  const readFieldValue = (value) => {
+    if (value == null) return "";
+    if (typeof value === "object") {
+      return String(value.children ?? value.value ?? value.label ?? value.name ?? "").trim();
     }
-    return String(direct).trim();
-  }
+    return String(value).trim();
+  };
 
-  const raw = reservation?.rawCustomFields?.[fieldId];
-  if (raw != null) {
-    if (typeof raw === "object") {
-      return String(raw.children ?? raw.value ?? "").trim();
+  const lookupInContainer = (container) => {
+    if (!container) return "";
+
+    // Most common shape: object map keyed by field id.
+    const byKey = container[fieldId];
+    if (byKey != null) return readFieldValue(byKey);
+
+    // Also support array shapes from Guesty where each item has an id and value.
+    if (Array.isArray(container)) {
+      const match = container.find(item => {
+        const id = String(item?._id ?? item?.id ?? item?.fieldId ?? item?.field?._id ?? "").trim();
+        return id === String(fieldId);
+      });
+      if (match) {
+        return readFieldValue(
+          match.value ??
+          match.children ??
+          match.answer ??
+          match.text ??
+          match.option ??
+          match
+        );
+      }
     }
-    return String(raw).trim();
-  }
+
+    return "";
+  };
+
+  const fromCustom = lookupInContainer(reservation?.customFields);
+  if (fromCustom) return fromCustom;
+
+  const fromRaw = lookupInContainer(reservation?.rawCustomFields);
+  if (fromRaw) return fromRaw;
 
   return "";
 }
 
 function isCustomFieldYes(v) {
-  return String(v || "").trim().toLowerCase() === "yes";
+  const value = String(v || "").trim().toLowerCase();
+  return ["yes", "y", "true", "1", "required", "elevator", "notice"].includes(value);
 }
 
 function getAllCalendarBlocks() {
@@ -2496,7 +2523,7 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
       : "";
     const durationText = (isStart && nights > 0) ? `${nights}N` : "";
     const elevatorAlertHtml = (isStart && hasElevator)
-      ? `<span class="ops-pill-elevator-alert">ELEVATOR</span>`
+      ? `<span class="ops-pill-elevator-alert">NOTICE</span>`
       : "";
 
     const hoverText = occupiedRows.map(r => {
