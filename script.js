@@ -1,4 +1,5 @@
 let currentOwner = null;
+let currentOwnerEmail = "";
 let isDraftView = false;
 let draftMultiPropertyViewMode = "smart"; // "smart" | "extended"
 
@@ -18,6 +19,7 @@ if (ownerPasswordInput && showPwdBtn) {
 function signOut() {
   activeReportLoadId += 1;
   currentOwner = null;
+  currentOwnerEmail = "";
   isDraftView = false;
   draftMultiPropertyViewMode = "smart";
   reservationsData = [];
@@ -102,6 +104,7 @@ document.getElementById("loginBtn").onclick = function() {
   if (!OWNERS[email].viewMode) OWNERS[email].viewMode = "payout";
 
 currentOwner = OWNERS[email];
+currentOwnerEmail = email;
 isDraftView = currentOwner.admin
   ? true
   : String(currentOwner.viewMode || "payout").toLowerCase() === "draft";
@@ -185,7 +188,7 @@ const OWNERS = {
   },
   "liatedri18@gmail.com": {
     password: "owner6357$$",
-    ownerName: "Liat",
+    ownerName: "GSD INVESTMENTS LLC",
     propertyName: "GHO REVOCABLE TRUST",
     postalCode: "29575",
     pmcPercent: 10,
@@ -195,7 +198,7 @@ const OWNERS = {
   },
   "office@rodriguezlc.com": {
     password: "owner5574$$",
-    ownerName: "Liat",
+    ownerName: "GSD INVESTMENTS LLC",
     propertyName: "2131 Sanibel Ct. Myrtle Beach SC 29577",
     postalCode: "29577",
     pmcPercent: 12,
@@ -289,6 +292,33 @@ let tasksPersistenceMode = "local";
 let tasksInitPromise = null;
 let resolvedTasksApiBase = "";
 let isUpcomingElevatorsExpanded = false;
+
+function getOwnerReportCacheKey(ownerEmail, owner) {
+  const emailKey = String(ownerEmail || "unknown").toLowerCase();
+  const apiHash = String(owner?.guestyApiKey || "").slice(0, 16);
+  return `owner_report_cache_${emailKey}_${apiHash}`;
+}
+
+function saveOwnerReportCache(ownerEmail, owner, mappedRows) {
+  try {
+    const cacheKey = getOwnerReportCacheKey(ownerEmail, owner);
+    localStorage.setItem(cacheKey, JSON.stringify(mappedRows || []));
+  } catch (_) {
+    // Best-effort cache only.
+  }
+}
+
+function loadOwnerReportCache(ownerEmail, owner) {
+  try {
+    const cacheKey = getOwnerReportCacheKey(ownerEmail, owner);
+    const raw = localStorage.getItem(cacheKey);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (_) {
+    return [];
+  }
+}
 
 function getOrderedPropertyNames(names = []) {
   return [...names].sort((a, b) => {
@@ -3245,10 +3275,35 @@ function fillReservationDropdown() {
 function loadOwnerReport() {
   const reportLoadId = ++activeReportLoadId;
   const ownerAtLoadStart = currentOwner;
+  const ownerEmailAtLoadStart = currentOwnerEmail;
   const apiKeyAtLoadStart = currentOwner ? currentOwner.guestyApiKey : "";
   const isDraftModeForLoad = ownerAtLoadStart && ownerAtLoadStart.admin
     ? true
     : String(ownerAtLoadStart?.viewMode || "payout").toLowerCase() === "draft";
+
+  const assignMappedRows = (mappedRows) => {
+    ownerStaysData = mappedRows.filter(res =>
+      String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY") &&
+      String(res.status || "").toLowerCase() !== "cancel" &&
+      String(res.status || "").toLowerCase() !== "cancelled" &&
+      String(res.status || "").toLowerCase() !== "canceled"
+    );
+
+    reservationsData = mappedRows.filter(res => {
+      const isOwnerStay = String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY");
+
+      if (isDraftModeForLoad) return !isOwnerStay;
+
+      const status = String(res.status || "").toLowerCase().trim();
+      const payout = toNumber(res.grossPayout || res.totalPayout);
+      const isCancelled =
+        status === "cancel" ||
+        status === "cancelled" ||
+        status === "canceled";
+
+      return !isOwnerStay && (!isCancelled || (isCancelled && payout > 0));
+    });
+  };
 
   setReportLoadingState(true);
   setupCalendarButtons();
@@ -3309,31 +3364,8 @@ fetchAllReservations()
 
     const mappedRows = rows.map(mapGuestyReservation);
 
-    ownerStaysData = mappedRows.filter(res =>
-      String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY") &&
-      String(res.status || "").toLowerCase() !== "cancel" &&
-      String(res.status || "").toLowerCase() !== "cancelled" &&
-      String(res.status || "").toLowerCase() !== "canceled"
-    );
-  
-      reservationsData = mappedRows.filter(res => {
-  const isOwnerStay = String(res.guestName || res.guest_name || "").toUpperCase().includes("OWNER STAY");
-
-  // Draft mode: include all non-owner reservations
-  if (isDraftModeForLoad) return !isOwnerStay;
-
-  const status = String(res.status || "").toLowerCase().trim();
-  const payout = toNumber(res.grossPayout || res.totalPayout);
-  const isCancelled =
-    status === "cancel" ||
-    status === "cancelled" ||
-    status === "canceled";
-
-   return !isOwnerStay && (
-    !isCancelled ||
-    (isCancelled && payout > 0)
-  );
-});
+    assignMappedRows(mappedRows);
+    saveOwnerReportCache(ownerEmailAtLoadStart, ownerAtLoadStart, mappedRows);
 
       renderDashboardHeader();
       setReportLoadingState(false);
@@ -3344,7 +3376,13 @@ fetchAllReservations()
       if (reportLoadId !== activeReportLoadId || currentOwner !== ownerAtLoadStart) return;
 
       console.error("Error loading report:", err);
-      reservationsData = [];
+      const cachedRows = loadOwnerReportCache(ownerEmailAtLoadStart, ownerAtLoadStart);
+      if (cachedRows.length) {
+        assignMappedRows(cachedRows);
+      } else {
+        reservationsData = [];
+        ownerStaysData = [];
+      }
       renderDashboardHeader();
       setReportLoadingState(false);
       renderFilterControls();
