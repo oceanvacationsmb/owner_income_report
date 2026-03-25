@@ -482,6 +482,18 @@ tr:last-child td { border-bottom: none; }
   line-height: 1;
 }
 
+.ops-pill-elevator-alert {
+  margin-left: 4px;
+  font-size: 9px;
+  font-weight: 800;
+  color: #c43f3f;
+  background: #fff0f0;
+  border: 1px solid #efc9c9;
+  border-radius: 999px;
+  padding: 2px 6px;
+  line-height: 1;
+}
+
 .ops-io-markers {
   position: absolute;
   right: 4px;
@@ -493,7 +505,9 @@ tr:last-child td { border-bottom: none; }
 }
 
 .ops-io-markers span {
-  font-size: 9px;
+  min-width: 16px;
+  text-align: center;
+  font-size: 10px;
   line-height: 1;
   padding: 2px 5px;
   border-radius: 999px;

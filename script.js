@@ -2321,7 +2321,7 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
   const startDate = new Date(today);
   startDate.setDate(startDate.getDate() - 2);
   const isMobileDaily = window.innerWidth <= 768;
-  const totalDays = isMobileDaily ? 10 : 42;
+  const totalDays = isMobileDaily ? 365 : 365;
 
   const defaultWindowEnd = new Date(startDate);
   defaultWindowEnd.setDate(startDate.getDate() + totalDays - 1);
@@ -2394,7 +2394,7 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
     // Guard against marker-only days where no row is technically occupied in this date slice.
     if (!occupiedRows.length) {
       const markerHtml = (inCount || outCount)
-        ? `<div class="ops-io-markers">${outCount ? `<span class="ops-out">OUT ${outCount}</span>` : ""}${inCount ? `<span class="ops-in">IN ${inCount}</span>` : ""}</div>`
+        ? `<div class="ops-io-markers">${outCount ? `<span class="ops-out" title="CHECK-OUTS">${outCount}</span>` : ""}${inCount ? `<span class="ops-in" title="CHECK-INS">${inCount}</span>` : ""}</div>`
         : "";
       return `<td class="ops-day-cell">${markerHtml}</td>`;
     }
@@ -2414,9 +2414,10 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
 
     const cls = ["ops-day-cell", "ops-occupied", isStart ? "ops-start" : "", isEnd ? "ops-end" : ""].join(" ").trim();
     const markerHtml = (inCount || outCount)
-      ? `<div class="ops-io-markers">${outCount ? `<span class="ops-out">OUT ${outCount}</span>` : ""}${inCount ? `<span class="ops-in">IN ${inCount}</span>` : ""}</div>`
+      ? `<div class="ops-io-markers">${outCount ? `<span class="ops-out" title="CHECK-OUTS">${outCount}</span>` : ""}${inCount ? `<span class="ops-in" title="CHECK-INS">${inCount}</span>` : ""}</div>`
       : "";
     const guestName = String(primaryRow.guestName || "Guest");
+    const hasElevator = isCustomFieldYes(getCustomFieldValueById(primaryRow, ADMIN_ELEVATOR_FIELD_ID));
     const startDate = parseLocalDate(String(primaryRow.checkIn || "").slice(0, 10));
     const endDate = parseLocalDate(String(primaryRow.checkOut || "").slice(0, 10));
     const nights = (startDate && endDate) ? Math.max(0, Math.round((endDate - startDate) / (1000 * 60 * 60 * 24))) : 0;
@@ -2425,6 +2426,9 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
       ? `${guestName}${startRows.length > 1 ? ` +${startRows.length - 1}` : ""}`
       : "";
     const durationText = (isStart && nights > 0) ? `${nights}N` : "";
+    const elevatorAlertHtml = (isStart && !hasElevator)
+      ? `<span class="ops-pill-elevator-alert">NOT ELEVATOR</span>`
+      : "";
 
     const hoverText = occupiedRows.map(r => {
       const rStart = String(r.checkIn || "").slice(0, 10);
@@ -2435,7 +2439,7 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
       return `${String(r.guestName || "Guest")} | ${formatDateDisplay(rStart)} - ${formatDateDisplay(rEnd)} | ${rowNights}N`;
     }).join("\n").replace(/\"/g, "&quot;");
 
-    return `<td class="${cls}" title="${hoverText}"><div class="ops-pill ${isStart ? "ops-pill-start" : ""} ${isEnd ? "ops-pill-end" : ""}">${label}${durationText ? `<span class="ops-pill-duration">${durationText}</span>` : ""}</div>${markerHtml}</td>`;
+    return `<td class="${cls}" title="${hoverText}"><div class="ops-pill ${isStart ? "ops-pill-start" : ""} ${isEnd ? "ops-pill-end" : ""}">${label}${durationText ? `<span class="ops-pill-duration">${durationText}</span>` : ""}${elevatorAlertHtml}</div>${markerHtml}</td>`;
   };
 
   const dateHeaderHtml = dayKeys.map((key, idx) => {
