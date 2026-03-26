@@ -868,12 +868,12 @@ function matchesFilters(dateStr) {
   return true;
 }
 
+function matchesReservationFilters(reservation) {
+  return matchesFilters(reservation?.checkIn) || matchesFilters(reservation?.checkOut);
+}
+
 function getFilteredReservations() {
-  return reservationsData.filter(r => {
-    const inMatch = matchesFilters(r.checkIn);
-    const outMatch = matchesFilters(r.checkOut);
-    return inMatch || outMatch;
-  });
+  return reservationsData.filter(matchesReservationFilters);
 }
 
 function getFilteredOwnerStays() {
@@ -2017,7 +2017,7 @@ function renderSummaryBoxes() {
 
   summaryBoxes.style.display = "flex";
   const filteredReservations = useDraftMode
-    ? reservationsData.filter(r => matchesFilters(r.checkIn))
+    ? reservationsData.filter(matchesReservationFilters)
     : getFilteredReservations();
   const filteredOwnerStays = getFilteredOwnerStays();
 
@@ -2990,7 +2990,7 @@ const groupedPropertyNames = getGroupedPropertyNames(orderedPropertyNames);
             `;
             const propertyRows = group.names.map(propertyName => {
               const rows = propertyGroups[propertyName]
-              .filter(r => matchesFilters(r.checkIn))
+              .filter(matchesReservationFilters)
               .sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
 
             let grossTotal = 0;
@@ -3038,7 +3038,7 @@ const groupedPropertyNames = getGroupedPropertyNames(orderedPropertyNames);
       }
 
       const rows = propertyGroups[propertyName]
-  .filter(r => matchesFilters(r.checkIn))
+  .filter(matchesReservationFilters)
   .sort((a, b) => {
     return toSortableDate(a.checkIn) - toSortableDate(b.checkIn);
   });
@@ -3284,7 +3284,7 @@ document.querySelectorAll(".toggle-reservations-btn").forEach((btn) => {
     
     orderedPropertyNames.forEach(propertyName => {
       const rows = propertyGroups[propertyName]
-  .filter(r => matchesFilters(r.checkIn))
+  .filter(matchesReservationFilters)
   .sort((a, b) => {
     return toSortableDate(a.checkIn) - toSortableDate(b.checkIn);
   });
