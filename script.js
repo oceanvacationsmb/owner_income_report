@@ -1887,88 +1887,88 @@ const isVrboOrHomeAway =
   !isManualVrbo;
 
 const isWebsite = sourceUpper.includes("WEBSITE");
-const isDirect = sourceUpper.includes("DIRECT") && !isManualDirect;
-const isManual =
-  (sourceUpper === "MANUAL" || sourceUpper.includes("MANUAL")) &&
-  !isManualVrbo &&
-  !isManualDirect;
+const isDirect = sourceUpper.includes("DIRECT");
+const isManual = sourceUpper === "MANUAL" || sourceUpper.includes("MANUAL");
 
-const isSpecialSource = isVrboOrHomeAway || isWebsite || isDirect || isManual;
-
-// Channel/booking commission (NOT Airbnb ARC)
-const channelCommission = pickNumber(
-  r["money.invoiceItems.BKF"]?.value,
-  r["money.invoiceItems.BOOKING_FEE"]?.value,
-  r["money.invoiceItems.channelCommission"]?.value,
-  r.money?.invoiceItems?.BKF?.value,
-  r.bookingFee,
-  r.channelCommission,
-  r["money.channelCommission"]?.value
+const hostServiceFee = pickNumber(
+  r["money.hostServiceFee"]?.value,
+  r.money?.hostServiceFee?.value,
+  r["money.hostServiceFee"],
+  r.hostServiceFee
 );
 
-// Optional explicit card processing fee from report
-const explicitCardProcessingFee = pickNumber(
-  r["money.invoiceItems.CCF"]?.value,
-  r["money.invoiceItems.CC"]?.value,
-  r["money.invoiceItems.creditCardProcessingFee"]?.value,
-  r.money?.invoiceItems?.CCF?.value,
-  r.creditCardProcessingFee
+const feeCreditCard = pickNumber(
+  r["feeCreditCard"]?.value,
+  r.feeCreditCard?.value,
+  r["money.invoiceItems.feeCreditCard"]?.value,
+  r.money?.invoiceItems?.feeCreditCard?.value,
+  r.feeCreditCard
 );
 
-let allowedAccommodation = standardAccommodation;
+const isHostServiceFeeChannel = isVrboOrHomeAway || isWebsite || isDirect;
+const isManualPercentChannel = isManual || isManualDirect;
 
-const cardFeeToUse =
-  explicitCardProcessingFee > 0
-    ? explicitCardProcessingFee
-    : (totalPayoutValue * 0.04);
-
-// source-specific required deductions
-let requiredDeductions = Math.max(0, effectiveCleaningFare);
-
-if (isVrboOrHomeAway) {
-  requiredDeductions +=
-    Math.max(0, taxesCombined) +
-    Math.max(0, channelCommission);
-} else if (isWebsite || isDirect || isManual) {
-  requiredDeductions +=
-    Math.max(0, taxesCombined) +
-    Math.max(0, channelCommission) +
-    Math.max(0, totalPayoutValue * 0.01) +
-    Math.max(0, cardFeeToUse);
-} else if (!isAirbnb) {
-  // fallback for unknown sources
-  requiredDeductions += Math.max(0, taxesCombined);
+let channelCommissionForNet = 0;
+if (!(isAirbnb || isManualVrbo)) {
+  if (isManualPercentChannel) {
+    channelCommissionForNet = Math.max(0, totalPayoutValue * 0.01);
+  } else if (isHostServiceFeeChannel) {
+    channelCommissionForNet = Math.max(0, hostServiceFee);
+  }
 }
 
-// correct trigger:
-const payoutHeadroom = totalPayoutValue - standardAccommodation;
-const shouldUsePayoutFormula = payoutHeadroom < requiredDeductions;
-
-if (shouldUsePayoutFormula) {
-  allowedAccommodation = totalPayoutValue - requiredDeductions;
+let creditCardFeeForNet = 0;
+if (!(isAirbnb || isManualVrbo || isManualDirect) && isHostServiceFeeChannel) {
+  creditCardFeeForNet = Math.max(0, feeCreditCard);
 }
-
-calculatedAccommodation = Math.max(0, allowedAccommodation);
 
 const grossPayout = Math.max(0, totalPayoutValue);
 
-const isHomeAway =
-  platformUpper.includes("HOMEAWAY") ||
-  sourceUpper.includes("HOMEAWAY");
+const standardNetAccommodation = Math.max(
+  0,
+  standardAccommodation -
+    Math.max(0, airbnbResolutionCenter) -
+    Math.max(0, channelCommissionForNet) -
+    Math.max(0, creditCardFeeForNet)
+);
 
-const homeAwayChannelCommission =
-  (isHomeAway && !isManualVrbo)
-    ? Math.max(0, channelCommission)
-    : 0;
-
-const draftNetAccommodation = Math.max(
+const fallbackNetAccommodation = Math.max(
   0,
   grossPayout -
     Math.max(0, draftCleaningFare) -
-    Math.max(0, allTaxesCombined) -
-    Math.max(0, airbnbResolutionCenter) +
-    Math.max(0, lengthOfStayDiscount)
+    Math.max(0, allTaxesCombined) +
+    Math.max(0, lengthOfStayDiscount) -
+    Math.max(0, channelCommissionForNet) -
+    Math.max(0, airbnbResolutionCenter) -
+    Math.max(0, creditCardFeeForNet)
 );
+
+const requiredCoverageForStandard =
+  Math.max(0, standardAccommodation) +
+  Math.max(0, draftCleaningFare) +
+  Math.max(0, allTaxesCombined) +
+  Math.max(0, channelCommissionForNet) +
+  Math.max(0, airbnbResolutionCenter) +
+  Math.max(0, creditCardFeeForNet);
+
+const hasEnoughMoneyForStandard = grossPayout >= requiredCoverageForStandard;
+
+const draftNetAccommodation = hasEnoughMoneyForStandard
+  ? standardNetAccommodation
+  : fallbackNetAccommodation;
+
+// Keep payout-mode accommodation behavior unchanged.
+let allowedAccommodation = standardAccommodation;
+let requiredDeductions = Math.max(0, effectiveCleaningFare) + Math.max(0, taxesCombined);
+if (isHostServiceFeeChannel || isManualPercentChannel) {
+  requiredDeductions += Math.max(0, channelCommissionForNet) + Math.max(0, creditCardFeeForNet);
+}
+const payoutHeadroom = totalPayoutValue - standardAccommodation;
+const shouldUsePayoutFormula = payoutHeadroom < requiredDeductions;
+if (shouldUsePayoutFormula) {
+  allowedAccommodation = totalPayoutValue - requiredDeductions;
+}
+calculatedAccommodation = Math.max(0, allowedAccommodation);
 
     return {
     status: pickText(r.status, r.reservationStatus, r["STATUS"], r["reservationStatus"]),
@@ -1995,6 +1995,8 @@ accommodationFare: calculatedAccommodation,
     baseAccommodation,
     markup,
     lengthOfStayDiscount,
+    vrboWebsiteFee: Math.max(0, channelCommissionForNet),
+    creditCardFee: Math.max(0, creditCardFeeForNet),
     guestName: pickText(r["guest.fullName"], r.guestName, r.guest?.fullName, r.guest, r["guest.name"]),
     taxesCombined,
     airbnbResolutionCenter,
@@ -2200,6 +2202,7 @@ function renderReservationsTable() {
           <th style="text-align:center;">Nights</th>
           <th style="text-align:center;">Gross Payout</th>
           <th style="text-align:center;">Cleaning</th>
+          <th style="text-align:center;">VRBO/Website Fee</th>
           <th style="text-align:center;">Net Accommodation</th>
           <th style="text-align:center;">PMC</th>
         `
@@ -2234,7 +2237,7 @@ const sortedReservations = [...getFilteredReservations()]
   
   if (tbody) {
   if (!sortedReservations.length) {
-    const emptyCols = useDraftMode ? 7 : 8;
+    const emptyCols = useDraftMode ? 8 : 8;
     tbody.innerHTML = `
       <tr>
         <td colspan="${emptyCols}" style="text-align:center;">No reservations found</td>
@@ -2246,6 +2249,7 @@ const sortedReservations = [...getFilteredReservations()]
 const cleaning = isDraftView
   ? toNumber(reservation.draftCleaningFare ?? reservation.cleaningFare)
   : toNumber(reservation.cleaningFare);
+const vrboWebsiteFee = toNumber(reservation.vrboWebsiteFee);
 const accommodation = isDraftView
   ? toNumber(reservation.draftNetAccommodation)
   : toNumber(reservation.accommodationFare);
@@ -2269,6 +2273,7 @@ const nights = toNumber(reservation.numberOfNights);
     ? `
       <td style="text-align:center;">${formatMoney(grossPayout)}</td>
       <td style="text-align:center;">${formatMoney(cleaning)}</td>
+      <td style="text-align:center;">${formatMoney(vrboWebsiteFee)}</td>
       <td style="text-align:center;">${formatMoney(accommodation)}</td>
       <td style="text-align:center;">${formatMoney(pmc)}</td>
     `
@@ -2977,6 +2982,7 @@ const groupedPropertyNames = getGroupedPropertyNames(orderedPropertyNames);
             <th style="text-align:left; font-weight:bold;"><strong>PROPERTY</strong></th>
             <th style="text-align:center; font-weight:bold;"><strong>GROSS PAYOUT</strong></th>
             <th style="text-align:center; font-weight:bold;"><strong>CLEANING</strong></th>
+            <th style="text-align:center; font-weight:bold;"><strong>VRBO/WEBSITE FEE</strong></th>
             <th style="text-align:center; font-weight:bold;"><strong>NET ACCOMMODATION</strong></th>
             <th style="text-align:center; font-weight:bold;"><strong>PMC</strong></th>
           </tr>
@@ -2995,15 +3001,18 @@ const groupedPropertyNames = getGroupedPropertyNames(orderedPropertyNames);
 
             let grossTotal = 0;
             let cleaningTotal = 0;
+            let feeTotal = 0;
             let netTotal = 0;
             let pmcTotal = 0;
 
             rows.forEach(res => {
               const gross = toNumber(res.grossPayout || res.totalPayout);
               const cleaning = toNumber(res.draftCleaningFare);
+              const fee = toNumber(res.vrboWebsiteFee);
               const net = toNumber(res.draftNetAccommodation);
               grossTotal += gross;
               cleaningTotal += cleaning;
+              feeTotal += fee;
               netTotal += net;
               pmcTotal += net * (currentOwner.pmcPercent / 100);
             });
@@ -3013,6 +3022,7 @@ const groupedPropertyNames = getGroupedPropertyNames(orderedPropertyNames);
                 <td style="text-align:left;">${propertyName}</td>
                 <td style="text-align:center;">${formatMoney(grossTotal)}</td>
                 <td style="text-align:center;">${formatMoney(cleaningTotal)}</td>
+                <td style="text-align:center;">${formatMoney(feeTotal)}</td>
                 <td style="text-align:center;">${formatMoney(netTotal)}</td>
                 <td style="text-align:center;">${formatMoney(pmcTotal)}</td>
               </tr>
@@ -3180,6 +3190,7 @@ ${useDraftMode && draftMultiPropertyViewMode === "extended" ? `<div class="prope
         <th style="text-align:center;">Nights</th>
         <th style="text-align:center;">GROSS PAYOUT</th>
         <th style="text-align:center;">CLEANING</th>
+        <th style="text-align:center;">VRBO/Website Fee</th>
         <th style="text-align:center;">NET ACCOMMODATION</th>
         <th style="text-align:center;">PMC</th>
       </tr>
@@ -3204,6 +3215,7 @@ ${useDraftMode && draftMultiPropertyViewMode === "extended" ? `<div class="prope
 const cleaning = useDraftMode
   ? toNumber(reservation.draftCleaningFare ?? reservation.cleaningFare)
   : toNumber(reservation.cleaningFare);
+const vrboWebsiteFee = toNumber(reservation.vrboWebsiteFee);
 const accommodation = useDraftMode
   ? toNumber(reservation.draftNetAccommodation)
   : toNumber(reservation.accommodationFare);
@@ -3228,6 +3240,7 @@ const nights = toNumber(reservation.numberOfNights);
     ? `
       <td style="text-align:center;">${formatMoney(grossPayout)}</td>
       <td style="text-align:center;">${formatMoney(cleaning)}</td>
+      <td style="text-align:center;">${formatMoney(vrboWebsiteFee)}</td>
       <td style="text-align:center;">${formatMoney(accommodation)}</td>
       <td style="text-align:center;">${formatMoney(pmc)}</td>
     `
