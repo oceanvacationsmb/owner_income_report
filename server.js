@@ -8,6 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const OWNERS_FILE = process.env.OWNERS_FILE || path.join(__dirname, "owners.private.json");
 const TASKS_FILE = process.env.TASKS_FILE || path.join(__dirname, "tasks.private.json");
+const SAVED_REPORTS_FILE = process.env.SAVED_REPORTS_FILE || path.join(__dirname, "saved-reports.private.json");
 
 const sessions = new Map();
 
@@ -67,6 +68,78 @@ function readTasks() {
 
 function writeTasks(tasks) {
   fs.writeFileSync(TASKS_FILE, JSON.stringify(tasks, null, 2), "utf8");
+}
+
+function normalizeRecurringCharge(item) {
+  if (!item || typeof item !== "object") return null;
+  const id = String(item.id || "").trim() || crypto.randomBytes(8).toString("hex");
+  const name = String(item.name || "").trim();
+  const amount = Number(item.amount) || 0;
+  if (!name && !amount) return null;
+  return { id, name, amount };
+}
+
+function normalizeOwnerStayFee(item) {
+  if (!item || typeof item !== "object") return null;
+  const id = String(item.id || "").trim() || crypto.randomBytes(8).toString("hex");
+  const label = String(item.label || "").trim();
+  const cleaningFee = Number(item.cleaningFee) || 0;
+  if (!label && !cleaningFee) return null;
+  return { id, label, cleaningFee };
+}
+
+function normalizeSavedReport(report) {
+  if (!report || typeof report !== "object") return null;
+
+  const id = String(report.id || "").trim() || crypto.randomBytes(10).toString("hex");
+  const statementDate = String(report.statementDate || "").trim();
+  const ownerName = String(report.ownerName || "").trim();
+  const ownerEmail = String(report.ownerEmail || "").trim().toLowerCase();
+  const propertyName = String(report.propertyName || "").trim();
+  const periodLabel = String(report.periodLabel || "").trim();
+  const reportName = String(report.reportName || "Statement").trim() || "Statement";
+  const ownerType = String(report.ownerType || "payout").toLowerCase() === "draft" ? "draft" : "payout";
+  const recurringCharges = Array.isArray(report.recurringCharges)
+    ? report.recurringCharges.map(normalizeRecurringCharge).filter(Boolean)
+    : [];
+  const ownerStayFees = Array.isArray(report.ownerStayFees)
+    ? report.ownerStayFees.map(normalizeOwnerStayFee).filter(Boolean)
+    : [];
+  const createdAt = String(report.createdAt || new Date().toISOString());
+  const updatedAt = String(report.updatedAt || createdAt);
+
+  if (!statementDate || !ownerName) return null;
+
+  return {
+    id,
+    statementDate,
+    ownerName,
+    ownerEmail,
+    propertyName,
+    periodLabel,
+    reportName,
+    ownerType,
+    recurringCharges,
+    ownerStayFees,
+    createdAt,
+    updatedAt
+  };
+}
+
+function readSavedReports() {
+  if (!fs.existsSync(SAVED_REPORTS_FILE)) return [];
+  try {
+    const raw = fs.readFileSync(SAVED_REPORTS_FILE, "utf8");
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map(normalizeSavedReport).filter(Boolean);
+  } catch (_) {
+    return [];
+  }
+}
+
+function writeSavedReports(reports) {
+  fs.writeFileSync(SAVED_REPORTS_FILE, JSON.stringify(reports, null, 2), "utf8");
 }
 
 function authRequired(req, res, next) {
@@ -240,6 +313,116 @@ app.delete("/api/tasks/:id", (req, res) => {
   } catch (err) {
     console.error("/api/tasks DELETE error", err);
     res.status(500).json({ message: "Tasks service error." });
+  }
+});
+
+app.get("/api/saved-reports", (req, res) => {
+  try {
+    const reports = readSavedReports();
+    res.json({ reports });
+  } catch (err) {
+    console.error("/api/saved-reports GET error", err);
+    res.status(500).json({ message: "Saved reports service error." });
+  }
+});
+
+app.get("/api/saved-reports/:id", (req, res) => {
+  try {
+    const id = String(req.params.id || "").trim();
+    if (!id) {
+      res.status(400).json({ message: "Report id is required." });
+      return;
+    }
+
+    const reports = readSavedReports();
+    const report = reports.find(item => item.id === id);
+    if (!report) {
+      res.status(404).json({ message: "Report not found." });
+      return;
+    }
+
+    res.json({ report });
+  } catch (err) {
+    console.error("/api/saved-reports/:id GET error", err);
+    res.status(500).json({ message: "Saved reports service error." });
+  }
+});
+
+app.post("/api/saved-reports", (req, res) => {
+  try {
+    const incoming = normalizeSavedReport(req.body || {});
+    if (!incoming) {
+      res.status(400).json({ message: "Invalid saved report payload." });
+      return;
+    }
+
+    const reports = readSavedReports();
+    reports.unshift(incoming);
+    writeSavedReports(reports);
+    res.status(201).json({ report: incoming });
+  } catch (err) {
+    console.error("/api/saved-reports POST error", err);
+    res.status(500).json({ message: "Saved reports service error." });
+  }
+});
+
+app.put("/api/saved-reports/:id", (req, res) => {
+  try {
+    const id = String(req.params.id || "").trim();
+    if (!id) {
+      res.status(400).json({ message: "Report id is required." });
+      return;
+    }
+
+    const reports = readSavedReports();
+    const idx = reports.findIndex(item => item.id === id);
+    if (idx === -1) {
+      res.status(404).json({ message: "Report not found." });
+      return;
+    }
+
+    const merged = {
+      ...reports[idx],
+      ...req.body,
+      id,
+      createdAt: reports[idx].createdAt,
+      updatedAt: new Date().toISOString()
+    };
+    const normalized = normalizeSavedReport(merged);
+    if (!normalized) {
+      res.status(400).json({ message: "Invalid saved report payload." });
+      return;
+    }
+
+    reports[idx] = normalized;
+    writeSavedReports(reports);
+    res.json({ report: normalized });
+  } catch (err) {
+    console.error("/api/saved-reports PUT error", err);
+    res.status(500).json({ message: "Saved reports service error." });
+  }
+});
+
+app.delete("/api/saved-reports/:id", (req, res) => {
+  try {
+    const id = String(req.params.id || "").trim();
+    if (!id) {
+      res.status(400).json({ message: "Report id is required." });
+      return;
+    }
+
+    const reports = readSavedReports();
+    const next = reports.filter(item => item.id !== id);
+    if (next.length === reports.length) {
+      res.status(404).json({ message: "Report not found." });
+      return;
+    }
+
+    writeSavedReports(next);
+    res.status(204).end();
+  } catch (err) {
+    console.error("/api/saved-reports DELETE error", err);
+    res.status(500).json({ message: "Saved reports service error." });
   }
 });
 
