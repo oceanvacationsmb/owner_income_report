@@ -1912,6 +1912,14 @@ const feeCreditCard = pickNumber(
   r.feeCreditCard
 );
 
+const feeGuestService = pickNumber(
+  r["feeGuestService"]?.value,
+  r.feeGuestService?.value,
+  r["money.invoiceItems.feeGuestService"]?.value,
+  r.money?.invoiceItems?.feeGuestService?.value,
+  r.feeGuestService
+);
+
 const isHostServiceFeeChannel = isVrboOrHomeAway || isWebsite || isDirect;
 const isManualPercentChannel = isManual || isManualDirect;
 const grossPayout = Math.max(0, totalPayoutValue);
@@ -1952,8 +1960,7 @@ let creditCardFeeForPayout = 0;
 creditCardFeeForPayout = Math.max(0, feeCreditCard);
 
 const standardAccommodation =
-  standardAccommodationBase -
-  Math.max(0, hostServiceFee);
+  standardAccommodationBase;
 
 calculatedAccommodation = standardAccommodation;
 
@@ -1974,11 +1981,19 @@ let requiredDeductions = Math.max(0, effectiveCleaningFare) + Math.max(0, taxesC
 if (isHostServiceFeeChannel || isManualPercentChannel) {
   requiredDeductions += Math.max(0, channelCommissionForPayout);
 }
-requiredDeductions += Math.max(0, feeCreditCard) + Math.max(0, hostServiceFee);
+requiredDeductions += Math.max(0, feeCreditCard) + Math.max(0, feeGuestService);
 const payoutHeadroom = totalPayoutValue - standardAccommodation;
 const shouldUsePayoutFormula = payoutHeadroom < requiredDeductions;
 if (shouldUsePayoutFormula) {
-  allowedAccommodation = draftNetAccommodation;
+  allowedAccommodation = Math.max(
+    0,
+    grossPayout -
+      Math.max(0, effectiveCleaningFare) -
+      Math.max(0, taxesCombined) -
+      Math.max(0, channelCommissionForPayout) -
+      Math.max(0, feeCreditCard) -
+      Math.max(0, feeGuestService)
+  );
 }
 calculatedAccommodation = Math.max(0, allowedAccommodation);
 
