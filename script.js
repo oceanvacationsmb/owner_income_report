@@ -1763,8 +1763,8 @@ function mapGuestyReservation(r) {
     r.lengthOfStayDiscount
   );
 
-  const standardAccommodation = baseAccommodation - markup + lengthOfStayDiscount;
-let calculatedAccommodation = standardAccommodation;
+  const standardAccommodationBase = baseAccommodation - markup + lengthOfStayDiscount;
+let calculatedAccommodation = standardAccommodationBase;
 
 
   const sourceValue = pickText(
@@ -1914,6 +1914,10 @@ const feeCreditCard = pickNumber(
 
 const isHostServiceFeeChannel = isVrboOrHomeAway || isWebsite || isDirect;
 const isManualPercentChannel = isManual || isManualDirect;
+const grossPayout = Math.max(0, totalPayoutValue);
+const websiteCommissionFromGross = isWebsite
+  ? Math.max(0, (grossPayout * 0.01) + 0.30)
+  : 0;
 
 // Draft formula channel commission only for VRBO/HOMEAWAY/DIRECT/WEBSITE.
 // Explicitly exclude MANUAL_DIRECT, VRBO_DIRECT, and AIRBNB.
@@ -1925,7 +1929,11 @@ const isDraftChannelCommissionEligible =
 
 let channelCommissionForNet = 0;
 if (isDraftChannelCommissionEligible) {
-  channelCommissionForNet = Math.max(0, hostServiceFee);
+  if (isWebsite) {
+    channelCommissionForNet = websiteCommissionFromGross;
+  } else {
+    channelCommissionForNet = Math.max(0, hostServiceFee);
+  }
 }
 
 // Keep payout-mode deductions behavior unchanged from existing logic.
@@ -1933,17 +1941,23 @@ let channelCommissionForPayout = 0;
 if (!(isAirbnb || isManualVrbo)) {
   if (isManualPercentChannel) {
     channelCommissionForPayout = Math.max(0, totalPayoutValue * 0.01);
+  } else if (isWebsite) {
+    channelCommissionForPayout = websiteCommissionFromGross;
   } else if (isHostServiceFeeChannel) {
     channelCommissionForPayout = Math.max(0, hostServiceFee);
   }
 }
 
 let creditCardFeeForPayout = 0;
-if (!(isAirbnb || isManualVrbo || isManualDirect) && isHostServiceFeeChannel) {
-  creditCardFeeForPayout = Math.max(0, feeCreditCard);
-}
+creditCardFeeForPayout = Math.max(0, feeCreditCard);
 
-const grossPayout = Math.max(0, totalPayoutValue);
+const standardAccommodation =
+  standardAccommodationBase -
+  Math.max(0, hostServiceFee) -
+  Math.max(0, feeCreditCard);
+
+calculatedAccommodation = standardAccommodation;
+
 const draftNetAccommodation = Math.max(
   0,
   grossPayout -
@@ -1951,6 +1965,7 @@ const draftNetAccommodation = Math.max(
     Math.max(0, allTaxesCombined) +
     Math.max(0, lengthOfStayDiscount) -
     Math.max(0, channelCommissionForNet) -
+    Math.max(0, feeCreditCard) -
     Math.max(0, airbnbResolutionCenter)
 );
 
@@ -1958,8 +1973,9 @@ const draftNetAccommodation = Math.max(
 let allowedAccommodation = standardAccommodation;
 let requiredDeductions = Math.max(0, effectiveCleaningFare) + Math.max(0, taxesCombined);
 if (isHostServiceFeeChannel || isManualPercentChannel) {
-  requiredDeductions += Math.max(0, channelCommissionForPayout) + Math.max(0, creditCardFeeForPayout);
+  requiredDeductions += Math.max(0, channelCommissionForPayout);
 }
+requiredDeductions += Math.max(0, feeCreditCard) + Math.max(0, hostServiceFee);
 const payoutHeadroom = totalPayoutValue - standardAccommodation;
 const shouldUsePayoutFormula = payoutHeadroom < requiredDeductions;
 if (shouldUsePayoutFormula) {
