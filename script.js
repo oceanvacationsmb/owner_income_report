@@ -1953,8 +1953,7 @@ creditCardFeeForPayout = Math.max(0, feeCreditCard);
 
 const standardAccommodation =
   standardAccommodationBase -
-  Math.max(0, hostServiceFee) -
-  Math.max(0, feeCreditCard);
+  Math.max(0, hostServiceFee);
 
 calculatedAccommodation = standardAccommodation;
 
@@ -1979,7 +1978,7 @@ requiredDeductions += Math.max(0, feeCreditCard) + Math.max(0, hostServiceFee);
 const payoutHeadroom = totalPayoutValue - standardAccommodation;
 const shouldUsePayoutFormula = payoutHeadroom < requiredDeductions;
 if (shouldUsePayoutFormula) {
-  allowedAccommodation = totalPayoutValue - requiredDeductions;
+  allowedAccommodation = draftNetAccommodation;
 }
 calculatedAccommodation = Math.max(0, allowedAccommodation);
 
