@@ -1981,7 +1981,7 @@ let requiredDeductions = Math.max(0, effectiveCleaningFare) + Math.max(0, taxesC
 if (isHostServiceFeeChannel || isManualPercentChannel) {
   requiredDeductions += Math.max(0, channelCommissionForPayout);
 }
-requiredDeductions += Math.max(0, feeCreditCard) + Math.max(0, feeGuestService);
+requiredDeductions += Math.max(0, feeCreditCard);
 const payoutHeadroom = totalPayoutValue - standardAccommodation;
 const shouldUsePayoutFormula = payoutHeadroom < requiredDeductions;
 if (shouldUsePayoutFormula) {
@@ -1991,8 +1991,7 @@ if (shouldUsePayoutFormula) {
       Math.max(0, effectiveCleaningFare) -
       Math.max(0, taxesCombined) -
       Math.max(0, channelCommissionForPayout) -
-      Math.max(0, feeCreditCard) -
-      Math.max(0, feeGuestService)
+      Math.max(0, feeCreditCard)
   );
 }
 calculatedAccommodation = Math.max(0, allowedAccommodation);
