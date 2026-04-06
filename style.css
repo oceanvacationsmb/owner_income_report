@@ -1893,11 +1893,49 @@ tbody tr:hover td {
   .mode-tab-btn,
   #adminTopButtons button,
   #draftViewModeToggle button,
-  .task-btn,
-  .upcoming-panel-header,
-  .upcoming-item {
+  .task-btn {
     min-height: 46px;
     font-size: 14px;
+  }
+
+  .upcoming-panels-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .upcoming-panel-header {
+    min-height: 56px;
+    padding: 14px 16px;
+    font-size: 16px;
+  }
+
+  .upcoming-head-left {
+    font-size: 16px;
+  }
+
+  .upcoming-head-count {
+    font-size: 14px;
+  }
+
+  .upcoming-item {
+    min-height: 54px;
+    padding: 14px 16px;
+    font-size: 15px;
+  }
+
+  .upcoming-item-text {
+    font-size: 15px;
+  }
+
+  .upcoming-dot {
+    width: 11px;
+    height: 11px;
+    flex: 0 0 11px;
+  }
+
+  .upcoming-empty {
+    font-size: 14px;
+    padding: 14px 16px;
   }
 
   .daily-top-grid {

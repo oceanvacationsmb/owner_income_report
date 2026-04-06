@@ -2026,8 +2026,30 @@ accommodationFare: calculatedAccommodation,
     guestName: pickText(r["guest.fullName"], r.guestName, r.guest?.fullName, r.guest, r["guest.name"]),
     taxesCombined,
     airbnbResolutionCenter,
-    customFields: pickDeep(r, "customFields", "custom_fields") || {},
-    rawCustomFields: pickDeep(r, "rawCustomFields", "raw_custom_fields") || {}
+    customFields: (function() {
+      // Guesty shared reports may return custom fields as flat dot-notation keys
+      // e.g. r["customFields.69682ec2a604dc001460d3c5"] instead of r.customFields[fieldId]
+      const nested = pickDeep(r, "customFields", "custom_fields");
+      const flat = {};
+      for (const key of Object.keys(r)) {
+        if (key.startsWith("customFields.")) {
+          flat[key.slice("customFields.".length)] = r[key];
+        }
+      }
+      if (Array.isArray(nested)) return nested;
+      return Object.assign({}, flat, nested != null && typeof nested === "object" ? nested : {});
+    })(),
+    rawCustomFields: (function() {
+      const nested = pickDeep(r, "rawCustomFields", "raw_custom_fields");
+      const flat = {};
+      for (const key of Object.keys(r)) {
+        if (key.startsWith("rawCustomFields.")) {
+          flat[key.slice("rawCustomFields.".length)] = r[key];
+        }
+      }
+      if (Array.isArray(nested)) return nested;
+      return Object.assign({}, flat, nested != null && typeof nested === "object" ? nested : {});
+    })()
   };
 }
 
@@ -2595,7 +2617,7 @@ if (currentOwner && currentOwner.admin && window.adminActiveTab === "daily") {
     .filter(row => {
       const inDate = parseLocalDate(row.checkIn || "");
       const hasElevator = isCustomFieldYes(getCustomFieldValueById(row, ADMIN_ELEVATOR_FIELD_ID));
-      return hasElevator && inDate && inDate >= today && inDate <= upcomingWindowEnd;
+      return hasElevator && inDate && inDate >= today;
     })
     .sort((a, b) => toSortableDate(a.checkIn) - toSortableDate(b.checkIn));
 
