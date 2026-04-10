@@ -210,7 +210,7 @@ const OWNERS = {
     viewMode: "payout"
   },
   "Zvicaelia@yahoo.com": {
-    password: "owner7818$$",
+    password: "owner7818",
     ownerName: "Zvika",
     propertyName: "7401 North Ocean BLVD. Myrtle Beach SC 29572",
     postalCode: "29572",
