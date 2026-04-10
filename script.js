@@ -209,13 +209,13 @@ const OWNERS = {
     cleaningFee: 300,
     viewMode: "payout"
   },
-  "zilkerinvestments@gmail.com": {
-    password: "owner7920$$",
-    ownerName: "Tal Zilker - GTI Group LLC",
-    propertyName: "214 2nd Ave S. North Myrtle Beach SC 29582",
-    postalCode: "29582",
+  "Zvicaelia@yahoo.com": {
+    password: "owner7818$$",
+    ownerName: "Zvika",
+    propertyName: "7401 North Ocean BLVD. Myrtle Beach SC 29572",
+    postalCode: "29572",
     pmcPercent: 12,
-    guestyApiKey: "796af50d38fbbedbcec1df5bdd790355a574f67e21a823ba64f9a26cda86cc4d6d7c71552d7c02889a32557ed6185d44de44820881f74e128d66dacd57a70017",
+    guestyApiKey: "483d4003f2fb16cea880d61c11af66b9150d0e2fe23c9c0e5b3c88baa8a16e13bfc4bd98885e15d34788342614128b8651d86356348303b640d9fba3fe7d9610",
     cleaningFee: 300,
     viewMode: "payout"
   },
@@ -260,17 +260,7 @@ const OWNERS = {
     viewMode: "draft",
     admin: true
   },
-   "Zvicaelia@yahoo.com": {
-    password: "owner7818$$",
-    ownerName: "Zvika",
-    propertyName: "7401 North Ocean BLVD. Myrtle Beach SC 29572",
-    postalCode: "29572",
-    pmcPercent: 12,
-    guestyApiKey: "483d4003f2fb16cea880d61c11af66b9150d0e2fe23c9c0e5b3c88baa8a16e13bfc4bd98885e15d34788342614128b8651d86356348303b640d9fba3fe7d9610",
-    cleaningFee: 300,
-    viewMode: "payout"
-    },
-};
+  };
 
 applyOwnerOverridesFromStorage();
 
