@@ -191,7 +191,7 @@ const OWNERS = {
   },
   "liatedri18@gmail.com": {
     password: "owner6357$$",
-    ownerName: "GSD INVESTMENTS LLC",
+    ownerName: "Liat",
     propertyName: "GHO REVOCABLE TRUST",
     postalCode: "29575",
     pmcPercent: 10,
@@ -260,6 +260,16 @@ const OWNERS = {
     viewMode: "draft",
     admin: true
   },
+   "Zvicaelia@yahoo.com": {
+    password: "owner7818$$",
+    ownerName: "Zvika",
+    propertyName: "7401 North Ocean BLVD. Myrtle Beach SC 29572",
+    postalCode: "29572",
+    pmcPercent: 12,
+    guestyApiKey: "483d4003f2fb16cea880d61c11af66b9150d0e2fe23c9c0e5b3c88baa8a16e13bfc4bd98885e15d34788342614128b8651d86356348303b640d9fba3fe7d9610",
+    cleaningFee: 300,
+    viewMode: "payout"
+    },
 };
 
 applyOwnerOverridesFromStorage();
@@ -293,6 +303,7 @@ const PROPERTY_ORDER = [
   "MB - 209/5112",
   "MB - 209/5113",
   "MB - 7500",
+  "MB - 7401 #8",
   "MB - 4765",
   "MB - 4631/301",
   "MB - 4679/204",
@@ -319,6 +330,7 @@ const PROPERTY_PMC_PERCENT_OVERRIDES = {
   "MB - 209/5112": 10,
   "MB - 209/5113": 10,
   "MB - 7500": 10,
+  "MB - 7401 #8":12,
   "MB - 4765": 10,
   "MB - 1552": 15,
   "MB - 2000": 10,
