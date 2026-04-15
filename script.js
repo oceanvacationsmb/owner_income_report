@@ -209,7 +209,7 @@ const OWNERS = {
     cleaningFee: 300,
     viewMode: "payout"
   },
-  "Zvicaelia@yahoo.com": {
+  "zvicaelia@yahoo.com": {
     password: "owner7818",
     ownerName: "Zvika",
     propertyName: "7401 North Ocean BLVD. Myrtle Beach SC 29572",
@@ -260,9 +260,20 @@ const OWNERS = {
     viewMode: "draft",
     admin: true
   },
+  "kobi.zroya@placeholder.com": {
+    password: "owner1111",
+    ownerName: "Kobi Zroya",
+    propertyName: "",
+    postalCode: "",
+    pmcPercent: 12,
+    guestyApiKey: "",
+    cleaningFee: 0,
+    viewMode: "payout"
+  },
   };
 
 applyOwnerOverridesFromStorage();
+applyNewOwnersFromStorage();
 
 let reservationsData = [];
 let ownerStaysData = [];
@@ -331,6 +342,8 @@ const PROPERTY_PMC_PERCENT_OVERRIDES = {
 
 const TASKS_STORAGE_KEY = "ocean_vacations_tasks";
 const OWNER_OVERRIDES_STORAGE_KEY = "owner_settings_overrides";
+const NEW_OWNERS_STORAGE_KEY = "ocean_vacations_new_owners";
+const GUESTY_URL_STORAGE_KEY = "ocean_vacations_guesty_url";
 const TASKS_API_CANDIDATES = [
   (typeof window !== "undefined" && window.TASKS_API_URL) ? String(window.TASKS_API_URL).trim() : ""
 ].filter(Boolean);
@@ -448,6 +461,52 @@ function saveOwnerOverrideToStorage(email) {
   } catch (_) {
     // Best-effort persistence only.
   }
+}
+
+function loadNewOwnersFromStorage() {
+  try {
+    const raw = localStorage.getItem(NEW_OWNERS_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch (_) {
+    return {};
+  }
+}
+
+function saveNewOwnerToStorage(email, ownerData) {
+  try {
+    const stored = loadNewOwnersFromStorage();
+    stored[email] = ownerData;
+    localStorage.setItem(NEW_OWNERS_STORAGE_KEY, JSON.stringify(stored));
+  } catch (_) {
+    // Best-effort persistence only.
+  }
+}
+
+function applyNewOwnersFromStorage() {
+  const newOwners = loadNewOwnersFromStorage();
+  Object.keys(newOwners).forEach(email => {
+    const lowerEmail = String(email || "").trim().toLowerCase();
+    if (!lowerEmail || !newOwners[email]) return;
+    if (!OWNERS[lowerEmail]) {
+      OWNERS[lowerEmail] = { ...newOwners[email] };
+    }
+  });
+}
+
+function getGuestyReportBaseUrl() {
+  try {
+    const stored = localStorage.getItem(GUESTY_URL_STORAGE_KEY);
+    if (stored && stored.trim()) return stored.trim();
+  } catch (_) {}
+  return "https://report.guesty.com/api/shared-reservations-reports?timezone=America/New_York";
+}
+
+function saveGuestyReportUrl(url) {
+  try {
+    localStorage.setItem(GUESTY_URL_STORAGE_KEY, String(url || "").trim());
+  } catch (_) {}
 }
 
 let tasksData = loadTasksFromStorage();
@@ -1924,9 +1983,12 @@ const feeGuestService = pickNumber(
 
 const isHostServiceFeeChannel = isVrboOrHomeAway || isWebsite || isDirect;
 const isManualPercentChannel = isManual || isManualDirect;
-const grossPayout = Math.max(0, totalPayoutValue);
+const payoutBase = Math.max(0, totalPayoutValue);
+const arcNegativeDeduction = Math.max(0, -airbnbResolutionCenter);
+// Gross payout must not include deductions from negative ARC (e.g. elevator fee).
+const grossPayout = Math.max(0, payoutBase + arcNegativeDeduction);
 const websiteCommissionFromGross = isWebsite
-  ? Math.max(0, (grossPayout * 0.01) + 0.30)
+  ? Math.max(0, (payoutBase * 0.01) + 0.30)
   : 0;
 
 // Draft formula channel commission only for VRBO/HOMEAWAY/DIRECT/WEBSITE.
@@ -1968,7 +2030,7 @@ calculatedAccommodation = standardAccommodation;
 
 const draftNetAccommodation = Math.max(
   0,
-  grossPayout -
+  payoutBase -
     Math.max(0, draftCleaningFare) -
     Math.max(0, allTaxesCombined) +
     Math.max(0, lengthOfStayDiscount) -
@@ -1989,7 +2051,7 @@ const shouldUsePayoutFormula = payoutHeadroom < requiredDeductions;
 if (shouldUsePayoutFormula) {
   allowedAccommodation = Math.max(
     0,
-    grossPayout -
+    payoutBase -
       Math.max(0, effectiveCleaningFare) -
       Math.max(0, taxesCombined) -
       Math.max(0, channelCommissionForPayout) -
@@ -2278,8 +2340,11 @@ const sortedReservations = [...getFilteredReservations()]
   .filter(res => {
     const source = String(res.source || "").toUpperCase();
 
+    // Admin Report mode: show ALL reservations so no property is silently dropped
+    if (isAdminReport) return true;
+
     if (isDraftView) {
-      return hasDraftFinancialValue(res); // draft/report should not hide valid rows when gross payout field is missing
+      return hasDraftFinancialValue(res); // draft view hides rows with no financial value
     }
 
     return source !== "MANUAL_VRBO"; // payout unchanged
@@ -3590,7 +3655,7 @@ function loadOwnerReport() {
     return;
   }
 
-  const reportBaseUrl = "https://report.guesty.com/api/shared-reservations-reports?timezone=America/New_York";
+  const reportBaseUrl = getGuestyReportBaseUrl();
 const PAGE_LIMIT = 1000;
 
 function fetchReservationsPage(skip, attempt = 0) {
@@ -3747,8 +3812,6 @@ adminDiv.style.borderRadius = "8px";
   }
 
 function renderAdminPanel() {
-  const portal = document.getElementById("ownerPortal");
-  if (!portal) return;
   let adminDiv = document.getElementById("adminPanel");
   if (adminDiv) adminDiv.remove();
 
@@ -3760,38 +3823,147 @@ function renderAdminPanel() {
   adminDiv.style.transform = "translate(-50%, -50%)";
   adminDiv.style.zIndex = "9999";
   adminDiv.style.background = "#fff";
-  adminDiv.style.width = "min(900px, 92vw)";
-  adminDiv.style.maxHeight = "85vh";
+  adminDiv.style.width = "min(960px, 94vw)";
+  adminDiv.style.maxHeight = "88vh";
   adminDiv.style.overflowY = "auto";
   adminDiv.style.boxShadow = "0 10px 30px rgba(0,0,0,0.18)";
-  adminDiv.style.marginTop = "16px";
-  adminDiv.style.padding = "12px";
+  adminDiv.style.padding = "18px";
   adminDiv.style.border = "1px solid #e1e6ef";
-  adminDiv.style.borderRadius = "8px";
+  adminDiv.style.borderRadius = "10px";
 
-  adminDiv.innerHTML =
-    "<div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;'><h3 style='margin:0;'>Manage Users</h3><button id='closeAdminPanel' style='padding:6px 10px; border:1px solid #d0d7e2; background:#fff; border-radius:8px; cursor:pointer;'>Close</button></div>" +
-    "<div style='display:flex; gap:12px; align-items:center; margin-bottom:8px;'>" +
-    "<select id='adminOwnerSelect' style='min-width:220px;'>" +
-    Object.keys(OWNERS).map(email => "<option value='" + email + "'>" + OWNERS[email].ownerName + " — " + email + "</option>").join("") +
-    "</select>" +
-    "<button id='adminLoadOwner'>Load</button>" +
-    "</div>" +
-    "<div id='adminOwnerForm' style='display:none;'>" +
-    "<div style='display:flex; gap:8px; margin-bottom:8px;'>" +
-    "<div style='flex:1;'><label>Owner Email</label><input id='adminOwnerEmail' style='width:100%' disabled /></div>" +
-    "<div style='flex:1;'><label>Owner Name</label><input id='adminOwnerName' style='width:100%' /></div>" +
-    "</div>" +
-    "<div style='display:flex; gap:8px; margin-bottom:8px;'>" +
-    "<div style='flex:1;'><label>PMC %</label><input id='adminOwnerPmc' type='number' style='width:100%' /></div>" +
-    "<div style='flex:1;'><label>Cleaning Fee</label><input id='adminOwnerCleaning' type='number' style='width:100%' /></div>" +
-    "</div>" +
-    "<div style='display:flex; gap:8px; margin-bottom:8px;'><div><label>View Mode</label><select id='adminOwnerViewMode'><option value='payout'>Payout</option><option value='draft'>Draft</option></select></div></div>" +
-    "<div style='display:flex; gap:8px;'><button id='adminOwnerSave'>Save</button><button id='adminOwnerCancel'>Cancel</button></div>" +
-    "</div>";
+  const sectionStyle = "margin-top:22px; padding-top:16px; border-top:1px solid #e1e6ef;";
+  const labelStyle = "display:block; font-size:12px; font-weight:600; color:#6b7a8d; margin-bottom:4px;";
+  const inputStyle = "width:100%; box-sizing:border-box; padding:7px 10px; border:1px solid #d0d7e2; border-radius:6px; font-size:14px;";
+  const btnPrimary = "padding:8px 18px; background:#2f78b7; color:#fff; border:none; border-radius:7px; cursor:pointer; font-size:14px; font-weight:600;";
+  const btnSecondary = "padding:8px 14px; background:#f0f4f8; color:#3a4a5c; border:1px solid #d0d7e2; border-radius:7px; cursor:pointer; font-size:14px;";
+
+  // Build owner options (current OWNERS snapshot at render time)
+  const ownerOptions = Object.keys(OWNERS)
+    .map(e => `<option value="${escapeHtml(e)}">${escapeHtml(OWNERS[e].ownerName)} — ${escapeHtml(e)}</option>`)
+    .join("");
+
+  adminDiv.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+      <h3 style="margin:0; font-size:18px;">Manage Users</h3>
+      <button id="closeAdminPanel" style="${btnSecondary}">✕ Close</button>
+    </div>
+
+    <!-- ===== EDIT EXISTING OWNER ===== -->
+    <div>
+      <p style="margin:8px 0 10px; font-size:13px; color:#6b7a8d;">Select an owner to edit their settings.</p>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
+        <select id="adminOwnerSelect" style="min-width:240px; padding:7px 10px; border:1px solid #d0d7e2; border-radius:6px; font-size:14px;">
+          ${ownerOptions}
+        </select>
+        <button id="adminLoadOwner" style="${btnPrimary}">Load</button>
+      </div>
+      <div id="adminOwnerForm" style="display:none;">
+        <div style="display:flex; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:180px;">
+            <label style="${labelStyle}">Owner Email</label>
+            <input id="adminOwnerEmail" style="${inputStyle}" disabled />
+          </div>
+          <div style="flex:1; min-width:180px;">
+            <label style="${labelStyle}">Owner Name</label>
+            <input id="adminOwnerName" style="${inputStyle}" />
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:120px;">
+            <label style="${labelStyle}">PMC %</label>
+            <input id="adminOwnerPmc" type="number" style="${inputStyle}" />
+          </div>
+          <div style="flex:1; min-width:120px;">
+            <label style="${labelStyle}">Cleaning Fee ($)</label>
+            <input id="adminOwnerCleaning" type="number" style="${inputStyle}" />
+          </div>
+          <div style="flex:1; min-width:120px;">
+            <label style="${labelStyle}">View Mode</label>
+            <select id="adminOwnerViewMode" style="${inputStyle}">
+              <option value="payout">Payout</option>
+              <option value="draft">Draft</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button id="adminOwnerSave" style="${btnPrimary}">Save Changes</button>
+          <button id="adminOwnerCancel" style="${btnSecondary}">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ADD NEW OWNER ===== -->
+    <div style="${sectionStyle}">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h4 style="margin:0; font-size:15px; color:#2f78b7;">Add New Owner</h4>
+        <button id="adminToggleNewOwnerForm" style="${btnSecondary}">+ New Owner</button>
+      </div>
+      <div id="adminNewOwnerForm" style="display:none;">
+        <div style="display:flex; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:180px;">
+            <label style="${labelStyle}">Owner Email <span style="color:#c00">*</span></label>
+            <input id="adminNewEmail" type="email" placeholder="owner@email.com" style="${inputStyle}" />
+          </div>
+          <div style="flex:1; min-width:180px;">
+            <label style="${labelStyle}">Owner Name <span style="color:#c00">*</span></label>
+            <input id="adminNewName" placeholder="Full Name" style="${inputStyle}" />
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:120px;">
+            <label style="${labelStyle}">Password <span style="color:#c00">*</span></label>
+            <input id="adminNewPassword" type="text" placeholder="password" style="${inputStyle}" />
+          </div>
+          <div style="flex:1; min-width:120px;">
+            <label style="${labelStyle}">PMC %</label>
+            <input id="adminNewPmc" type="number" value="12" style="${inputStyle}" />
+          </div>
+          <div style="flex:1; min-width:120px;">
+            <label style="${labelStyle}">Cleaning Fee ($)</label>
+            <input id="adminNewCleaning" type="number" value="0" style="${inputStyle}" />
+          </div>
+          <div style="flex:1; min-width:120px;">
+            <label style="${labelStyle}">View Mode</label>
+            <select id="adminNewViewMode" style="${inputStyle}">
+              <option value="payout">Payout</option>
+              <option value="draft">Draft</option>
+            </select>
+          </div>
+        </div>
+        <div id="adminNewOwnerStatus" style="font-size:13px; color:#c00; margin-bottom:8px; display:none;"></div>
+        <div style="display:flex; gap:8px;">
+          <button id="adminNewOwnerSave" style="${btnPrimary}">Create Owner</button>
+          <button id="adminNewOwnerCancel" style="${btnSecondary}">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== GUESTY SETTINGS ===== -->
+    <div style="${sectionStyle}">
+      <h4 style="margin:0 0 8px; font-size:15px; color:#2f78b7;">Guesty Report Settings</h4>
+      <p style="margin:0 0 10px; font-size:13px; color:#6b7a8d;">
+        Update the Guesty shared-report URL when it changes (e.g. after Aba creates a new shared report in Guesty). Changes are saved immediately and take effect on the next report load.
+      </p>
+      <label style="${labelStyle}">Guesty Report Base URL</label>
+      <input id="adminGuestyUrl" style="${inputStyle}; margin-bottom:8px;" placeholder="https://report.guesty.com/api/shared-reservations-reports?timezone=America/New_York" />
+      <div id="adminGuestyStatus" style="font-size:13px; color:#0a6; margin-bottom:8px; display:none;">Saved.</div>
+      <button id="adminGuestySave" style="${btnPrimary}">Save Guesty URL</button>
+    </div>
+  `;
 
   document.body.appendChild(adminDiv);
 
+  // Pre-fill Guesty URL field with current value
+  const guestyUrlInput = document.getElementById("adminGuestyUrl");
+  if (guestyUrlInput) guestyUrlInput.value = getGuestyReportBaseUrl();
+
+  // --- Close panel ---
+  document.getElementById("closeAdminPanel").onclick = () => {
+    const panel = document.getElementById("adminPanel");
+    if (panel) panel.remove();
+  };
+
+  // --- Edit existing owner: Load ---
   document.getElementById("adminLoadOwner").onclick = () => {
     const email = document.getElementById("adminOwnerSelect").value;
     const owner = OWNERS[email];
@@ -3799,29 +3971,91 @@ function renderAdminPanel() {
     document.getElementById("adminOwnerForm").style.display = "";
     document.getElementById("adminOwnerEmail").value = email;
     document.getElementById("adminOwnerName").value = owner.ownerName || "";
-    document.getElementById("adminOwnerPmc").value = owner.pmcPercent || "";
-    document.getElementById("adminOwnerCleaning").value = owner.cleaningFee || "";
+    document.getElementById("adminOwnerPmc").value = String(owner.pmcPercent ?? "");
+    document.getElementById("adminOwnerCleaning").value = String(owner.cleaningFee ?? "");
     document.getElementById("adminOwnerViewMode").value = owner.viewMode || "payout";
   };
 
+  // --- Edit existing owner: Save ---
   document.getElementById("adminOwnerSave").onclick = () => {
     const email = document.getElementById("adminOwnerEmail").value;
     if (!OWNERS[email]) return alert("Owner not found");
-    OWNERS[email].ownerName = document.getElementById("adminOwnerName").value;
-    OWNERS[email].pmcPercent = Number(document.getElementById("adminOwnerPmc").value) || OWNERS[email].pmcPercent;
-    OWNERS[email].cleaningFee = Number(document.getElementById("adminOwnerCleaning").value) || OWNERS[email].cleaningFee;
+    OWNERS[email].ownerName = document.getElementById("adminOwnerName").value.trim() || OWNERS[email].ownerName;
+    const pmc = Number(document.getElementById("adminOwnerPmc").value);
+    if (!isNaN(pmc)) OWNERS[email].pmcPercent = pmc;
+    const cleaning = Number(document.getElementById("adminOwnerCleaning").value);
+    if (!isNaN(cleaning)) OWNERS[email].cleaningFee = cleaning;
     OWNERS[email].viewMode = document.getElementById("adminOwnerViewMode").value || "payout";
     saveOwnerOverrideToStorage(email);
-    alert("Owner settings saved");
+    alert("Owner settings saved.");
   };
 
+  // --- Edit existing owner: Cancel ---
   document.getElementById("adminOwnerCancel").onclick = () => {
     document.getElementById("adminOwnerForm").style.display = "none";
   };
-  document.getElementById("closeAdminPanel").onclick = () => {
-  const panel = document.getElementById("adminPanel");
-  if (panel) panel.remove();
-};
+
+  // --- New owner: toggle form ---
+  document.getElementById("adminToggleNewOwnerForm").onclick = () => {
+    const form = document.getElementById("adminNewOwnerForm");
+    const btn = document.getElementById("adminToggleNewOwnerForm");
+    const isHidden = form.style.display === "none";
+    form.style.display = isHidden ? "" : "none";
+    btn.textContent = isHidden ? "− Hide" : "+ New Owner";
+  };
+
+  // --- New owner: save ---
+  document.getElementById("adminNewOwnerSave").onclick = () => {
+    const statusEl = document.getElementById("adminNewOwnerStatus");
+    const rawEmail = (document.getElementById("adminNewEmail").value || "").trim().toLowerCase();
+    const name = (document.getElementById("adminNewName").value || "").trim();
+    const password = (document.getElementById("adminNewPassword").value || "").trim();
+    const pmcPercent = Number(document.getElementById("adminNewPmc").value) || 0;
+    const cleaningFee = Number(document.getElementById("adminNewCleaning").value) || 0;
+    const viewMode = document.getElementById("adminNewViewMode").value || "payout";
+
+    statusEl.style.display = "none";
+    if (!rawEmail) { statusEl.textContent = "Email is required."; statusEl.style.display = ""; return; }
+    if (!name) { statusEl.textContent = "Owner name is required."; statusEl.style.display = ""; return; }
+    if (!password) { statusEl.textContent = "Password is required."; statusEl.style.display = ""; return; }
+    if (OWNERS[rawEmail]) { statusEl.textContent = "An owner with this email already exists."; statusEl.style.display = ""; return; }
+
+    const newOwner = {
+      password,
+      ownerName: name,
+      propertyName: "",
+      postalCode: "",
+      pmcPercent,
+      guestyApiKey: "",
+      cleaningFee,
+      viewMode
+    };
+
+    OWNERS[rawEmail] = newOwner;
+    saveNewOwnerToStorage(rawEmail, newOwner);
+
+    // Re-render panel so the new owner appears in the dropdown
+    renderAdminPanel();
+    // Show the new owner pre-selected in the list
+    const sel = document.getElementById("adminOwnerSelect");
+    if (sel) { sel.value = rawEmail; sel.dispatchEvent(new Event("change")); }
+    alert("Owner \"" + name + "\" created. They can log in immediately.");
+  };
+
+  // --- New owner: cancel ---
+  document.getElementById("adminNewOwnerCancel").onclick = () => {
+    document.getElementById("adminNewOwnerForm").style.display = "none";
+    document.getElementById("adminToggleNewOwnerForm").textContent = "+ New Owner";
+  };
+
+  // --- Guesty URL: save ---
+  document.getElementById("adminGuestySave").onclick = () => {
+    const url = (document.getElementById("adminGuestyUrl").value || "").trim();
+    if (!url) { alert("URL cannot be empty."); return; }
+    saveGuestyReportUrl(url);
+    const statusEl = document.getElementById("adminGuestyStatus");
+    if (statusEl) { statusEl.style.display = ""; setTimeout(() => { statusEl.style.display = "none"; }, 2500); }
+  };
 }
 
 

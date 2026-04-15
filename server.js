@@ -6,6 +6,7 @@ const crypto = require("crypto");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const HOST = process.env.HOST || "0.0.0.0";
 const OWNERS_FILE = process.env.OWNERS_FILE || path.join(__dirname, "owners.private.json");
 const TASKS_FILE = process.env.TASKS_FILE || path.join(__dirname, "tasks.private.json");
 const SAVED_REPORTS_FILE = process.env.SAVED_REPORTS_FILE || path.join(__dirname, "saved-reports.private.json");
@@ -14,6 +15,11 @@ const sessions = new Map();
 
 app.use(cors({ origin: true }));
 app.use(express.json());
+app.use(express.static(__dirname));
+
+app.get("/", (_req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
 
 function readOwners() {
   if (!fs.existsSync(OWNERS_FILE)) {
@@ -426,6 +432,6 @@ app.delete("/api/saved-reports/:id", (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Secure API listening on http://localhost:${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`Secure API listening on http://${HOST}:${PORT}`);
 });
