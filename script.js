@@ -317,6 +317,7 @@ const PROPERTY_ORDER = [
   "NMB - 1004",
   "NMB - 214-2S",
   "NMB - 304B",
+  "NMB - 3104",
   "NMB - 400A",
   "NMB - 400B",
   "NMB - 508/1-33S",
@@ -454,7 +455,8 @@ function saveOwnerOverrideToStorage(email) {
     ownerName: String(OWNERS[email].ownerName || "").trim(),
     pmcPercent: Number(OWNERS[email].pmcPercent) || 0,
     cleaningFee: Number(OWNERS[email].cleaningFee) || 0,
-    viewMode: String(OWNERS[email].viewMode || "payout")
+    viewMode: String(OWNERS[email].viewMode || "payout"),
+    incomeReportAddress: String(OWNERS[email].incomeReportAddress || "").trim()
   };
   try {
     localStorage.setItem(OWNER_OVERRIDES_STORAGE_KEY, JSON.stringify(overrides));
@@ -507,6 +509,44 @@ function saveGuestyReportUrl(url) {
   try {
     localStorage.setItem(GUESTY_URL_STORAGE_KEY, String(url || "").trim());
   } catch (_) {}
+}
+
+function isLikelyFullUrl(value) {
+  const s = String(value || "").trim().toLowerCase();
+  return s.startsWith("http://") || s.startsWith("https://");
+}
+
+function isLikelyReportAddress(value) {
+  const s = String(value || "").trim();
+  if (!s) return false;
+  if (isLikelyFullUrl(s)) return true;
+  if (s.startsWith("/api/") || s.startsWith("api/")) return true;
+  if (s.startsWith("?")) return true;
+  if (s.includes("shared-reservations-reports")) return true;
+  return false;
+}
+
+function getOwnerIncomeReportBaseUrl(owner) {
+  const globalBase = getGuestyReportBaseUrl();
+  const rawAddress = String(owner?.incomeReportAddress || "").trim();
+  const fallbackAddress = String(owner?.guestyApiKey || "").trim();
+  const address = rawAddress || (isLikelyReportAddress(fallbackAddress) ? fallbackAddress : "");
+
+  if (!address) return globalBase;
+  if (isLikelyFullUrl(address)) return address;
+  if (address.startsWith("/api/")) return `https://report.guesty.com${address}`;
+  if (address.startsWith("api/")) return `https://report.guesty.com/${address}`;
+  if (address.startsWith("?")) return `https://report.guesty.com/api/shared-reservations-reports${address}`;
+  if (address.includes("shared-reservations-reports")) {
+    return `https://report.guesty.com/${address.replace(/^\/+/, "")}`;
+  }
+  return `https://report.guesty.com/api/shared-reservations-reports?${address.replace(/^\?/, "")}`;
+}
+
+function buildOwnerIncomeReportPageUrl(owner, skip, limit) {
+  const baseUrl = getOwnerIncomeReportBaseUrl(owner);
+  const hasQuery = baseUrl.includes("?");
+  return `${baseUrl}${hasQuery ? "&" : "?"}skip=${skip}&limit=${limit}`;
 }
 
 let tasksData = loadTasksFromStorage();
@@ -644,6 +684,13 @@ function getAllPropertyNamesForTasks() {
     .map(r => String(r.listingNickname || "").trim())
     .filter(Boolean);
   return getOrderedPropertyNames(Array.from(new Set(PROPERTY_ORDER.concat(fromData))));
+}
+
+function getAdminPropertyNames(propertyGroups = {}) {
+  const fromRows = Object.keys(propertyGroups || {})
+    .map(name => String(name || "").trim())
+    .filter(Boolean);
+  return getOrderedPropertyNames(Array.from(new Set(PROPERTY_ORDER.concat(fromRows))));
 }
 
 function getOpenTaskCount() {
@@ -2909,7 +2956,7 @@ if (currentOwner && currentOwner.admin) {
 
     const propertyWrap = document.createElement("div");
     propertyWrap.id = "propertyGroupsWrap";
-    const orderedPropertyNames = getOrderedPropertyNames(Object.keys(propertyGroups));
+    const orderedPropertyNames = getAdminPropertyNames(propertyGroups);
     const groupedPropertyNames = getGroupedPropertyNames(orderedPropertyNames);
 
     propertyWrap.innerHTML = `
@@ -3088,7 +3135,7 @@ if (mainTable && mainTable.parentNode) {
     const propertyWrap = document.createElement("div");
     propertyWrap.id = "propertyGroupsWrap";
 
-const orderedPropertyNames = getOrderedPropertyNames(Object.keys(propertyGroups));
+const orderedPropertyNames = getAdminPropertyNames(propertyGroups);
 const groupedPropertyNames = getGroupedPropertyNames(orderedPropertyNames);
 
   if (useDraftMode && draftMultiPropertyViewMode === "smart") {
@@ -3109,7 +3156,7 @@ const groupedPropertyNames = getGroupedPropertyNames(orderedPropertyNames);
           ${groupedPropertyNames.map(group => {
             const categoryRow = `
               <tr>
-                <td colspan="5" class="property-category-row">${group.category}</td>
+                <td colspan="6" class="property-category-row">${group.category}</td>
               </tr>
             `;
             const propertyRows = group.names.map(propertyName => {
@@ -3612,7 +3659,7 @@ function loadOwnerReport() {
   const reportLoadId = ++activeReportLoadId;
   const ownerAtLoadStart = currentOwner;
   const ownerEmailAtLoadStart = currentOwnerEmail;
-  const apiKeyAtLoadStart = currentOwner ? currentOwner.guestyApiKey : "";
+  const apiKeyAtLoadStart = String(currentOwner?.guestyApiKey || "").trim();
   const isDraftModeForLoad = ownerAtLoadStart && ownerAtLoadStart.admin
     ? true
     : String(ownerAtLoadStart?.viewMode || "payout").toLowerCase() === "draft";
@@ -3645,7 +3692,7 @@ function loadOwnerReport() {
   setupCalendarButtons();
   refreshCalendarUI();
 
-  if (!currentOwner || (!currentOwner.guestyApiKey && !currentOwner.admin)) {
+  if (!currentOwner || (!currentOwner.guestyApiKey && !currentOwner.incomeReportAddress && !currentOwner.admin)) {
     console.error("No owner or API key configured");
     reservationsData = [];
    renderDashboardHeader();
@@ -3655,18 +3702,19 @@ function loadOwnerReport() {
     return;
   }
 
-  const reportBaseUrl = getGuestyReportBaseUrl();
 const PAGE_LIMIT = 1000;
 
 function fetchReservationsPage(skip, attempt = 0) {
-  const reportUrl = `${reportBaseUrl}&skip=${skip}&limit=${PAGE_LIMIT}`;
-  return fetch(reportUrl, {
-    headers: {
-      accept: "*/*",
-      authorization: apiKeyAtLoadStart,
-      "content-type": "application/json"
-    }
-  })
+  const reportUrl = buildOwnerIncomeReportPageUrl(ownerAtLoadStart, skip, PAGE_LIMIT);
+  const headers = {
+    accept: "*/*",
+    "content-type": "application/json"
+  };
+  if (apiKeyAtLoadStart && !isLikelyReportAddress(apiKeyAtLoadStart)) {
+    headers.authorization = apiKeyAtLoadStart;
+  }
+
+  return fetch(reportUrl, { headers })
     .then(r => {
       if (!r.ok) {
         const shouldRetry = (r.status === 429 || r.status >= 500) && attempt < 1;
@@ -3885,6 +3933,16 @@ function renderAdminPanel() {
             </select>
           </div>
         </div>
+        <div style="display:flex; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:260px;">
+            <label style="${labelStyle}">Income Report Address (owner-level)</label>
+            <input id="adminOwnerIncomeReportAddress" style="${inputStyle}" placeholder="/api/shared-reservations-reports?... OR full https://..." />
+          </div>
+        </div>
+        <div style="margin-bottom:8px;">
+          <label style="${labelStyle}">Full Income Report URL (preview)</label>
+          <input id="adminOwnerIncomeReportUrlPreview" style="${inputStyle}" readonly />
+        </div>
         <div style="display:flex; gap:8px;">
           <button id="adminOwnerSave" style="${btnPrimary}">Save Changes</button>
           <button id="adminOwnerCancel" style="${btnSecondary}">Cancel</button>
@@ -3944,7 +4002,7 @@ function renderAdminPanel() {
       <p style="margin:0 0 10px; font-size:13px; color:#6b7a8d;">
         Update the Guesty shared-report URL when it changes (e.g. after Aba creates a new shared report in Guesty). Changes are saved immediately and take effect on the next report load.
       </p>
-      <label style="${labelStyle}">Guesty Report Base URL</label>
+      <label style="${labelStyle}">Guesty Report URL (loaded owner/global)</label>
       <input id="adminGuestyUrl" style="${inputStyle}; margin-bottom:8px;" placeholder="https://report.guesty.com/api/shared-reservations-reports?timezone=America/New_York" />
       <div id="adminGuestyStatus" style="font-size:13px; color:#0a6; margin-bottom:8px; display:none;">Saved.</div>
       <button id="adminGuestySave" style="${btnPrimary}">Save Guesty URL</button>
@@ -3968,12 +4026,34 @@ function renderAdminPanel() {
     const email = document.getElementById("adminOwnerSelect").value;
     const owner = OWNERS[email];
     if (!owner) return alert("Owner not found");
+
+    const updateIncomeReportPreview = () => {
+      const addressInput = document.getElementById("adminOwnerIncomeReportAddress");
+      const previewInput = document.getElementById("adminOwnerIncomeReportUrlPreview");
+      if (!addressInput || !previewInput) return;
+      const tempOwner = { ...owner, incomeReportAddress: String(addressInput.value || "").trim() };
+      previewInput.value = getOwnerIncomeReportBaseUrl(tempOwner);
+    };
+
+    const initialAddress = String(owner.incomeReportAddress || "").trim() ||
+      (isLikelyReportAddress(owner.guestyApiKey) ? String(owner.guestyApiKey || "").trim() : "");
+
     document.getElementById("adminOwnerForm").style.display = "";
     document.getElementById("adminOwnerEmail").value = email;
     document.getElementById("adminOwnerName").value = owner.ownerName || "";
     document.getElementById("adminOwnerPmc").value = String(owner.pmcPercent ?? "");
     document.getElementById("adminOwnerCleaning").value = String(owner.cleaningFee ?? "");
     document.getElementById("adminOwnerViewMode").value = owner.viewMode || "payout";
+    document.getElementById("adminOwnerIncomeReportAddress").value = initialAddress;
+    updateIncomeReportPreview();
+    const addressInput = document.getElementById("adminOwnerIncomeReportAddress");
+    if (addressInput) addressInput.oninput = updateIncomeReportPreview;
+
+    // Keep the visible Guesty URL box in sync with the loaded owner's full income report URL.
+    const guestyUrlInputEl = document.getElementById("adminGuestyUrl");
+    if (guestyUrlInputEl) {
+      guestyUrlInputEl.value = getOwnerIncomeReportBaseUrl({ ...owner, incomeReportAddress: initialAddress });
+    }
   };
 
   // --- Edit existing owner: Save ---
@@ -3986,6 +4066,7 @@ function renderAdminPanel() {
     const cleaning = Number(document.getElementById("adminOwnerCleaning").value);
     if (!isNaN(cleaning)) OWNERS[email].cleaningFee = cleaning;
     OWNERS[email].viewMode = document.getElementById("adminOwnerViewMode").value || "payout";
+    OWNERS[email].incomeReportAddress = String(document.getElementById("adminOwnerIncomeReportAddress")?.value || "").trim();
     saveOwnerOverrideToStorage(email);
     alert("Owner settings saved.");
   };
@@ -4027,6 +4108,7 @@ function renderAdminPanel() {
       postalCode: "",
       pmcPercent,
       guestyApiKey: "",
+      incomeReportAddress: "",
       cleaningFee,
       viewMode
     };
