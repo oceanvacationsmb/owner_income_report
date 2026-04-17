@@ -263,7 +263,7 @@ const OWNERS = {
   "kobi.zroya@placeholder.com": {
     password: "owner1111",
     ownerName: "Kobi Zroya",
-    propertyName: "3401 North Ocean BLVD North Myrtle Beach",
+    propertyName: "3104 North Ocean BLVD North Myrtle Beach",
     postalCode: "29582",
     pmcPercent: 12,
     guestyApiKey: "8fecf9b5825434abbd577d41f9b7c552163757d0de1f6d0e419f7abdc6ab0a5e03769ee533d2adf3e660539dd0e59f0efd70294b1b747613955318846ee7d4f5",
