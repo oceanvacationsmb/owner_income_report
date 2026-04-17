@@ -286,6 +286,13 @@ let filterYear = String(new Date().getFullYear());
 let filterMonth = "all";
 
 const ADMIN_ELEVATOR_FIELD_ID = "69682ec2a604dc001460d3c5";
+
+// API keys for properties not included in the admin's Guesty shared report.
+// These are fetched separately and merged in when the admin loads the report.
+const ADMIN_SUPPLEMENTAL_API_KEYS = [
+  "483d4003f2fb16cea880d61c11af66b9150d0e2fe23c9c0e5b3c88baa8a16e13bfc4bd98885e15d34788342614128b8651d86356348303b640d9fba3fe7d9610", // MB - 7401 #8
+  "8fecf9b5825434abbd577d41f9b7c552163757d0de1f6d0e419f7abdc6ab0a5e03769ee533d2adf3e660539dd0e59f0efd70294b1b747613955318846ee7d4f5"  // NMB - 3104 units
+];
 const PROPERTY_ORDER = [
   "GC - 1463",
   "GC - 601A",
@@ -318,6 +325,10 @@ const PROPERTY_ORDER = [
   "NMB - 214-2S",
   "NMB - 304B",
   "NMB - 3104",
+  "NMB - 3104-1",
+  "NMB - 3104-2",
+  "NMB - 3104-3",
+  "NMB - 3104-FB",
   "NMB - 400A",
   "NMB - 400B",
   "NMB - 508/1-33S",
@@ -339,6 +350,11 @@ const PROPERTY_PMC_PERCENT_OVERRIDES = {
   "MB - 2131": 15,
   "NMB - 508/1-33S": 15,
   "NMB - 508/2-33S": 15
+};
+
+// Parent properties whose displayed total is the sum of their sub-unit listings.
+const PROPERTY_ROLLUP_GROUPS = {
+  "NMB - 3104": ["NMB - 3104-1", "NMB - 3104-2", "NMB - 3104-3", "NMB - 3104-FB"]
 };
 
 const TASKS_STORAGE_KEY = "ocean_vacations_tasks";
@@ -2938,6 +2954,12 @@ if (currentOwner && currentOwner.admin) {
     propertyGroups[propertyKey].push(reservation);
   });
 
+  // Populate rollup parent rows by aggregating their sub-unit reservations.
+  for (const [parent, children] of Object.entries(PROPERTY_ROLLUP_GROUPS)) {
+    const rollupRows = children.flatMap(c => propertyGroups[c] || []);
+    if (rollupRows.length > 0) propertyGroups[parent] = rollupRows;
+  }
+
   const propertyNames = Object.keys(propertyGroups);
 
   if (isAdminReport) {
@@ -3742,7 +3764,46 @@ function fetchAllReservations(skip = 0, acc = []) {
   });
 }
 
-fetchAllReservations()
+const supplementalFetches = (ownerAtLoadStart && ownerAtLoadStart.admin)
+  ? ADMIN_SUPPLEMENTAL_API_KEYS.map(key => {
+      function fetchSupplementalPage(skip, attempt = 0) {
+        const url = buildOwnerIncomeReportPageUrl(ownerAtLoadStart, skip, PAGE_LIMIT);
+        return fetch(url, { headers: { accept: "*/*", "content-type": "application/json", authorization: key } })
+          .then(r => {
+            if (!r.ok) {
+              if ((r.status === 429 || r.status >= 500) && attempt < 1)
+                return new Promise(res => setTimeout(res, 700)).then(() => fetchSupplementalPage(skip, attempt + 1));
+              return [];
+            }
+            return r.json();
+          })
+          .catch(() => [])
+          .then(payload => Array.isArray(payload) ? payload : (payload.results || payload.data || []));
+      }
+      function fetchAllSupplemental(skip = 0, acc = []) {
+        return fetchSupplementalPage(skip).then(pageRows => {
+          const merged = acc.concat(pageRows);
+          if (pageRows.length < PAGE_LIMIT) return merged;
+          return fetchAllSupplemental(skip + PAGE_LIMIT, merged);
+        });
+      }
+      return fetchAllSupplemental();
+    })
+  : [];
+
+Promise.all([fetchAllReservations(), ...supplementalFetches])
+  .then(([rows, ...supplementalResults]) => {
+    const seenIds = new Set();
+    const allRows = rows.concat(...supplementalResults).filter(r => {
+      const raw = r.confirmationCode;
+      const code = (raw && typeof raw === "object" ? (raw.children || raw.value || raw.id) : raw) || r._id || r.id;
+      const id = String(code || "").trim() || JSON.stringify(r).slice(0, 80);
+      if (seenIds.has(id)) return false;
+      seenIds.add(id);
+      return true;
+    });
+    return allRows;
+  })
   .then(rows => {
     if (reportLoadId !== activeReportLoadId || currentOwner !== ownerAtLoadStart) return;
 
