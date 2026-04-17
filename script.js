@@ -278,7 +278,8 @@ const OWNERS = {
     pmcPercent: 12,
     guestyApiKey: "7cc1fd5c77c703d2a5c2d612f809922b4b82a97c187d85e72d828421c189cc03e98d6fde2583b1b688d151c4efff3efc0479563d3b8e2cf742129aa7cf6e7f9f",
     cleaningFee: 350,
-    viewMode: "payout"
+    viewMode: "payout",
+    hideVrboManual: true
   },
   };
 
@@ -3015,7 +3016,13 @@ if (currentOwner && currentOwner.admin) {
               let pmcTotal = 0;
               const bookedMap = {};
 
+              let staysCount = 0;
               rows.forEach(res => {
+                const resStatus = String(res.status || "").toLowerCase().trim();
+                const resCancelled = resStatus === "cancel" || resStatus === "cancelled" || resStatus === "canceled";
+                const resPayout = toNumber(res.grossPayout || res.totalPayout);
+                const countThisRow = !resCancelled || resPayout > 0;
+
                 grossPayoutTotal += toNumber(res.grossPayout || res.totalPayout);
                 const accommodation = toNumber(res.accommodationFare);
                 const pmcPercent = getPmcPercentForListing(res.listingNickname, 12);
@@ -3023,13 +3030,16 @@ if (currentOwner && currentOwner.admin) {
                 accommodationTotal += accommodation;
                 pmcTotal += pmc;
 
-                const start = parseLocalDate(res.checkIn);
-                const end = parseLocalDate(res.checkOut);
-                if (start && end) {
-                  const cur = new Date(start);
-                  while (cur < end) {
-                    bookedMap[toDateKey(cur)] = true;
-                    cur.setDate(cur.getDate() + 1);
+                if (countThisRow) {
+                  staysCount++;
+                  const start = parseLocalDate(res.checkIn);
+                  const end = parseLocalDate(res.checkOut);
+                  if (start && end) {
+                    const cur = new Date(start);
+                    while (cur < end) {
+                      bookedMap[toDateKey(cur)] = true;
+                      cur.setDate(cur.getDate() + 1);
+                    }
                   }
                 }
               });
@@ -3041,7 +3051,7 @@ if (currentOwner && currentOwner.admin) {
                   <td style="text-align:center;">${formatMoney(pmcTotal)}</td>
                   <td style="text-align:center;">${formatMoney(grossPayoutTotal)}</td>
                   <td style="text-align:center;">${Object.keys(bookedMap).length}</td>
-                  <td style="text-align:center;">${rows.length}</td>
+                  <td style="text-align:center;">${staysCount}</td>
                 </tr>
               `;
             }).join("");
@@ -3163,7 +3173,9 @@ if (mainTable && mainTable.parentNode) {
     const propertyWrap = document.createElement("div");
     propertyWrap.id = "propertyGroupsWrap";
 
-const orderedPropertyNames = getAdminPropertyNames(propertyGroups);
+const orderedPropertyNames = isAdminReport
+  ? getAdminPropertyNames(propertyGroups)
+  : getOrderedPropertyNames(Object.keys(propertyGroups).filter(k => (propertyGroups[k] || []).length > 0));
 const groupedPropertyNames = getGroupedPropertyNames(orderedPropertyNames);
 
   if (useDraftMode && draftMultiPropertyViewMode === "smart") {
@@ -3240,11 +3252,12 @@ const groupedPropertyNames = getGroupedPropertyNames(orderedPropertyNames);
         lastCategory = category;
       }
 
-      const rows = propertyGroups[propertyName]
+      const rows = (propertyGroups[propertyName] || [])
   .filter(matchesReservationFilters)
   .sort((a, b) => {
     return toSortableDate(a.checkIn) - toSortableDate(b.checkIn);
   });
+      if (!rows.length) return;
 
       let propertyGrossPayout = 0;
       let propertyCleaning = 0;
@@ -3608,7 +3621,7 @@ if (!useDraftMode) {
   return source === "MANUAL_VRBO" && payout > 0;
 });
 
-  if (vrboManualRows.length)
+  if (vrboManualRows.length && !(currentOwner && currentOwner.hideVrboManual))
  {
     const tableWraps = document.getElementsByClassName("table-wrap");
     let container = null;
