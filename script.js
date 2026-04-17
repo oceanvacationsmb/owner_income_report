@@ -300,8 +300,8 @@ const ADMIN_ELEVATOR_FIELD_ID = "69682ec2a604dc001460d3c5";
 // API keys for properties not included in the admin's Guesty shared report.
 // These are fetched separately and merged in when the admin loads the report.
 const ADMIN_SUPPLEMENTAL_API_KEYS = [
-  "", // MB - 7401 #8
-  ""  // NMB - 3104 units
+  "483d4003f2fb16cea880d61c11af66b9150d0e2fe23c9c0e5b3c88baa8a16e13bfc4bd98885e15d34788342614128b8651d86356348303b640d9fba3fe7d9610", // MB - 7401 #8
+  "2e09bd2cd3d245614bc2832b9bb28ca8751b4988c91d43ccac88258eb93a0b9bc115b683b0c1ef694ab150223eaca870a28ba3a02c7ccf04c3fb61c2880926f6"  // NMB - 3104 units
 ];
 const PROPERTY_ORDER = [
   "GC - 1463",
