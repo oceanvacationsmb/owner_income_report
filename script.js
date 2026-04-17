@@ -255,7 +255,7 @@ const OWNERS = {
     propertyName: "Team Portal",
     postalCode: "29577",
     pmcPercent: 0,
-    guestyApiKey: "ada6fa4f86889add1196b0151fec4b77949586b9c1c7459c2bfd05cfab466f34d72197d1bd5beaeefb8ad2295dedb1b60d6c8de7a45985c85623ffdfb22b36a6",
+    guestyApiKey: "https://report.guesty.com/apps/reservations?apiKey=b50fadcf041a0da976df9d5e3bf04e7104af3022a91b808ac49a5d3a236827ae3ec345b1bad9094e3a57aeede450ccb78621e037dc68951ec4eb170db7acaaee",
     cleaningFee: 0,
     viewMode: "draft",
     admin: true
