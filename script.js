@@ -266,7 +266,7 @@ const OWNERS = {
     propertyName: "",
     postalCode: "",
     pmcPercent: 12,
-    guestyApiKey: "7c99b9fa9488bda33c9511c18a8c8443532db71e8a4b6654435fc2b73d37cbfa41414f03878bad10f835e08391ad1247f9d06758886431f9e80bb1600aec0238",
+    guestyApiKey: "8fecf9b5825434abbd577d41f9b7c552163757d0de1f6d0e419f7abdc6ab0a5e03769ee533d2adf3e660539dd0e59f0efd70294b1b747613955318846ee7d4f5",
     cleaningFee: 0,
     viewMode: "payout"
   },
