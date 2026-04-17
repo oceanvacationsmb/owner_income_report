@@ -274,10 +274,10 @@ const OWNERS = {
     password: "owner1111",
     ownerName: "Jeff",
     propertyName: "827B N.WACCAMMAW DR.",
-    postalCode: "29582",
+    postalCode: "29576",
     pmcPercent: 12,
-    guestyApiKey: "https://report.guesty.com/apps/reservations?apiKey=fd355bb8135be1c79eb2d87583d16435c0e4e9e433b3a257c827ed24f1bfc8a2d30ee5ca78ea482ec904fafd2499cce6c57ccafe5b0594924062b3c1572a35be",
-    cleaningFee: 0,
+    guestyApiKey: "fd355bb8135be1c79eb2d87583d16435c0e4e9e433b3a257c827ed24f1bfc8a2d30ee5ca78ea482ec904fafd2499cce6c57ccafe5b0594924062b3c1572a35be",
+    cleaningFee: 350,
     viewMode: "payout"
   },
   };
