@@ -135,7 +135,7 @@ const OWNERS = {
     propertyName: "1463 Basin Trail, Murrells Inlet, SC 29576",
     postalCode: "29576",
     pmcPercent: 12,
-    guestyApiKey: "https://report.guesty.com/apps/reservations?apiKey=3e548ace812c040509466e56d1e7af4fdc8e5032f3352bf27d64cec875ed0173d3a25716bdb87796bbf17b9bfca0843e5d49d68799fbdaef1895c0e1fce83e1d",
+    guestyApiKey: "3e548ace812c040509466e56d1e7af4fdc8e5032f3352bf27d64cec875ed0173d3a25716bdb87796bbf17b9bfca0843e5d49d68799fbdaef1895c0e1fce83e1d",
     cleaningFee: 250,
     viewMode: "payout"
   },
