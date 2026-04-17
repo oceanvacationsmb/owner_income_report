@@ -347,6 +347,11 @@ const PROPERTY_PMC_PERCENT_OVERRIDES = {
 };
 
 // Parent properties whose displayed total is the sum of their sub-unit listings.
+const PROPERTY_ROLLUP_GROUPS = {
+  "NMB - 3104": ["NMB - 3104-1", "NMB - 3104-2", "NMB - 3104-3", "NMB - 3104-FB"]
+};
+
+
 
 
 const TASKS_STORAGE_KEY = "ocean_vacations_tasks";
