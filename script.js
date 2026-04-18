@@ -278,8 +278,7 @@ const OWNERS = {
     pmcPercent: 12,
     guestyApiKey: "7cc1fd5c77c703d2a5c2d612f809922b4b82a97c187d85e72d828421c189cc03e98d6fde2583b1b688d151c4efff3efc0479563d3b8e2cf742129aa7cf6e7f9f",
     cleaningFee: 350,
-    viewMode: "payout",
-    hideVrboManual: true
+    viewMode: "payout"
   },
   };
 
@@ -3621,7 +3620,7 @@ if (!useDraftMode) {
   return source === "MANUAL_VRBO" && payout > 0;
 });
 
-  if (vrboManualRows.length && !(currentOwner && currentOwner.hideVrboManual))
+  if (vrboManualRows.length)
  {
     const tableWraps = document.getElementsByClassName("table-wrap");
     let container = null;
