@@ -282,8 +282,8 @@ const OWNERS = {
   },
   };
 
-applyOwnerOverridesFromStorage();
 applyNewOwnersFromStorage();
+applyOwnerOverridesFromStorage();
 
 let reservationsData = [];
 let ownerStaysData = [];
@@ -478,6 +478,7 @@ function saveOwnerOverrideToStorage(email) {
     pmcPercent: Number(OWNERS[email].pmcPercent) || 0,
     cleaningFee: Number(OWNERS[email].cleaningFee) || 0,
     viewMode: String(OWNERS[email].viewMode || "payout"),
+    guestyApiKey: String(OWNERS[email].guestyApiKey || "").trim(),
     incomeReportAddress: String(OWNERS[email].incomeReportAddress || "").trim()
   };
   try {
@@ -4014,7 +4015,13 @@ function renderAdminPanel() {
         </div>
         <div style="display:flex; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
           <div style="flex:1; min-width:260px;">
-            <label style="${labelStyle}">Income Report Address (owner-level)</label>
+            <label style="${labelStyle}">Guesty API Key</label>
+            <input id="adminOwnerGuestyApiKey" style="${inputStyle}" placeholder="hex token from Guesty shared report" />
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:260px;">
+            <label style="${labelStyle}">Income Report Address (optional override)</label>
             <input id="adminOwnerIncomeReportAddress" style="${inputStyle}" placeholder="/api/shared-reservations-reports?... OR full https://..." />
           </div>
         </div>
@@ -4123,6 +4130,7 @@ function renderAdminPanel() {
     document.getElementById("adminOwnerPmc").value = String(owner.pmcPercent ?? "");
     document.getElementById("adminOwnerCleaning").value = String(owner.cleaningFee ?? "");
     document.getElementById("adminOwnerViewMode").value = owner.viewMode || "payout";
+    document.getElementById("adminOwnerGuestyApiKey").value = String(owner.guestyApiKey || "").trim();
     document.getElementById("adminOwnerIncomeReportAddress").value = initialAddress;
     updateIncomeReportPreview();
     const addressInput = document.getElementById("adminOwnerIncomeReportAddress");
@@ -4145,6 +4153,8 @@ function renderAdminPanel() {
     const cleaning = Number(document.getElementById("adminOwnerCleaning").value);
     if (!isNaN(cleaning)) OWNERS[email].cleaningFee = cleaning;
     OWNERS[email].viewMode = document.getElementById("adminOwnerViewMode").value || "payout";
+    const newApiKey = String(document.getElementById("adminOwnerGuestyApiKey")?.value || "").trim();
+    if (newApiKey) OWNERS[email].guestyApiKey = newApiKey;
     OWNERS[email].incomeReportAddress = String(document.getElementById("adminOwnerIncomeReportAddress")?.value || "").trim();
     saveOwnerOverrideToStorage(email);
     alert("Owner settings saved.");
