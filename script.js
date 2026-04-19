@@ -189,7 +189,7 @@ const OWNERS = {
     cleaningFee: 0,
     viewMode: "draft"
   },
-  "liatedri18@gmail.com": {
+  "liatedri18@hotmail.com": {
     password: "owner6357$$",
     ownerName: "Liat",
     propertyName: "GHO REVOCABLE TRUST",
