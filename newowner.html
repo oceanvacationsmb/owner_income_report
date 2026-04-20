@@ -12,19 +12,21 @@
     * { box-sizing: border-box; }
 
     :root {
-      --navy: #0f3552;
-      --navy-2: #174a6d;
-      --blue: #2c7fb8;
-      --sky: #5ec3e7;
-      --teal: #20b7b0;
-      --light: #f7fbff;
-      --text: #18364f;
-      --muted: #5c6e7f;
-      --white: #ffffff;
-      --border: #dfe9f2;
-      --shadow: 0 16px 40px rgba(15, 53, 82, 0.1);
-      --shadow-lg: 0 24px 60px rgba(15, 53, 82, 0.18);
-    }
+  --navy: #0b2e4a;
+  --navy-2: #163e5c;
+  --blue: #2d6f95;
+  --sky: #76cddd;
+  --teal: #1fb6aa;
+
+  --light: #f4f9fc;
+  --text: #18364f;
+  --muted: #5c6e7f;
+  --white: #ffffff;
+  --border: #dfe9f2;
+
+  --shadow: 0 16px 40px rgba(15, 53, 82, 0.1);
+  --shadow-lg: 0 24px 60px rgba(15, 53, 82, 0.18);
+}
 
     html { scroll-behavior: smooth; }
 
@@ -44,25 +46,33 @@
       margin: 0 auto;
     }
 
-    .hero {
-      position: relative;
-      overflow: hidden;
-      color: var(--white);
-      padding: 26px 0 82px;
-      background:
-        linear-gradient(120deg, rgba(8, 38, 65, 0.88) 0%, rgba(18, 81, 122, 0.76) 44%, rgba(66, 170, 220, 0.48) 100%),
-        url('/images/myrtle-beach-hero.jpg') center center / cover no-repeat;
-    }
+   .hero {
+  position: relative;
+  overflow: hidden;
+  color: var(--white);
+  padding: 40px 0 100px;
 
-    .hero::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(circle at top right, rgba(255,255,255,0.15), transparent 22%),
-        radial-gradient(circle at bottom left, rgba(32,183,176,0.2), transparent 25%);
-      pointer-events: none;
-    }
+  background:
+    linear-gradient(
+      120deg,
+      rgba(11, 46, 74, 0.92) 0%,
+      rgba(22, 62, 92, 0.80) 50%,
+      rgba(31, 182, 170, 0.45) 100%
+    ),
+    url('/images/myrtle-beach-hero.jpg') center center / cover no-repeat;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background:
+    radial-gradient(circle at top right, rgba(255,255,255,0.12), transparent 25%),
+    radial-gradient(circle at bottom left, rgba(31,182,170,0.18), transparent 30%);
+
+  pointer-events: none;
+}
 
     .topbar {
       position: relative;
@@ -224,44 +234,48 @@
       appearance: none;
     }
 
-    input:focus,
-    select:focus,
-    textarea:focus {
-      outline: none;
-      border-color: #68bddd;
-      box-shadow: 0 0 0 4px rgba(94, 195, 231, 0.16);
-    }
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #76cddd;
+  box-shadow: 0 0 0 4px rgba(118, 205, 221, 0.18);
+}
 
-    button,
-    .button-link {
-      display: inline-block;
-      width: 100%;
-      border: 0;
-      border-radius: 14px;
-      padding: 16px 18px;
-      background: linear-gradient(135deg, #1d648f 0%, #2c7fb8 55%, #39b0d3 100%);
-      color: #fff;
-      font-size: 15px;
-      font-weight: 800;
-      text-align: center;
-      cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
-      box-shadow: 0 14px 28px rgba(44, 127, 184, 0.28);
-    }
+button,
+.button-link {
+  display: inline-block;
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  padding: 16px 18px;
 
-    button:hover,
-    .button-link:hover {
-      transform: translateY(-1px);
-      opacity: 0.98;
-      box-shadow: 0 18px 30px rgba(44, 127, 184, 0.32);
-    }
+  background: linear-gradient(135deg, #c8a96a 0%, #e3c07a 100%);
+  color: #0b2e4a;
 
-    .trust-line {
-      margin-top: 12px;
-      font-size: 13px;
-      color: #6c7d8c;
-      text-align: center;
-    }
+  font-size: 15px;
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+
+  box-shadow: 0 14px 28px rgba(200, 169, 106, 0.28);
+}
+
+button:hover,
+.button-link:hover {
+  transform: translateY(-1px);
+  opacity: 0.98;
+  box-shadow: 0 18px 30px rgba(200, 169, 106, 0.32);
+}
+
+.trust-line {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #6c7d8c;
+  text-align: center;
+}
 
     .section { padding: 62px 0; }
 
@@ -310,27 +324,30 @@
 
     .stat-box { text-align: center; }
 
-    .stat-icon,
-    .benefit-icon {
-      width: 62px;
-      height: 62px;
-      margin: 0 auto 14px;
-      border-radius: 18px;
-      display: grid;
-      place-items: center;
-      font-size: 28px;
-      background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 55%, var(--sky) 100%);
-      color: #fff;
-      box-shadow: 0 12px 24px rgba(31, 119, 180, 0.22);
-    }
+  .stat-icon,
+.benefit-icon {
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 14px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
 
-    .benefit-icon {
-      margin: 0 0 14px;
-      width: 58px;
-      height: 58px;
-      font-size: 26px;
-      background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 55%, var(--teal) 100%);
-    }
+  background: linear-gradient(135deg, var(--navy) 0%, var(--teal) 100%);
+  color: #fff;
+
+  box-shadow: 0 10px 20px rgba(15, 53, 82, 0.18);
+}
+
+.benefit-icon {
+  margin: 0 0 14px;
+  width: 58px;
+  height: 58px;
+  font-size: 26px;
+
+  background: linear-gradient(135deg, var(--navy-2) 0%, var(--teal) 100%);
+}
 
     .stat-value {
       font-size: 30px;
@@ -514,83 +531,115 @@
     }
 
     .cta {
-      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 55%, var(--sky) 100%);
-      color: #fff;
-      border-radius: 30px;
-      padding: 46px 30px;
-      text-align: center;
-      box-shadow: 0 20px 42px rgba(15, 61, 94, 0.18);
-    }
+  background: linear-gradient(
+    135deg,
+    #0b2e4a 0%,
+    #163e5c 55%,
+    #1fb6aa 100%
+  );
 
-    .cta h3 { color: #fff; }
+  color: #ffffff;
+  border-radius: 30px;
+  padding: 50px 30px;
+  text-align: center;
 
-    .cta p {
-      margin: 0 auto 22px;
-      max-width: 700px;
-      color: rgba(255,255,255,0.92);
-      font-size: 17px;
-    }
+  box-shadow: 0 24px 50px rgba(11, 46, 74, 0.25);
+}
 
-    .cta .cta-button {
-      display: inline-block;
-      width: auto;
-      min-width: 240px;
-    }
+.cta h3 {
+  color: #ffffff;
+  margin-bottom: 14px;
+  font-size: 34px;
+  letter-spacing: -0.02em;
+}
 
-    footer {
-      padding: 30px 0 42px;
-      color: #667587;
-      text-align: center;
-      font-size: 14px;
-    }
+.cta p {
+  margin: 0 auto 24px;
+  max-width: 700px;
+  color: rgba(255,255,255,0.92);
+  font-size: 17px;
+  line-height: 1.5;
+}
 
-    .portal-modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: rgba(6, 24, 40, 0.76);
-      padding: 24px;
-      align-items: center;
-      justify-content: center;
-    }
+.cta .cta-button {
+  display: inline-block;
+  width: auto;
+  min-width: 240px;
+}
 
-    .portal-modal.open { display: flex; }
+/* footer stays clean */
+footer {
+  padding: 30px 0 42px;
+  color: #667587;
+  text-align: center;
+  font-size: 14px;
+}
 
-    .portal-modal-box {
-      position: relative;
-      width: min(980px, 96vw);
-      background: #fff;
-      border-radius: 24px;
-      padding: 18px;
-      box-shadow: 0 30px 80px rgba(0,0,0,0.25);
-    }
+/* portal modal (slightly refined overlay + depth) */
+.portal-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
 
-    .portal-modal-box img {
-      width: 100%;
-      border-radius: 16px;
-    }
+  background: rgba(6, 24, 40, 0.82);
 
-    .portal-close {
-      position: absolute;
-      top: 10px;
-      right: 12px;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      border: 0;
-      background: rgba(15,53,82,0.9);
-      color: #fff;
-      cursor: pointer;
-      font-size: 18px;
-      font-weight: 700;
-      box-shadow: none;
-      padding: 0;
-    }
+  padding: 24px;
+  align-items: center;
+  justify-content: center;
+}
 
-    @media (max-width: 1100px) {
-      .property-grid { grid-template-columns: repeat(2, 1fr); }
-    }
+.portal-modal.open {
+  display: flex;
+}
+
+.portal-modal-box {
+  position: relative;
+  width: min(980px, 96vw);
+
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 18px;
+
+  box-shadow: 0 40px 90px rgba(0,0,0,0.35);
+}
+
+.portal-modal-box img {
+  width: 100%;
+  border-radius: 16px;
+}
+
+/* close button upgraded slightly */
+.portal-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+
+  border: 0;
+  background: rgba(11,46,74,0.95);
+  color: #ffffff;
+
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 700;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+}
+
+/* responsive grid */
+@media (max-width: 1100px) {
+  .property-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 
     @media (max-width: 960px) {
       .topbar { margin-bottom: 30px; }
@@ -711,49 +760,54 @@
         </div>
       </div>
 
-      <div class="owner-benefits" style="margin-top:22px;">
-        <div class="benefit-box">
-          <div class="benefit-icon">🧾</div>
-          <h4>No Markups on Repairs</h4>
-          <p>We do not mark up vendor jobs, repairs, or service calls. Owners get full transparency and see the actual vendor cost, not inflated invoices.</p>
-        </div>
-        <div class="benefit-box">
-          <div class="benefit-icon">💡</div>
-          <h4>Small Items Included</h4>
-          <p>Light bulbs, HVAC filters, batteries, and TV remote control replacements are included at no extra charge to help keep your property guest ready.</p>
-        </div>
-        <div class="benefit-box">
-          <div class="benefit-icon">🧰</div>
-          <h4>Service Coordination</h4>
-          <p>We coordinate landscaping, pest control, pool cleaning, and other needed services so ownership stays simple, organized, and hands off.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+   <div class="owner-benefits" style="margin-top:22px;">
+  <div class="benefit-box highlight-box">
+    <div class="benefit-icon">🧾</div>
+    <h4>No Markups on Repairs</h4>
+    <p>We do not mark up vendor jobs, repairs, or service calls. Owners get full transparency and see the actual vendor cost, not inflated invoices.</p>
+  </div>
 
-  <section class="section" style="background:#eef5fa;">
-    <div class="container">
-      <h3>How it works</h3>
-      <p class="section-intro">A simple process designed to give owners clear answers quickly.</p>
-      <div class="steps">
-        <div class="step">
-          <div class="step-number">1</div>
-          <h4>Send the property</h4>
-          <p>Share your address or existing Airbnb or Vrbo link so we can review your listing and current market position.</p>
-        </div>
-        <div class="step">
-          <div class="step-number">2</div>
-          <h4>We analyze the opportunity</h4>
-          <p>We review pricing, presentation, demand, seasonality, and opportunities to improve revenue and occupancy.</p>
-        </div>
-        <div class="step">
-          <div class="step-number">3</div>
-          <h4>Get your review</h4>
-          <p>We send a clear revenue review with recommendations and next steps if you want help managing the property.</p>
-        </div>
+  <div class="benefit-box">
+    <div class="benefit-icon">💡</div>
+    <h4>Small Items Included</h4>
+    <p>Light bulbs, HVAC filters, batteries, and TV remote control replacements are included at no extra charge to keep your property guest-ready at all times.</p>
+  </div>
+
+  <div class="benefit-box">
+    <div class="benefit-icon">🧰</div>
+    <h4>Service Coordination</h4>
+    <p>We coordinate landscaping, pest control, pool cleaning, and other services as needed so ownership stays simple, organized, and hands off.</p>
+  </div>
+</div>
+</div>
+</section>
+
+<section class="section" style="background:linear-gradient(135deg, #f7fbff 0%, #eef7fb 100%);">
+  <div class="container">
+    <h3>How it works</h3>
+    <p class="section-intro">A simple process designed to give owners clear answers quickly.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <h4>Send the property</h4>
+        <p>Share your address or your Airbnb or Vrbo link so we can review your listing and current market position.</p>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <h4>We analyze the opportunity</h4>
+        <p>We review pricing, presentation, demand, seasonality, and opportunities to improve revenue and occupancy.</p>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <h4>Get your review</h4>
+        <p>We send a clear revenue breakdown with recommendations and next steps if you want us to manage the property.</p>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
   <section class="section">
     <div class="container">
