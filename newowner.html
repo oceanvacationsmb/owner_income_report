@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -114,27 +113,11 @@
       display: grid;
       grid-template-columns: 1.12fr 0.88fr;
       gap: 34px;
-      align-items: center;
-    }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.14);
-      border: 1px solid rgba(255,255,255,0.16);
-      margin-bottom: 18px;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      backdrop-filter: blur(8px);
+      align-items: start;
     }
 
     h1 {
-      margin: 0 0 14px;
+      margin: 12px 0 14px;
       font-size: 58px;
       line-height: 1.02;
       letter-spacing: -0.035em;
@@ -214,7 +197,9 @@
     .card h2 {
       margin: 0 0 8px;
       font-size: 30px;
+      line-height: 1.1;
       color: var(--navy);
+      white-space: nowrap;
     }
 
     .card p {
@@ -421,6 +406,8 @@
       justify-content: center;
       align-items: center;
       min-height: 78px;
+      flex-direction: column;
+      text-align: center;
     }
 
     .host-status-title {
@@ -430,21 +417,22 @@
       line-height: 1.2;
     }
 
-.host-status-stars {
-  margin-top: 8px;
-  font-size: 32px;
-  letter-spacing: 4px;
-  color: var(--teal);
-  font-weight: 800;
-}
+    .host-status-stars {
+      margin-top: 8px;
+      font-size: 32px;
+      letter-spacing: 4px;
+      color: var(--teal);
+      font-weight: 800;
+    }
 
-.host-status-note {
-  margin-top: 6px;
-  font-size: 15px;
-  color: var(--navy);
-  font-weight: 700;
-}
-    
+    .host-status-note {
+      margin-top: 6px;
+      font-size: 15px;
+      color: var(--navy);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
     .airbnb-text {
       color: #ff5a5f;
     }
@@ -455,16 +443,6 @@
       height: 72px;
       background: #d9e6ef;
       vertical-align: middle;
-    }
-
-    .host-status-bottom {
-      margin-top: 18px;
-      font-size: 18px;
-      color: var(--navy);
-    }
-
-    .host-status-bottom strong {
-      color: var(--teal);
     }
 
     .reviews-section {
@@ -537,94 +515,104 @@
       flex: 0 0 auto;
       padding: 0;
       line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .property-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 22px;
+      display: flex;
+      overflow: hidden;
+      gap: 18px;
+      width: 100%;
     }
 
     .property-card {
-  background: #ffffff;
-  border-radius: 22px;
-  overflow: hidden;
-  border: 1px solid #e4edf5;
-  box-shadow: 0 12px 28px rgba(15, 61, 94, 0.08);
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-}
+      background: #ffffff;
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid #e4edf5;
+      box-shadow: 0 12px 28px rgba(15, 61, 94, 0.08);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      min-width: 320px;
+      max-width: 320px;
+      flex: 0 0 auto;
+    }
 
-.property-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 38px rgba(15, 61, 94, 0.16);
-}
+    .property-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 38px rgba(15, 61, 94, 0.16);
+    }
 
-.property-image {
-  position: relative;
-  aspect-ratio: 16 / 11;
-  background: linear-gradient(135deg, #dbefff 0%, #f2f9ff 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #6f93ad;
-  font-size: 14px;
-  font-weight: 700;
-  text-align: center;
-  padding: 18px;
-}
+    .property-image {
+      position: relative;
+      aspect-ratio: 16 / 11;
+      background: linear-gradient(135deg, #dbefff 0%, #f2f9ff 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6f93ad;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      padding: 18px;
+    }
 
-.property-badge {
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  background: rgba(255,255,255,0.95);
-  color: var(--navy);
-  font-size: 12px;
-  font-weight: 800;
-  padding: 8px 12px;
-  border-radius: 999px;
-}
+    .property-badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(255,255,255,0.95);
+      color: var(--navy);
+      font-size: 12px;
+      font-weight: 800;
+      padding: 8px 12px;
+      border-radius: 999px;
+    }
 
-.property-rating {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--navy);
-}
+    .property-rating {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--navy);
+    }
 
-.property-rating span {
-  color: var(--muted);
-  margin-left: 6px;
-}
+    .property-rating span {
+      color: var(--muted);
+      margin-left: 6px;
+    }
 
-.property-content {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+    .property-content {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      height: 100%;
+    }
 
-.property-location {
-  font-size: 14px;
-  font-weight: 700;
-}
+    .property-location {
+      font-size: 14px;
+      font-weight: 700;
+    }
 
-.property-title {
-  font-size: 18px;
-  font-weight: 700;
-  margin: 0;
-}
+    .property-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0;
+    }
 
-.property-copy {
-  font-size: 14px;
-  color: var(--muted);
-}
+    .property-copy {
+      font-size: 14px;
+      color: var(--muted);
+    }
 
-.property-link {
-  margin-top: auto;
-  padding: 12px 18px;
-}
+    .property-link {
+      margin-top: auto;
+      padding: 12px 18px;
+      width: auto;
+      align-self: flex-start;
+    }
 
     .cta {
       background: linear-gradient(
@@ -662,24 +650,17 @@
     }
 
     footer {
-      padding: 30px 0 42px;
+      padding: 10px 0 20px;
       color: #667587;
       text-align: center;
       font-size: 14px;
-    }
-
-    @media (max-width: 1100px) {
-      .property-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
     }
 
     @media (max-width: 960px) {
       .hero-grid,
       .stats,
       .owner-benefits,
-      .steps,
-      .property-grid {
+      .steps {
         grid-template-columns: 1fr;
       }
 
@@ -716,7 +697,8 @@
         margin: 16px 0;
       }
 
-      .review-slide {
+      .review-slide,
+      .property-card {
         min-width: 280px;
         max-width: 280px;
       }
@@ -730,6 +712,10 @@
         height: 44px;
         font-size: 28px;
       }
+
+      .card h2 {
+        white-space: normal;
+      }
     }
   </style>
 </head>
@@ -739,13 +725,12 @@
       <div class="topbar">
         <div class="brand">
           <div class="brand-name">Ocean Vacations</div>
-          <div class="brand-sub">Myrtle Beach Property Management</div>
+          <div class="brand-sub">Myrtle Beach Property Management • 843-222-9751</div>
         </div>
       </div>
 
       <div class="hero-grid">
         <div>
-          <div class="eyebrow">For Vacation Rental Owners</div>
           <h1>Turn your property into a high-performing rental</h1>
           <p class="hero-lead">More bookings, stronger pricing, less stress, and full-service management across the Grand Strand.</p>
           <p class="subtext">From pricing and guest communication to cleanings, maintenance, and owner reporting, Ocean Vacations helps you earn more while staying completely hands off.</p>
@@ -775,7 +760,7 @@
         <div class="card">
           <h2>See What Your Property Could Actually Earn</h2>
           <p style="font-weight:700; color:#0b2e4a;">
-          Most owners are leaving money on the table. We’ll show you exactly where.
+            Most owners are leaving money on the table. We’ll show you exactly where.
           </p>
           <p>Send your property details and we will review its income potential, management fit, and opportunities to improve performance.</p>
 
@@ -814,184 +799,33 @@
     </div>
   </section>
 
-<section class="section" style="padding-top:10px; padding-bottom:10px;">
+  <section class="section" style="padding-top:10px; padding-bottom:10px;">
     <div class="container">
       <div class="host-status-strip">
-  <div class="host-status-item">
-    <div class="host-status-title airbnb-text">Airbnb</div>
-    <div class="host-status-stars">★★★★★</div>
-    <div class="host-status-note">4.8 average rating</div>
-  </div>
-
-  <div class="host-status-divider"></div>
-
-  <div class="host-status-item">
-    <div class="host-status-title">VRBO Premier Host</div>
-    <div class="host-status-stars">★★★★★</div>
-  </div>
-
-  <div class="host-status-divider"></div>
-
-  <div class="host-status-item">
-    <div class="host-status-title">Ocean Vacations</div>
-    <div class="host-status-stars">★★★★★</div>
-  </div>
-
-  
-</div>
-    </div>
-  </section>
-
- <section class="section" style="background:#ffffff; padding-top:30px;">
-    <div class="container">
-      <h3>Our Managed Properties</h3>
-      <p class="section-intro">A few of the vacation rentals we manage across the Grand Strand.</p>
-
-      <div class="property-grid">
-        <div class="property-card">
-          <div class="property-image">Add listing photo here</div>
-          <div class="property-content">
-            <div class="property-location">Murrells Inlet, South Carolina</div>
-            <h4 class="property-title">Private Pool + Steps to Beach • Spacious (827B)</h4>
-            <div class="property-meta">16+ guests • 6 bedrooms • 10 beds • 6.5 baths</div>
-            <p class="property-copy">Private pool, ocean-view balconies, self check-in, smart TVs, and a prime beachside location.</p>
-            <a class="button-link property-link" href="https://www.airbnb.com/rooms/708211388941105572" target="_blank" rel="noopener noreferrer">View Listing</a>
-          </div>
+        <div class="host-status-item">
+          <div class="host-status-title airbnb-text">Airbnb</div>
+          <div class="host-status-stars">★★★★★</div>
+          <div class="host-status-note">AVG RATING 4.87</div>
         </div>
 
-        <div class="property-card">
-          <div class="property-image">Add listing photo here</div>
-          <div class="property-content">
-            <div class="property-location">Surfside Beach, South Carolina</div>
-            <h4 class="property-title">Coastal Retreat • Pool • Steps to Beach • (11313)</h4>
-            <div class="property-meta">14 guests • 5 bedrooms • 7 beds • 4.5 baths</div>
-            <p class="property-copy">Strong guest favorite with pool access, spacious layout, and a location close to the beach.</p>
-            <a class="button-link property-link" href="https://www.airbnb.com/rooms/709057072852697080" target="_blank" rel="noopener noreferrer">View Listing</a>
-          </div>
+        <div class="host-status-divider"></div>
+
+        <div class="host-status-item">
+          <div class="host-status-title">VRBO Premier Host</div>
+          <div class="host-status-stars">★★★★★</div>
+          <div class="host-status-note">AVG RATING 4.85</div>
         </div>
 
-        <div class="property-card">
-          <div class="property-image">Add listing photo here</div>
-          <div class="property-content">
-            <div class="property-location">Myrtle Beach, South Carolina</div>
-            <h4 class="property-title">2131 • Short Walk to the Beach • Pool</h4>
-            <div class="property-meta">Active Ocean Vacations listing</div>
-            <p class="property-copy">Convenient beach access, pool amenities, and professional listing presentation in a strong vacation rental zone.</p>
-            <a class="button-link property-link" href="https://www.airbnb.com/rooms/710427495881962086" target="_blank" rel="noopener noreferrer">View Listing</a>
-          </div>
-        </div>
+        <div class="host-status-divider"></div>
 
-        <div class="property-card">
-          <div class="property-image">Add listing photo here</div>
-          <div class="property-content">
-            <div class="property-location">Myrtle Beach, South Carolina</div>
-            <h4 class="property-title">Sleep 10 • 2 Min from the Beach • Central • 7401</h4>
-            <div class="property-meta">Active Ocean Vacations listing</div>
-            <p class="property-copy">Centrally located group-friendly property positioned close to the beach and area attractions.</p>
-            <a class="button-link property-link" href="https://www.airbnb.com/rooms/710428120921482392" target="_blank" rel="noopener noreferrer">View Listing</a>
-          </div>
-        </div>
-
-        <div class="property-card">
-          <div class="property-image">Add listing photo here</div>
-          <div class="property-content">
-            <div class="property-location">Myrtle Beach, South Carolina</div>
-            <h4 class="property-title">Amazing View • Steps From the Beach • Pool (7500)</h4>
-            <div class="property-meta">Active Ocean Vacations listing</div>
-            <p class="property-copy">Beach access, attractive views, and resort-style appeal in a high-demand Myrtle Beach location.</p>
-            <a class="button-link property-link" href="https://www.airbnb.com/rooms/766827435246995384" target="_blank" rel="noopener noreferrer">View Listing</a>
-          </div>
-        </div>
-
-        <div class="property-card">
-          <div class="property-image">Add listing photo here</div>
-          <div class="property-content">
-            <div class="property-location">North Myrtle Beach, South Carolina</div>
-            <h4 class="property-title">Beachfront Views • Relax Near CG Pier (3104/2)</h4>
-            <div class="property-meta">Active Ocean Vacations listing</div>
-            <p class="property-copy">Beachfront positioning, strong destination appeal, and a polished guest-facing presentation.</p>
-            <a class="button-link property-link" href="https://www.airbnb.com/rooms/1667586750685015182" target="_blank" rel="noopener noreferrer">View Listing</a>
-          </div>
+        <div class="host-status-item">
+          <div class="host-status-title">Ocean Vacations</div>
+          <div class="host-status-stars">★★★★★</div>
+          <div class="host-status-note">AVG RATING 4.93</div>
         </div>
       </div>
     </div>
   </section>
-  
-  <section class="section">
-    <div class="container">
-      <h3>Why owners work with Ocean Vacations</h3>
-      <p class="section-intro">Most owners are not looking for more work. They want stronger performance, clean communication, and a team that handles the details the right way.</p>
-
-      <div class="stats">
-        <div class="stat-box">
-          <div class="stat-icon">📈</div>
-          <div class="stat-value">More Revenue</div>
-          <div class="stat-label">Smarter pricing, better positioning, and stronger listing presentation to improve booking performance.</div>
-        </div>
-
-        <div class="stat-box">
-          <div class="stat-icon">🛎️</div>
-          <div class="stat-value">Less Stress</div>
-          <div class="stat-label">Guest communication, operations, turnovers, and issue handling managed for you from start to finish.</div>
-        </div>
-
-        <div class="stat-box">
-          <div class="stat-icon">📍</div>
-          <div class="stat-value">Local & Experienced</div>
-          <div class="stat-label">Locally owned business with over 14 years of hosting experience across the Grand Strand vacation rental market.</div>
-        </div>
-      </div>
-
-      <div class="owner-benefits" style="margin-top:22px;">
-        <div class="benefit-box highlight-box">
-          <div class="benefit-icon">🧾</div>
-          <h4>No Markups on Repairs</h4>
-          <p>We do not mark up vendor jobs, repairs, or service calls. Owners get full transparency and see the actual vendor cost, not inflated invoices.</p>
-        </div>
-
-        <div class="benefit-box">
-          <div class="benefit-icon">💡</div>
-          <h4>Small Items Included</h4>
-          <p>Light bulbs, HVAC filters, batteries, and TV remote control replacements are included at no extra charge to keep your property guest-ready at all times.</p>
-        </div>
-
-        <div class="benefit-box">
-          <div class="benefit-icon">🧰</div>
-          <h4>Service Coordination</h4>
-          <p>We coordinate landscaping, pest control, pool cleaning, and other services as needed so ownership stays simple, organized, and hands off.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" style="background:linear-gradient(135deg, #f7fbff 0%, #eef7fb 100%);">
-    <div class="container">
-      <h3>How it works</h3>
-      <p class="section-intro">A simple process designed to give owners clear answers quickly.</p>
-
-      <div class="steps">
-        <div class="step">
-          <div class="step-number">1</div>
-          <h4>Send the property</h4>
-          <p>Share your address or your Airbnb or Vrbo link so we can review your listing and current market position.</p>
-        </div>
-
-        <div class="step">
-          <div class="step-number">2</div>
-          <h4>We analyze the opportunity</h4>
-          <p>We review pricing, presentation, demand, seasonality, and opportunities to improve revenue and occupancy.</p>
-        </div>
-
-        <div class="step">
-          <div class="step-number">3</div>
-          <h4>Get your review</h4>
-          <p>We send a clear revenue breakdown with recommendations and next steps if you want us to manage the property.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  
 
   <section class="section reviews-section">
     <div class="container">
@@ -1080,7 +914,160 @@
     </div>
   </section>
 
-  
+  <section class="section">
+    <div class="container">
+      <h3>Why owners work with Ocean Vacations</h3>
+      <p class="section-intro">Most owners are not looking for more work. They want stronger performance, clean communication, and a team that handles the details the right way.</p>
+
+      <div class="stats">
+        <div class="stat-box">
+          <div class="stat-icon">📈</div>
+          <div class="stat-value">More Revenue</div>
+          <div class="stat-label">Smarter pricing, better positioning, and stronger listing presentation to improve booking performance.</div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-icon">🛎️</div>
+          <div class="stat-value">Less Stress</div>
+          <div class="stat-label">Guest communication, operations, turnovers, and issue handling managed for you from start to finish.</div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-icon">📍</div>
+          <div class="stat-value">Local & Experienced</div>
+          <div class="stat-label">Locally owned business with over 14 years of hosting experience across the Grand Strand vacation rental market.</div>
+        </div>
+      </div>
+
+      <div class="owner-benefits" style="margin-top:22px;">
+        <div class="benefit-box highlight-box">
+          <div class="benefit-icon">🧾</div>
+          <h4>No Markups on Repairs</h4>
+          <p>We do not mark up vendor jobs, repairs, or service calls. Owners get full transparency and see the actual vendor cost, not inflated invoices.</p>
+        </div>
+
+        <div class="benefit-box">
+          <div class="benefit-icon">💡</div>
+          <h4>Small Items Included</h4>
+          <p>Light bulbs, HVAC filters, batteries, and TV remote control replacements are included at no extra charge to keep your property guest-ready at all times.</p>
+        </div>
+
+        <div class="benefit-box">
+          <div class="benefit-icon">🧰</div>
+          <h4>Service Coordination</h4>
+          <p>We coordinate landscaping, pest control, pool cleaning, and other services as needed so ownership stays simple, organized, and hands off.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="background:#ffffff; padding-top:30px;">
+    <div class="container">
+      <h3>Sample Of Our Managed Properties</h3>
+      <p class="section-intro">A few of the vacation rentals we manage across the Grand Strand.</p>
+
+      <div class="reviews-slider-wrap">
+        <button class="reviews-arrow" onclick="scrollProperties(-1)" type="button">‹</button>
+
+        <div class="property-grid" id="propertySlider">
+          <div class="property-card">
+            <div class="property-image">Add listing photo here</div>
+            <div class="property-content">
+              <div class="property-location">Murrells Inlet, South Carolina</div>
+              <h4 class="property-title">Private Pool + Steps to Beach • Spacious (827B)</h4>
+              <div class="property-meta">16+ guests • 6 bedrooms • 10 beds • 6.5 baths</div>
+              <p class="property-copy">Private pool, ocean-view balconies, self check-in, smart TVs, and a prime beachside location.</p>
+              <a class="button-link property-link" href="https://www.airbnb.com/rooms/708211388941105572" target="_blank" rel="noopener noreferrer">View Listing</a>
+            </div>
+          </div>
+
+          <div class="property-card">
+            <div class="property-image">Add listing photo here</div>
+            <div class="property-content">
+              <div class="property-location">Surfside Beach, South Carolina</div>
+              <h4 class="property-title">Coastal Retreat • Pool • Steps to Beach • (11313)</h4>
+              <div class="property-meta">14 guests • 5 bedrooms • 7 beds • 4.5 baths</div>
+              <p class="property-copy">Strong guest favorite with pool access, spacious layout, and a location close to the beach.</p>
+              <a class="button-link property-link" href="https://www.airbnb.com/rooms/709057072852697080" target="_blank" rel="noopener noreferrer">View Listing</a>
+            </div>
+          </div>
+
+          <div class="property-card">
+            <div class="property-image">Add listing photo here</div>
+            <div class="property-content">
+              <div class="property-location">Myrtle Beach, South Carolina</div>
+              <h4 class="property-title">2131 • Short Walk to the Beach • Pool</h4>
+              <div class="property-meta">Active Ocean Vacations listing</div>
+              <p class="property-copy">Convenient beach access, pool amenities, and professional listing presentation in a strong vacation rental zone.</p>
+              <a class="button-link property-link" href="https://www.airbnb.com/rooms/710427495881962086" target="_blank" rel="noopener noreferrer">View Listing</a>
+            </div>
+          </div>
+
+          <div class="property-card">
+            <div class="property-image">Add listing photo here</div>
+            <div class="property-content">
+              <div class="property-location">Myrtle Beach, South Carolina</div>
+              <h4 class="property-title">Sleep 10 • 2 Min from the Beach • Central • 7401</h4>
+              <div class="property-meta">Active Ocean Vacations listing</div>
+              <p class="property-copy">Centrally located group-friendly property positioned close to the beach and area attractions.</p>
+              <a class="button-link property-link" href="https://www.airbnb.com/rooms/710428120921482392" target="_blank" rel="noopener noreferrer">View Listing</a>
+            </div>
+          </div>
+
+          <div class="property-card">
+            <div class="property-image">Add listing photo here</div>
+            <div class="property-content">
+              <div class="property-location">Myrtle Beach, South Carolina</div>
+              <h4 class="property-title">Amazing View • Steps From the Beach • Pool (7500)</h4>
+              <div class="property-meta">Active Ocean Vacations listing</div>
+              <p class="property-copy">Beach access, attractive views, and resort-style appeal in a high-demand Myrtle Beach location.</p>
+              <a class="button-link property-link" href="https://www.airbnb.com/rooms/766827435246995384" target="_blank" rel="noopener noreferrer">View Listing</a>
+            </div>
+          </div>
+
+          <div class="property-card">
+            <div class="property-image">Add listing photo here</div>
+            <div class="property-content">
+              <div class="property-location">North Myrtle Beach, South Carolina</div>
+              <h4 class="property-title">Beachfront Views • Relax Near CG Pier (3104/2)</h4>
+              <div class="property-meta">Active Ocean Vacations listing</div>
+              <p class="property-copy">Beachfront positioning, strong destination appeal, and a polished guest-facing presentation.</p>
+              <a class="button-link property-link" href="https://www.airbnb.com/rooms/1667586750685015182" target="_blank" rel="noopener noreferrer">View Listing</a>
+            </div>
+          </div>
+        </div>
+
+        <button class="reviews-arrow" onclick="scrollProperties(1)" type="button">›</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="background:linear-gradient(135deg, #f7fbff 0%, #eef7fb 100%);">
+    <div class="container">
+      <h3>How it works</h3>
+      <p class="section-intro">A simple process designed to give owners clear answers quickly.</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h4>Send the property</h4>
+          <p>Share your address or your Airbnb or Vrbo link so we can review your listing and current market position.</p>
+        </div>
+
+        <div class="step">
+          <div class="step-number">2</div>
+          <h4>We analyze the opportunity</h4>
+          <p>We review pricing, presentation, demand, seasonality, and opportunities to improve revenue and occupancy.</p>
+        </div>
+
+        <div class="step">
+          <div class="step-number">3</div>
+          <h4>Get your review</h4>
+          <p>We send a clear revenue breakdown with recommendations and next steps if you want us to manage the property.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <section class="section">
     <div class="container">
@@ -1092,9 +1079,7 @@
     </div>
   </section>
 
-  <footer>
-    Ocean Vacations • Myrtle Beach Property Management • Replace with your phone, email, and service areas
-  </footer>
+  <footer></footer>
 
   <script>
     function scrollReviews(direction) {
@@ -1102,6 +1087,23 @@
       if (!slider) return;
       slider.scrollBy({
         left: direction * 340,
+        behavior: 'smooth'
+      });
+    }
+
+    function scrollProperties(direction) {
+      const slider = document.getElementById('propertySlider');
+      if (!slider) return;
+
+      const firstCard = slider.querySelector('.property-card');
+      if (!firstCard) return;
+
+      const cardWidth = firstCard.getBoundingClientRect().width;
+      const styles = window.getComputedStyle(slider);
+      const gap = parseFloat(styles.columnGap || styles.gap || 18);
+
+      slider.scrollBy({
+        left: direction * (cardWidth + gap),
         behavior: 'smooth'
       });
     }
