@@ -169,6 +169,18 @@
       text-align: center;
       border: 1px solid #e3edf7;
     }
+    .stat-icon {
+      width: 62px;
+      height: 62px;
+      margin: 0 auto 14px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      background: linear-gradient(135deg, #1f77b4 0%, #00a6d6 100%);
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(31,119,180,0.22);
+    }
     .stat-value {
       font-size: 34px;
       font-weight: 800;
@@ -177,6 +189,41 @@
     }
     .stat-label {
       color: #5e6c7a;
+      font-size: 15px;
+    }
+    .owner-benefits {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-top: 20px;
+    }
+    .benefit-box {
+      background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+      border-radius: 20px;
+      padding: 24px;
+      border: 1px solid #e4ebf3;
+      box-shadow: 0 12px 26px rgba(15,61,94,0.06);
+    }
+    .benefit-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      font-size: 26px;
+      margin-bottom: 14px;
+      background: linear-gradient(135deg, #0f3d5e 0%, #145b8a 55%, #00a6d6 100%);
+      color: #fff;
+      box-shadow: 0 10px 20px rgba(15,61,94,0.16);
+    }
+    .benefit-box h4 {
+      margin: 0 0 10px;
+      font-size: 22px;
+      color: #18364f;
+    }
+    .benefit-box p {
+      margin: 0;
+      color: #5a6878;
       font-size: 15px;
     }
     .steps {
@@ -219,7 +266,11 @@
       gap: 26px;
       align-items: center;
       background: linear-gradient(135deg, #eef8ff 0%, #ffffff 52%, #f6fbff 100%);
-      border:
+      border: 1px solid #dde8f3;
+      border-radius: 30px;
+      padding: 26px;
+      box-shadow: 0 18px 34px rgba(15,61,94,0.09);
+    }
     .portal-image-wrap {
       background: #fff;
       border-radius: 22px;
@@ -273,10 +324,11 @@
       gap: 18px;
     }
     .proof {
-      background: #fff;
+      background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
       border-radius: 18px;
       padding: 22px;
       border: 1px solid #e4ebf3;
+      box-shadow: 0 10px 22px rgba(15,61,94,0.06);
     }
     .proof .tag {
       display: inline-block;
@@ -299,11 +351,12 @@
       font-size: 15px;
     }
     .cta {
-      background: #0f3d5e;
+      background: linear-gradient(135deg, #0f3d5e 0%, #145b8a 55%, #00a6d6 100%);
       color: #fff;
-      border-radius: 24px;
-      padding: 38px 30px;
+      border-radius: 28px;
+      padding: 42px 30px;
       text-align: center;
+      box-shadow: 0 20px 42px rgba(15,61,94,0.18);
     }
     .cta h3 {
       color: #fff;
@@ -317,11 +370,12 @@
     }
     .cta .cta-button {
       display: inline-block;
-      background: #f4a825;
-      color: #111;
+      background: linear-gradient(135deg, #ffd34d 0%, #f4a825 55%, #ff8f1f 100%);
+      color: #10253b;
       padding: 14px 22px;
       border-radius: 12px;
       font-weight: 800;
+      box-shadow: 0 12px 22px rgba(244,168,37,0.28);
     }
     footer {
       padding: 28px 0 40px;
@@ -330,7 +384,7 @@
       font-size: 14px;
     }
     @media (max-width: 960px) {
-      .hero-grid, .stats, .steps, .proof-grid, .portal-showcase {
+      .hero-grid, .stats, .steps, .proof-grid, .portal-showcase, .owner-benefits {
         grid-template-columns: 1fr;
       }
       h1 { font-size: 38px; }
@@ -345,8 +399,8 @@
       <div>
         <div class="eyebrow">For Vacation Rental Owners</div>
         <h1>Turn your property into a high-performing rental</h1>
-        <p style="font-size:22px;font-weight:600;margin-bottom:10px;">We help owners increase revenue, maximize bookings, and remove all the work.</p>
-        <p class="subtext">Get a free rental revenue estimate and property performance review from Ocean Vacations. We help owners increase income, improve visibility, and remove the day to day stress of managing short term rentals.</p>
+        <p style="font-size:22px;font-weight:700;margin-bottom:10px;color:#fff;">More bookings, stronger pricing, less stress, and full-service management built for Myrtle Beach owners.</p>
+        <p class="subtext">From pricing and guest communication to cleanings, maintenance, and owner reporting, Ocean Vacations helps you earn more while staying completely hands off.</p>
         <ul class="hero-points">
           <li>Revenue estimate based on your location, property type, and local market demand</li>
           <li>Review of pricing, listing quality, and opportunities to improve performance</li>
@@ -382,7 +436,7 @@
           <textarea name="notes" rows="4" placeholder="Anything you want us to know about the property"></textarea>
           <button type="submit">Request My Free Revenue Estimate</button>
         </form>
-        <div class="trust-line">No obligation. No pressure. Just a clear review of your property's earning potential.</div>
+        <div class="trust-line">No obligation. No pressure. Just a clear path to more revenue, better guest experience, and easier ownership.</div>
       </div>
     </div>
   </section>
@@ -393,16 +447,39 @@
       <p class="section-intro">Most owners are not looking for more work. They want better performance, more bookings, and a team that handles the details the right way.</p>
       <div class="stats">
         <div class="stat-box">
+          <div class="stat-icon">📈</div>
           <div class="stat-value">More Revenue</div>
           <div class="stat-label">Smarter pricing, better positioning, and stronger listing presentation</div>
         </div>
         <div class="stat-box">
+          <div class="stat-icon">🛎️</div>
           <div class="stat-value">Less Stress</div>
           <div class="stat-label">Guest communication, operations, turnovers, and issue handling managed for you</div>
         </div>
         <div class="stat-box">
+          <div class="stat-icon">📍</div>
           <div class="stat-value">Local Focus</div>
-          <div class="stat-label">Market knowledge, local support, and hands on short term rental management</div>
+          <div class="stat-label">Locally owned business with over 14 years of hosting experience in the Myrtle Beach market</div>
+        </div>
+      </div>
+
+      <div class="owner-benefits">
+        <div class="benefit-box">
+          <div class="benefit-icon">🧾</div>
+          <h4>No Markups on Repairs</h4>
+          <p>We do not mark up vendor jobs, repairs, or service calls. Owners receive full transparency on repair costs so you see the actual vendor amount, not inflated invoices.</p>
+        </div>
+
+        <div class="benefit-box">
+          <div class="benefit-icon">💡</div>
+          <h4>Small Items Included</h4>
+          <p>We replace light bulbs, HVAC filters, batteries, and TV remote controls at no extra charge, helping keep your property guest ready without constant small add-on fees.</p>
+        </div>
+
+        <div class="benefit-box">
+          <div class="benefit-icon">🧰</div>
+          <h4>Service Coordination</h4>
+          <p>We coordinate landscaping, pest control, pool cleaning, and other property services as needed, making ownership easier while keeping everything organized and on schedule.</p>
         </div>
       </div>
     </div>
