@@ -7,7 +7,6 @@
   <meta name="description" content="See how much more your vacation rental could earn with Ocean Vacations. Request a free rental revenue estimate and property performance review." />
   <style>
     * { box-sizing: border-box; }
-
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
@@ -15,30 +14,22 @@
       background: #f7f9fb;
       line-height: 1.5;
     }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
+    a { color: inherit; text-decoration: none; }
     .container {
       width: min(1120px, calc(100% - 32px));
       margin: 0 auto;
     }
-
     .hero {
       background: linear-gradient(135deg, #0f3d5e 0%, #145b8a 55%, #1f77b4 100%);
       color: #fff;
       padding: 72px 0 56px;
     }
-
     .hero-grid {
       display: grid;
       grid-template-columns: 1.15fr 0.85fr;
       gap: 32px;
       align-items: center;
     }
-
     .eyebrow {
       display: inline-block;
       font-size: 13px;
@@ -50,20 +41,17 @@
       margin-bottom: 18px;
       font-weight: 700;
     }
-
     h1 {
       margin: 0 0 16px;
       font-size: 48px;
       line-height: 1.08;
     }
-
     .subtext {
       font-size: 19px;
       max-width: 640px;
       color: rgba(255,255,255,0.92);
       margin-bottom: 24px;
     }
-
     .hero-points {
       display: grid;
       gap: 10px;
@@ -71,14 +59,12 @@
       padding: 0;
       list-style: none;
     }
-
     .hero-points li {
       background: rgba(255,255,255,0.1);
       padding: 12px 14px;
       border-radius: 12px;
       font-size: 15px;
     }
-
     .card {
       background: #fff;
       border-radius: 22px;
@@ -86,28 +72,21 @@
       box-shadow: 0 14px 40px rgba(0,0,0,0.14);
       color: #111;
     }
-
     .card h2 {
       margin: 0 0 8px;
       font-size: 28px;
       color: #0f3d5e;
     }
-
     .card p {
       margin: 0 0 20px;
       color: #4c5968;
       font-size: 15px;
     }
-
     form {
       display: grid;
       gap: 12px;
     }
-
-    input,
-    select,
-    textarea,
-    button {
+    input, select, textarea, button {
       width: 100%;
       border-radius: 12px;
       border: 1px solid #d5deea;
@@ -115,15 +94,11 @@
       font-size: 15px;
       font-family: inherit;
     }
-
-    input:focus,
-    select:focus,
-    textarea:focus {
+    input:focus, select:focus, textarea:focus {
       outline: none;
       border-color: #1f77b4;
       box-shadow: 0 0 0 3px rgba(31,119,180,0.12);
     }
-
     button {
       border: 0;
       background: #f4a825;
@@ -132,30 +107,25 @@
       cursor: pointer;
       transition: transform 0.15s ease, opacity 0.15s ease;
     }
-
     button:hover {
       transform: translateY(-1px);
       opacity: 0.96;
     }
-
     .trust-line {
       margin-top: 12px;
       font-size: 13px;
       color: #6a7785;
       text-align: center;
     }
-
     .section {
       padding: 56px 0;
     }
-
     .section h3 {
       margin: 0 0 12px;
       font-size: 34px;
       color: #0f3d5e;
       text-align: center;
     }
-
     .section-intro {
       margin: 0 auto 28px;
       max-width: 720px;
@@ -163,13 +133,11 @@
       color: #576476;
       font-size: 17px;
     }
-
     .stats {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 18px;
     }
-
     .stat-box {
       background: #fff;
       border-radius: 18px;
@@ -177,32 +145,27 @@
       box-shadow: 0 8px 24px rgba(15,61,94,0.08);
       text-align: center;
     }
-
     .stat-value {
       font-size: 34px;
       font-weight: 800;
       color: #145b8a;
       margin-bottom: 8px;
     }
-
     .stat-label {
       color: #5e6c7a;
       font-size: 15px;
     }
-
     .steps {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 18px;
     }
-
     .step {
       background: #fff;
       border-radius: 18px;
       padding: 24px;
       box-shadow: 0 8px 24px rgba(15,61,94,0.08);
     }
-
     .step-number {
       width: 42px;
       height: 42px;
@@ -214,103 +177,85 @@
       font-weight: 700;
       margin-bottom: 14px;
     }
-
     .step h4 {
       margin: 0 0 8px;
       font-size: 20px;
       color: #18364f;
     }
-
     .step p {
       margin: 0;
       color: #5a6878;
       font-size: 15px;
     }
-
-    /* NEW SECTION ONLY */
-    .portal-feature {
-      background: linear-gradient(180deg, #eef5fb 0%, #f8fbfe 100%);
-    }
-
-    .portal-feature-wrap {
+    .portal-showcase {
       display: grid;
-      grid-template-columns: 1.05fr 0.95fr;
-      gap: 28px;
+      grid-template-columns: 1.08fr 0.92fr;
+      gap: 26px;
       align-items: center;
-      background: #fff;
+      background: linear-gradient(180deg, #eff5fb 0%, #f8fbfe 100%);
       border: 1px solid #dde8f3;
       border-radius: 28px;
-      padding: 24px;
+      padding: 26px;
       box-shadow: 0 10px 28px rgba(15,61,94,0.08);
     }
-
-    .portal-image-box {
-      background: #f8fbfe;
-      border: 1px solid #dde8f3;
+    .portal-image-wrap {
+      background: #fff;
       border-radius: 22px;
       padding: 14px;
-      box-shadow: 0 8px 24px rgba(15,61,94,0.06);
+      box-shadow: 0 10px 28px rgba(15,61,94,0.08);
     }
-
-    .portal-image-box img {
+    .portal-image {
       width: 100%;
       display: block;
       border-radius: 16px;
+      border: 1px solid #dfe8f1;
     }
-
     .portal-copy h4 {
       margin: 0 0 12px;
       font-size: 32px;
       line-height: 1.12;
       color: #0f3d5e;
     }
-
     .portal-copy p {
       margin: 0 0 18px;
-      color: #576476;
       font-size: 17px;
+      color: #546477;
     }
-
-    .portal-list {
-      list-style: none;
-      margin: 0 0 20px;
-      padding: 0;
+    .portal-points {
       display: grid;
       gap: 12px;
+      margin: 0 0 22px;
+      padding: 0;
+      list-style: none;
     }
-
-    .portal-list li {
-      background: #f8fbfe;
-      border: 1px solid #dde8f3;
+    .portal-points li {
+      background: rgba(255,255,255,0.75);
+      border: 1px solid #dce7f2;
       border-radius: 16px;
       padding: 14px 16px;
       color: #20364d;
       font-size: 15px;
     }
-
-    .portal-badge {
+    .portal-note {
       display: inline-block;
-      background: #0f3d5e;
-      color: #fff;
       padding: 12px 16px;
       border-radius: 14px;
-      font-size: 14px;
+      background: #0f3d5e;
+      color: #fff;
       font-weight: 700;
+      font-size: 14px;
     }
-
     .proof-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 18px;
     }
-
     .proof {
       background: #fff;
       border-radius: 18px;
       padding: 22px;
       border: 1px solid #e4ebf3;
     }
-
     .proof .tag {
       display: inline-block;
       padding: 6px 10px;
@@ -321,19 +266,16 @@
       font-weight: 700;
       margin-bottom: 12px;
     }
-
     .proof h4 {
       margin: 0 0 10px;
       font-size: 21px;
       color: #18364f;
     }
-
     .proof p {
       margin: 0;
       color: #5a6878;
       font-size: 15px;
     }
-
     .cta {
       background: #0f3d5e;
       color: #fff;
@@ -341,19 +283,16 @@
       padding: 38px 30px;
       text-align: center;
     }
-
     .cta h3 {
       color: #fff;
       text-align: center;
       margin-bottom: 10px;
     }
-
     .cta p {
       margin: 0 auto 20px;
       max-width: 680px;
       color: rgba(255,255,255,0.9);
     }
-
     .cta .cta-button {
       display: inline-block;
       background: #f4a825;
@@ -362,34 +301,19 @@
       border-radius: 12px;
       font-weight: 800;
     }
-
     footer {
       padding: 28px 0 40px;
       color: #667587;
       text-align: center;
       font-size: 14px;
     }
-
     @media (max-width: 960px) {
-      .hero-grid,
-      .stats,
-      .steps,
-      .proof-grid,
-      .portal-feature-wrap {
+      .hero-grid, .stats, .steps, .proof-grid, .portal-showcase {
         grid-template-columns: 1fr;
       }
-
-      h1 {
-        font-size: 38px;
-      }
-
-      .section h3 {
-        font-size: 28px;
-      }
-
-      .portal-copy h4 {
-        font-size: 28px;
-      }
+      h1 { font-size: 38px; }
+      .section h3 { font-size: 28px; }
+      .portal-copy h4 { font-size: 28px; }
     }
   </style>
 </head>
@@ -399,10 +323,7 @@
       <div>
         <div class="eyebrow">For Vacation Rental Owners</div>
         <h1>See how much more your property could earn</h1>
-        <p class="subtext">
-          Get a free rental revenue estimate and property performance review from Ocean Vacations.
-          We help owners increase income, improve visibility, and remove the day to day stress of managing short term rentals.
-        </p>
+        <p class="subtext">Get a free rental revenue estimate and property performance review from Ocean Vacations. We help owners increase income, improve visibility, and remove the day to day stress of managing short term rentals.</p>
         <ul class="hero-points">
           <li>Revenue estimate based on your location, property type, and local market demand</li>
           <li>Review of pricing, listing quality, and opportunities to improve performance</li>
@@ -418,7 +339,6 @@
           <input type="email" name="email" placeholder="Email address" required />
           <input type="tel" name="phone" placeholder="Phone number" />
           <input type="text" name="propertyAddress" placeholder="Property address or Airbnb / Vrbo link" required />
-
           <select name="propertyType" required>
             <option value="">Property type</option>
             <option>Condo</option>
@@ -427,7 +347,6 @@
             <option>Multi unit</option>
             <option>Other</option>
           </select>
-
           <select name="bedrooms">
             <option value="">Bedrooms</option>
             <option>Studio</option>
@@ -437,7 +356,6 @@
             <option>4 Bedrooms</option>
             <option>5+ Bedrooms</option>
           </select>
-
           <textarea name="notes" rows="4" placeholder="Anything you want us to know about the property"></textarea>
           <button type="submit">Request My Free Revenue Estimate</button>
         </form>
@@ -449,11 +367,7 @@
   <section class="section">
     <div class="container">
       <h3>Why owners reach out to us</h3>
-      <p class="section-intro">
-        Most owners are not looking for more work. They want better performance, more bookings,
-        and a team that handles the details the right way.
-      </p>
-
+      <p class="section-intro">Most owners are not looking for more work. They want better performance, more bookings, and a team that handles the details the right way.</p>
       <div class="stats">
         <div class="stat-box">
           <div class="stat-value">More Revenue</div>
@@ -475,7 +389,6 @@
     <div class="container">
       <h3>How it works</h3>
       <p class="section-intro">A simple process designed to get owners clear answers quickly.</p>
-
       <div class="steps">
         <div class="step">
           <div class="step-number">1</div>
@@ -496,34 +409,66 @@
     </div>
   </section>
 
-  <!-- ADDED SECTION -->
-  <section class="section portal-feature">
+  <section class="section">
     <div class="container">
       <h3>Owner portal access</h3>
-      <p class="section-intro">
-        Owners can log in anytime to view payouts, reservations, booked nights, and performance details in one clean dashboard.
-      </p>
-
-      <div class="portal-feature-wrap">
-        <div class="portal-image-box">
-          <img src="/images/owner-portal-preview.png" alt="Ocean Vacations owner portal showing payouts and reservations" />
+      <p class="section-intro">Owners can log in anytime to view payout information, reservations, booked nights, and performance details in one clean dashboard.</p>
+      <div class="portal-showcase">
+        <div class="portal-image-wrap">
+          <img src="/images/owner-portal-preview.png" alt="Ocean Vacations owner portal showing payouts and reservations" class="portal-image" />
         </div>
-
         <div class="portal-copy">
-          <h4>Full visibility for every owner</h4>
-          <p>
-            Give owners direct access to their property information without the back and forth.
-            Your portal helps build trust by showing real reservation and payout information in a simple format.
-          </p>
-
-          <ul class="portal-list">
-            <li>View payout summaries and owner earnings anytime</li>
-            <li>See reservations, check in and check out dates, and booked nights</li>
-            <li>Access everything in one place from desktop or mobile</li>
+          <h4>Give owners visibility without the back and forth</h4>
+          <p>Your owner portal helps build trust by giving property owners direct access to their reservation activity and payout reporting whenever they want to check in.</p>
+          <ul class="portal-points">
+            <li>View payout summaries and owner earnings in a simple format</li>
+            <li>See reservations, stay dates, guest activity, and booked nights</li>
+            <li>Access information 24/7 from any device without waiting for updates</li>
           </ul>
-
-          <div class="portal-badge">24/7 access. Real time visibility. Less owner stress.</div>
+          <div class="portal-note">Add your real portal image here and this section is ready to go.</div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REVIEWS SECTION -->
+  <section class="section" style="background:#ffffff;">
+    <div class="container">
+      <h3>What guests say about us</h3>
+      <p class="section-intro">Real reviews from guests staying at Ocean Vacations properties. Clean homes, strong communication, and consistent 5-star experiences.</p>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;">
+
+        <div class="proof">
+          <h4>★★★★★ Carlita</h4>
+          <p>Zack was the perfect host. His place is exactly like the pictures. It’s a perfect spot and in the middle of everything. Very clean and comfortable. I look forward to booking again.</p>
+        </div>
+
+        <div class="proof">
+          <h4>★★★★★ Natalie</h4>
+          <p>Loved the pool and very close to the beach. Host was very communicative and easy to work with.</p>
+        </div>
+
+        <div class="proof">
+          <h4>★★★★★ Steven</h4>
+          <p>Fantastic place and exactly what we needed. Easy to get everywhere and great communication. Would definitely recommend.</p>
+        </div>
+
+        <div class="proof">
+          <h4>★★★★★ Leah</h4>
+          <p>Our stay was perfect. House was comfortable and met all our needs. Great for families and close to everything.</p>
+        </div>
+
+        <div class="proof">
+          <h4>★★★★★ Jenise</h4>
+          <p>The house was clean and well stocked. Location was close to the beach and shopping. Would definitely rent again.</p>
+        </div>
+
+        <div class="proof">
+          <h4>★★★★★ Cam</h4>
+          <p>Very easy check-in, clean property, and felt like home. Would definitely book again.</p>
+        </div>
+
       </div>
     </div>
   </section>
@@ -532,7 +477,6 @@
     <div class="container">
       <h3>Example owner results</h3>
       <p class="section-intro">Replace these placeholders with your real numbers once you send them to me.</p>
-
       <div class="proof-grid">
         <div class="proof">
           <div class="tag">Example Result</div>
@@ -557,10 +501,7 @@
     <div class="container">
       <div class="cta">
         <h3>Want to know what your property could really earn?</h3>
-        <p>
-          Request a free review and we will take a look at your property, your current setup,
-          and where the biggest opportunities may be.
-        </p>
+        <p>Request a free review and we will take a look at your property, your current setup, and where the biggest opportunities may be.</p>
         <a href="#ownerLeadForm" class="cta-button">Start My Free Review</a>
       </div>
     </div>
@@ -584,7 +525,9 @@
       alert('Thank you. Your request was submitted. We will review your property and reach out shortly.');
       form.reset();
 
-      // Connect this form to your backend, CRM, email service, or webhook
+      // Next step:
+      // Connect this form to your backend, CRM, email service, or webhook.
+      // Options include Formspree, Zapier, Make, HubSpot, GoHighLevel, or your own API endpoint.
     });
   </script>
 </body>
