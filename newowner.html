@@ -3,173 +3,315 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ocean Vacations | Free Rental Revenue Estimate</title>
-  <meta name="description" content="See how much more your vacation rental could earn with Ocean Vacations. Request a free rental revenue estimate and property performance review." />
+  <title>Ocean Vacations | Myrtle Beach Property Management</title>
+  <meta
+    name="description"
+    content="Ocean Vacations is a Myrtle Beach property management company helping vacation rental owners increase revenue, reduce stress, and manage their properties with full transparency."
+  />
   <style>
     * { box-sizing: border-box; }
+
+    :root {
+      --navy: #0f3552;
+      --navy-2: #174a6d;
+      --blue: #2c7fb8;
+      --sky: #5ec3e7;
+      --teal: #20b7b0;
+      --light: #f7fbff;
+      --text: #18364f;
+      --muted: #5c6e7f;
+      --white: #ffffff;
+      --border: #dfe9f2;
+      --shadow: 0 16px 40px rgba(15, 53, 82, 0.1);
+      --shadow-lg: 0 24px 60px rgba(15, 53, 82, 0.18);
+    }
+
+    html { scroll-behavior: smooth; }
+
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      color: #1a1a1a;
-      background: #f7f9fb;
+      color: var(--text);
+      background: #f5f9fc;
       line-height: 1.5;
     }
+
     a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+
     .container {
-      width: min(1120px, calc(100% - 32px));
+      width: min(1180px, calc(100% - 32px));
       margin: 0 auto;
     }
+
     .hero {
       position: relative;
-      color: #fff;
-      padding: 86px 0 70px;
       overflow: hidden;
+      color: var(--white);
+      padding: 26px 0 82px;
       background:
-        linear-gradient(135deg, rgba(7,40,73,0.88) 0%, rgba(16,91,138,0.78) 45%, rgba(0,166,214,0.60) 100%),
+        linear-gradient(120deg, rgba(8, 38, 65, 0.88) 0%, rgba(18, 81, 122, 0.76) 44%, rgba(66, 170, 220, 0.48) 100%),
         url('/images/myrtle-beach-hero.jpg') center center / cover no-repeat;
     }
+
     .hero::before {
-      content: '';
+      content: "";
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at top right, rgba(255,196,0,0.24), transparent 28%), radial-gradient(circle at bottom left, rgba(72,209,204,0.18), transparent 24%);
+      background:
+        radial-gradient(circle at top right, rgba(255,255,255,0.15), transparent 22%),
+        radial-gradient(circle at bottom left, rgba(32,183,176,0.2), transparent 25%);
       pointer-events: none;
     }
-    .hero-grid {
+
+    .topbar {
       position: relative;
-      z-index: 1;
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 32px;
+      z-index: 2;
+      display: flex;
       align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 46px;
     }
-    .eyebrow {
-      display: inline-block;
-      font-size: 13px;
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .brand-name {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .brand-sub {
+      font-size: 14px;
+      color: rgba(255,255,255,0.9);
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      padding: 9px 14px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.16);
-      border: 1px solid rgba(255,255,255,0.18);
-      margin-bottom: 18px;
-      font-weight: 700;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
     }
-    h1 {
-      margin: 0 0 16px;
-      font-size: 56px;
-      line-height: 1.02;
-      letter-spacing: -0.03em;
-      text-shadow: 0 10px 24px rgba(0,0,0,0.20);
-    }
-    .subtext {
-      font-size: 20px;
-      max-width: 640px;
-      color: rgba(255,255,255,0.96);
-      margin-bottom: 24px;
-    }
-    .hero-points {
+
+    .hero-grid {
+      position: relative;
+      z-index: 2;
       display: grid;
-      gap: 10px;
-      margin: 0;
-      padding: 0;
+      grid-template-columns: 1.12fr 0.88fr;
+      gap: 34px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.16);
+      margin-bottom: 18px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      backdrop-filter: blur(8px);
+    }
+
+    h1 {
+      margin: 0 0 14px;
+      font-size: 58px;
+      line-height: 1.02;
+      letter-spacing: -0.035em;
+      text-shadow: 0 10px 26px rgba(0,0,0,0.2);
+    }
+
+    .hero-lead {
+      margin: 0 0 12px;
+      font-size: 23px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.97);
+    }
+
+    .subtext {
+      margin: 0 0 24px;
+      max-width: 700px;
+      font-size: 19px;
+      color: rgba(255,255,255,0.95);
+    }
+
+    .hero-points {
       list-style: none;
-    }
-    .hero-points li {
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.14);
-      backdrop-filter: blur(6px);
-      padding: 13px 15px;
-      border-radius: 14px;
-      font-size: 15px;
-      box-shadow: 0 10px 18px rgba(0,0,0,0.10);
-    }
-    .card {
-      background: rgba(255,255,255,0.98);
-      border-radius: 24px;
-      padding: 30px;
-      box-shadow: 0 24px 60px rgba(0,0,0,0.20);
-      color: #111;
-      border: 1px solid rgba(255,255,255,0.55);
-    }
-    .card h2 {
-      margin: 0 0 8px;
-      font-size: 28px;
-      color: #0f3d5e;
-    }
-    .card p {
-      margin: 0 0 20px;
-      color: #4c5968;
-      font-size: 15px;
-    }
-    form {
+      margin: 0 0 22px;
+      padding: 0;
       display: grid;
       gap: 12px;
     }
-    input, select, textarea, button {
-      border: 0;
-      background: linear-gradient(135deg, #ffd34d 0%, #f4a825 55%, #ff8f1f 100%);
-      color: #10253b;
-      font-weight: 800;
-      cursor: pointer;
-      transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
-      box-shadow: 0 12px 22px rgba(244,168,37,0.28);
+
+    .hero-points li {
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+      font-size: 15px;
     }
-    input:focus, select:focus, textarea:focus {
+
+    .hero-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .hero-stat {
+      padding: 12px 16px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.16);
+      backdrop-filter: blur(8px);
+      min-width: 150px;
+    }
+
+    .hero-stat strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1;
+      margin-bottom: 4px;
+      color: #fff;
+    }
+
+    .hero-stat span {
+      font-size: 13px;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .card {
+      background: rgba(255,255,255,0.98);
+      border-radius: 26px;
+      padding: 30px;
+      box-shadow: var(--shadow-lg);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.6);
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      color: var(--navy);
+    }
+
+    .card p {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    form { display: grid; gap: 12px; }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid #d7e2ec;
+      background: #fff;
+      padding: 15px;
+      font-size: 15px;
+      color: var(--text);
+      font-family: inherit;
+      appearance: none;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
       outline: none;
-      border-color: #1f77b4;
-      box-shadow: 0 0 0 3px rgba(31,119,180,0.12);
+      border-color: #68bddd;
+      box-shadow: 0 0 0 4px rgba(94, 195, 231, 0.16);
     }
-    button {
+
+    button,
+    .button-link {
+      display: inline-block;
+      width: 100%;
       border: 0;
-      background: #f4a825;
-      color: #111;
-      font-weight: 700;
+      border-radius: 14px;
+      padding: 16px 18px;
+      background: linear-gradient(135deg, #1d648f 0%, #2c7fb8 55%, #39b0d3 100%);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      text-align: center;
       cursor: pointer;
-      transition: transform 0.15s ease, opacity 0.15s ease;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+      box-shadow: 0 14px 28px rgba(44, 127, 184, 0.28);
     }
-    button:hover {
+
+    button:hover,
+    .button-link:hover {
       transform: translateY(-1px);
       opacity: 0.98;
-      box-shadow: 0 16px 28px rgba(244,168,37,0.34);
+      box-shadow: 0 18px 30px rgba(44, 127, 184, 0.32);
     }
+
     .trust-line {
       margin-top: 12px;
       font-size: 13px;
-      color: #6a7785;
+      color: #6c7d8c;
       text-align: center;
     }
-    .section {
-      padding: 56px 0;
-    }
+
+    .section { padding: 62px 0; }
+
     .section h3 {
       margin: 0 0 12px;
-      font-size: 34px;
-      color: #0f3d5e;
+      font-size: 36px;
+      line-height: 1.12;
+      color: var(--navy);
       text-align: center;
+      letter-spacing: -0.03em;
     }
+
     .section-intro {
-      margin: 0 auto 28px;
-      max-width: 720px;
+      margin: 0 auto 30px;
+      max-width: 780px;
       text-align: center;
-      color: #576476;
+      color: var(--muted);
       font-size: 17px;
     }
-    .stats {
+
+    .stats,
+    .owner-benefits,
+    .steps,
+    .proof-grid,
+    .property-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 18px;
     }
-    .stat-box {
-      background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
-      border-radius: 20px;
-      padding: 24px;
-      box-shadow: 0 12px 28px rgba(15,61,94,0.08);
-      text-align: center;
-      border: 1px solid #e3edf7;
+
+    .stat-box,
+    .benefit-box,
+    .step,
+    .proof,
+    .property-card {
+      background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+      border-radius: 22px;
+      border: 1px solid #e4edf5;
+      box-shadow: var(--shadow);
     }
-    .stat-icon {
+
+    .stat-box,
+    .benefit-box,
+    .step,
+    .proof { padding: 24px; }
+
+    .stat-box { text-align: center; }
+
+    .stat-icon,
+    .benefit-icon {
       width: 62px;
       height: 62px;
       margin: 0 auto 14px;
@@ -177,89 +319,94 @@
       display: grid;
       place-items: center;
       font-size: 28px;
-      background: linear-gradient(135deg, #1f77b4 0%, #00a6d6 100%);
+      background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 55%, var(--sky) 100%);
       color: #fff;
-      box-shadow: 0 12px 24px rgba(31,119,180,0.22);
+      box-shadow: 0 12px 24px rgba(31, 119, 180, 0.22);
     }
-    .stat-value {
-      font-size: 34px;
-      font-weight: 800;
-      color: #145b8a;
-      margin-bottom: 8px;
-    }
-    .stat-label {
-      color: #5e6c7a;
-      font-size: 15px;
-    }
-    .owner-benefits {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
-      margin-top: 20px;
-    }
-    .benefit-box {
-      background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
-      border-radius: 20px;
-      padding: 24px;
-      border: 1px solid #e4ebf3;
-      box-shadow: 0 12px 26px rgba(15,61,94,0.06);
-    }
+
     .benefit-icon {
+      margin: 0 0 14px;
       width: 58px;
       height: 58px;
-      border-radius: 16px;
-      display: grid;
-      place-items: center;
       font-size: 26px;
-      margin-bottom: 14px;
-      background: linear-gradient(135deg, #0f3d5e 0%, #145b8a 55%, #00a6d6 100%);
-      color: #fff;
-      box-shadow: 0 10px 20px rgba(15,61,94,0.16);
+      background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 55%, var(--teal) 100%);
     }
-    .benefit-box h4 {
-      margin: 0 0 10px;
-      font-size: 22px;
-      color: #18364f;
+
+    .stat-value {
+      font-size: 30px;
+      font-weight: 800;
+      color: var(--navy-2);
+      margin-bottom: 8px;
     }
-    .benefit-box p {
-      margin: 0;
-      color: #5a6878;
+
+    .stat-label,
+    .benefit-box p,
+    .step p,
+    .proof p,
+    .property-meta,
+    .property-copy,
+    .portal-copy p {
+      color: var(--muted);
       font-size: 15px;
     }
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
+
+    .benefit-box h4,
+    .step h4,
+    .proof h4,
+    .portal-copy h4,
+    .property-title {
+      margin: 0 0 10px;
+      color: var(--text);
     }
-    .step {
-      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-      border-radius: 20px;
-      padding: 24px;
-      box-shadow: 0 12px 28px rgba(15,61,94,0.08);
-      border: 1px solid #e1ebf5;
-    }
+
+    .benefit-box h4 { font-size: 22px; }
+    .step h4 { font-size: 20px; }
+    .proof h4 { font-size: 21px; }
+
     .step-number {
-      width: 46px;
-      height: 46px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #1f77b4 0%, #00a6d6 100%);
+      background: linear-gradient(135deg, var(--blue) 0%, var(--sky) 100%);
       color: #fff;
       display: grid;
       place-items: center;
-      font-weight: 700;
+      font-weight: 800;
       margin-bottom: 14px;
-      box-shadow: 0 10px 18px rgba(31,119,180,0.24);
+      box-shadow: 0 10px 18px rgba(31, 119, 180, 0.24);
     }
-    .step h4 {
-      margin: 0 0 8px;
-      font-size: 20px;
-      color: #18364f;
+
+    .airbnb-trust {
+      background: linear-gradient(135deg, #fff 0%, #fff7f8 100%);
+      border: 1px solid #ffe1e5;
     }
-    .step p {
-      margin: 0;
-      color: #5a6878;
-      font-size: 15px;
+
+    .airbnb-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 auto 14px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: #fff1f3;
+      color: #e74c63;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
+
+    .proof .tag {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #eef6fc;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
     .portal-showcase {
       display: grid;
       grid-template-columns: 1.08fr 0.92fr;
@@ -269,31 +416,31 @@
       border: 1px solid #dde8f3;
       border-radius: 30px;
       padding: 26px;
-      box-shadow: 0 18px 34px rgba(15,61,94,0.09);
+      box-shadow: 0 18px 34px rgba(15, 61, 94, 0.09);
     }
+
     .portal-image-wrap {
       background: #fff;
       border-radius: 22px;
       padding: 14px;
-      box-shadow: 0 10px 28px rgba(15,61,94,0.08);
+      box-shadow: 0 10px 28px rgba(15, 61, 94, 0.08);
     }
+
     .portal-image {
       width: 100%;
-      display: block;
       border-radius: 16px;
       border: 1px solid #dfe8f1;
+      cursor: pointer;
+      transition: transform 0.15s ease;
     }
+
+    .portal-image:hover { transform: scale(1.01); }
+
     .portal-copy h4 {
-      margin: 0 0 12px;
       font-size: 32px;
       line-height: 1.12;
-      color: #0f3d5e;
     }
-    .portal-copy p {
-      margin: 0 0 18px;
-      font-size: 17px;
-      color: #546477;
-    }
+
     .portal-points {
       display: grid;
       gap: 12px;
@@ -301,209 +448,332 @@
       padding: 0;
       list-style: none;
     }
+
     .portal-points li {
-      background: rgba(255,255,255,0.75);
+      background: rgba(255,255,255,0.8);
       border: 1px solid #dce7f2;
       border-radius: 16px;
       padding: 14px 16px;
-      color: #20364d;
+      color: var(--text);
       font-size: 15px;
     }
+
     .portal-note {
       display: inline-block;
       padding: 12px 16px;
       border-radius: 14px;
-      background: #0f3d5e;
+      background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
       color: #fff;
       font-weight: 700;
       font-size: 14px;
     }
-    .proof-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
+
+    .property-card {
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
-    .proof {
-      background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
-      border-radius: 18px;
-      padding: 22px;
-      border: 1px solid #e4ebf3;
-      box-shadow: 0 10px 22px rgba(15,61,94,0.06);
-    }
-    .proof .tag {
-      display: inline-block;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: #eef6fc;
-      color: #145b8a;
-      font-size: 12px;
+
+    .property-image {
+      aspect-ratio: 16 / 10;
+      background: linear-gradient(135deg, #dbefff 0%, #f2f9ff 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6f93ad;
+      font-size: 14px;
       font-weight: 700;
-      margin-bottom: 12px;
+      text-align: center;
+      padding: 18px;
     }
-    .proof h4 {
-      margin: 0 0 10px;
-      font-size: 21px;
-      color: #18364f;
+
+    .property-content {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: 100%;
     }
-    .proof p {
-      margin: 0;
-      color: #5a6878;
-      font-size: 15px;
+
+    .property-location {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--blue);
     }
+
+    .property-title {
+      font-size: 22px;
+      line-height: 1.15;
+    }
+
+    .property-link {
+      margin-top: auto;
+      width: auto;
+    }
+
     .cta {
-      background: linear-gradient(135deg, #0f3d5e 0%, #145b8a 55%, #00a6d6 100%);
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 55%, var(--sky) 100%);
       color: #fff;
-      border-radius: 28px;
-      padding: 42px 30px;
+      border-radius: 30px;
+      padding: 46px 30px;
       text-align: center;
-      box-shadow: 0 20px 42px rgba(15,61,94,0.18);
+      box-shadow: 0 20px 42px rgba(15, 61, 94, 0.18);
     }
-    .cta h3 {
-      color: #fff;
-      text-align: center;
-      margin-bottom: 10px;
-    }
+
+    .cta h3 { color: #fff; }
+
     .cta p {
-      margin: 0 auto 20px;
-      max-width: 680px;
-      color: rgba(255,255,255,0.9);
+      margin: 0 auto 22px;
+      max-width: 700px;
+      color: rgba(255,255,255,0.92);
+      font-size: 17px;
     }
+
     .cta .cta-button {
       display: inline-block;
-      background: linear-gradient(135deg, #ffd34d 0%, #f4a825 55%, #ff8f1f 100%);
-      color: #10253b;
-      padding: 14px 22px;
-      border-radius: 12px;
-      font-weight: 800;
-      box-shadow: 0 12px 22px rgba(244,168,37,0.28);
+      width: auto;
+      min-width: 240px;
     }
+
     footer {
-      padding: 28px 0 40px;
+      padding: 30px 0 42px;
       color: #667587;
       text-align: center;
       font-size: 14px;
     }
+
+    .portal-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(6, 24, 40, 0.76);
+      padding: 24px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .portal-modal.open { display: flex; }
+
+    .portal-modal-box {
+      position: relative;
+      width: min(980px, 96vw);
+      background: #fff;
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.25);
+    }
+
+    .portal-modal-box img {
+      width: 100%;
+      border-radius: 16px;
+    }
+
+    .portal-close {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 0;
+      background: rgba(15,53,82,0.9);
+      color: #fff;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 700;
+      box-shadow: none;
+      padding: 0;
+    }
+
+    @media (max-width: 1100px) {
+      .property-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
     @media (max-width: 960px) {
-      .hero-grid, .stats, .steps, .proof-grid, .portal-showcase, .owner-benefits {
+      .topbar { margin-bottom: 30px; }
+
+      .hero-grid,
+      .stats,
+      .owner-benefits,
+      .steps,
+      .proof-grid,
+      .portal-showcase,
+      .property-grid {
         grid-template-columns: 1fr;
       }
-      h1 { font-size: 38px; }
-      .section h3 { font-size: 28px; }
+
+      h1 { font-size: 42px; }
+      .hero-lead { font-size: 20px; }
+      .section h3 { font-size: 30px; }
+      .brand-name { font-size: 28px; }
       .portal-copy h4 { font-size: 28px; }
     }
   </style>
 </head>
 <body>
   <section class="hero">
-    <div class="container hero-grid">
-      <div>
-        <div class="eyebrow">For Vacation Rental Owners</div>
-        <h1>Turn your property into a high-performing rental</h1>
-        <p style="font-size:22px;font-weight:700;margin-bottom:10px;color:#fff;">More bookings, stronger pricing, less stress, and full-service management built for Myrtle Beach owners.</p>
-        <p class="subtext">From pricing and guest communication to cleanings, maintenance, and owner reporting, Ocean Vacations helps you earn more while staying completely hands off.</p>
-        <ul class="hero-points">
-          <li>Revenue estimate based on your location, property type, and local market demand</li>
-          <li>Review of pricing, listing quality, and opportunities to improve performance</li>
-          <li>Simple plan to help your property earn more with less owner involvement</li>
-        </ul>
+    <div class="container">
+      <div class="topbar">
+        <div class="brand">
+          <div class="brand-name">Ocean Vacations</div>
+          <div class="brand-sub">Myrtle Beach Property Management</div>
+        </div>
       </div>
 
-      <div class="card">
-        <h2>Get Your Free Report</h2>
-        <p>Send your property details and we will review the income potential and management fit.</p>
-        <form id="ownerLeadForm">
-          <input type="text" name="name" placeholder="Full name" required />
-          <input type="email" name="email" placeholder="Email address" required />
-          <input type="tel" name="phone" placeholder="Phone number" />
-          <input type="text" name="propertyAddress" placeholder="Property address or Airbnb / Vrbo link" required />
-          <select name="propertyType" required>
-            <option value="">Property type</option>
-            <option>Condo</option>
-            <option>House</option>
-            <option>Townhome</option>
-            <option>Multi unit</option>
-            <option>Other</option>
-          </select>
-          <select name="bedrooms">
-            <option value="">Bedrooms</option>
-            <option>Studio</option>
-            <option>1 Bedroom</option>
-            <option>2 Bedrooms</option>
-            <option>3 Bedrooms</option>
-            <option>4 Bedrooms</option>
-            <option>5+ Bedrooms</option>
-          </select>
-          <textarea name="notes" rows="4" placeholder="Anything you want us to know about the property"></textarea>
-          <button type="submit">Request My Free Revenue Estimate</button>
-        </form>
-        <div class="trust-line">No obligation. No pressure. Just a clear path to more revenue, better guest experience, and easier ownership.</div>
+      <div class="hero-grid">
+        <div>
+          <div class="eyebrow">For Vacation Rental Owners</div>
+          <h1>Turn your property into a high-performing rental</h1>
+          <p class="hero-lead">More bookings, stronger pricing, less stress, and full-service management built for Myrtle Beach owners.</p>
+          <p class="subtext">From pricing and guest communication to cleanings, maintenance, and owner reporting, Ocean Vacations helps you earn more while staying completely hands off.</p>
+
+          <ul class="hero-points">
+            <li>Revenue-focused property management designed to improve pricing, occupancy, and guest experience</li>
+            <li>Transparent reporting, owner portal access, and no markups on vendor repairs or service work</li>
+            <li>Local support with years of hosting and vacation rental management experience in the Myrtle Beach market</li>
+          </ul>
+
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <strong>14+ Years</strong>
+              <span>Hosting experience</span>
+            </div>
+            <div class="hero-stat">
+              <strong>2,374+</strong>
+              <span>Guest reviews</span>
+            </div>
+            <div class="hero-stat">
+              <strong>4.77★</strong>
+              <span>Average Airbnb rating</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Get Your Free Revenue Review</h2>
+          <p>Send your property details and we will review its income potential, management fit, and opportunities to improve performance.</p>
+
+          <form id="ownerLeadForm">
+            <input type="text" name="name" placeholder="Full name" required />
+            <input type="email" name="email" placeholder="Email address" required />
+            <input type="tel" name="phone" placeholder="Phone number" />
+            <input type="text" name="propertyAddress" placeholder="Property address or Airbnb / Vrbo link" required />
+            <select name="propertyType" required>
+              <option value="">Property type</option>
+              <option>Condo</option>
+              <option>House</option>
+              <option>Townhome</option>
+              <option>Multi unit</option>
+              <option>Other</option>
+            </select>
+            <select name="bedrooms">
+              <option value="">Bedrooms</option>
+              <option>Studio</option>
+              <option>1 Bedroom</option>
+              <option>2 Bedrooms</option>
+              <option>3 Bedrooms</option>
+              <option>4 Bedrooms</option>
+              <option>5+ Bedrooms</option>
+            </select>
+            <textarea name="notes" rows="4" placeholder="Anything you want us to know about the property"></textarea>
+            <button type="submit">Request My Free Estimate</button>
+          </form>
+
+          <div class="trust-line">No obligation. No pressure. Just a clear path to more revenue, better guest experience, and easier ownership.</div>
+        </div>
       </div>
     </div>
   </section>
 
   <section class="section">
     <div class="container">
-      <h3>Why owners reach out to us</h3>
-      <p class="section-intro">Most owners are not looking for more work. They want better performance, more bookings, and a team that handles the details the right way.</p>
+      <h3>Why owners work with Ocean Vacations</h3>
+      <p class="section-intro">Most owners are not looking for more work. They want stronger performance, clean communication, and a team that handles the details the right way.</p>
+
       <div class="stats">
         <div class="stat-box">
           <div class="stat-icon">📈</div>
           <div class="stat-value">More Revenue</div>
-          <div class="stat-label">Smarter pricing, better positioning, and stronger listing presentation</div>
+          <div class="stat-label">Smarter pricing, better positioning, and stronger listing presentation to improve booking performance.</div>
         </div>
         <div class="stat-box">
           <div class="stat-icon">🛎️</div>
           <div class="stat-value">Less Stress</div>
-          <div class="stat-label">Guest communication, operations, turnovers, and issue handling managed for you</div>
+          <div class="stat-label">Guest communication, operations, turnovers, and issue handling managed for you from start to finish.</div>
         </div>
         <div class="stat-box">
           <div class="stat-icon">📍</div>
-          <div class="stat-value">Local Focus</div>
-          <div class="stat-label">Locally owned business with over 14 years of hosting experience in the Myrtle Beach market</div>
+          <div class="stat-value">Local & Experienced</div>
+          <div class="stat-label">Locally owned business with over 14 years of hosting experience in the Myrtle Beach vacation rental market.</div>
         </div>
       </div>
 
-      <div class="owner-benefits">
+      <div class="owner-benefits" style="margin-top:22px;">
         <div class="benefit-box">
           <div class="benefit-icon">🧾</div>
           <h4>No Markups on Repairs</h4>
-          <p>We do not mark up vendor jobs, repairs, or service calls. Owners receive full transparency on repair costs so you see the actual vendor amount, not inflated invoices.</p>
+          <p>We do not mark up vendor jobs, repairs, or service calls. Owners get full transparency and see the actual vendor cost, not inflated invoices.</p>
         </div>
-
         <div class="benefit-box">
           <div class="benefit-icon">💡</div>
           <h4>Small Items Included</h4>
-          <p>We replace light bulbs, HVAC filters, batteries, and TV remote controls at no extra charge, helping keep your property guest ready without constant small add-on fees.</p>
+          <p>Light bulbs, HVAC filters, batteries, and TV remote control replacements are included at no extra charge to help keep your property guest ready.</p>
         </div>
-
         <div class="benefit-box">
           <div class="benefit-icon">🧰</div>
           <h4>Service Coordination</h4>
-          <p>We coordinate landscaping, pest control, pool cleaning, and other property services as needed, making ownership easier while keeping everything organized and on schedule.</p>
+          <p>We coordinate landscaping, pest control, pool cleaning, and other needed services so ownership stays simple, organized, and hands off.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="section" style="background:#eef4f8;">
+  <section class="section" style="background:#eef5fa;">
     <div class="container">
       <h3>How it works</h3>
-      <p class="section-intro">A simple process designed to get owners clear answers quickly.</p>
+      <p class="section-intro">A simple process designed to give owners clear answers quickly.</p>
       <div class="steps">
         <div class="step">
           <div class="step-number">1</div>
           <h4>Send the property</h4>
-          <p>Share your address or your existing Airbnb or Vrbo link so we can review your listing and market position.</p>
+          <p>Share your address or existing Airbnb or Vrbo link so we can review your listing and current market position.</p>
         </div>
         <div class="step">
           <div class="step-number">2</div>
           <h4>We analyze the opportunity</h4>
-          <p>We review pricing, presentation, local demand, seasonality, and opportunities to improve income and occupancy.</p>
+          <p>We review pricing, presentation, demand, seasonality, and opportunities to improve revenue and occupancy.</p>
         </div>
         <div class="step">
           <div class="step-number">3</div>
-          <h4>Get your report</h4>
-          <p>We send you a clear estimate with recommendations and next steps if you want help managing the property.</p>
+          <h4>Get your review</h4>
+          <p>We send a clear revenue review with recommendations and next steps if you want help managing the property.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h3>Real Airbnb hosting history</h3>
+      <p class="section-intro">Owners want proof that the operation is real. These numbers show active listings, real guest stays, and consistent performance over time.</p>
+      <div class="proof-grid">
+        <div class="proof airbnb-trust">
+          <div class="airbnb-badge">★★★★★ Verified Airbnb Profile</div>
+          <h4>2,374+ guest reviews</h4>
+          <p>Years of guest stays across multiple active listings provide a strong trust signal for owners considering management.</p>
+        </div>
+        <div class="proof airbnb-trust">
+          <div class="airbnb-badge">Superhost Performance</div>
+          <h4>4.77 average rating</h4>
+          <p>Strong communication, accurate listings, smooth check-in, and dependable guest experience across the portfolio.</p>
+        </div>
+        <div class="proof airbnb-trust">
+          <div class="airbnb-badge">Local Hosting Experience</div>
+          <h4>14+ years of hosting</h4>
+          <p>Local experience matters in a beach market where pricing, seasonality, cleaning coordination, and maintenance all affect results.</p>
         </div>
       </div>
     </div>
@@ -515,84 +785,130 @@
       <p class="section-intro">Owners can log in anytime to view payout information, reservations, booked nights, and performance details in one clean dashboard.</p>
       <div class="portal-showcase">
         <div class="portal-image-wrap">
-          <img src="/images/owner-portal-preview.png" alt="Ocean Vacations owner portal showing payouts and reservations" class="portal-image" />
+          <img src="/images/owner-portal-preview.png" alt="Ocean Vacations owner portal showing payouts and reservations" class="portal-image" id="portalPreview" />
         </div>
         <div class="portal-copy">
           <h4>Give owners visibility without the back and forth</h4>
-          <p>Your owner portal helps build trust by giving property owners direct access to their reservation activity and payout reporting whenever they want to check in.</p>
+          <p>Your owner portal helps build trust by giving property owners direct access to reservation activity and payout reporting whenever they want to check in.</p>
           <ul class="portal-points">
             <li>View payout summaries and owner earnings in a simple format</li>
             <li>See reservations, stay dates, guest activity, and booked nights</li>
             <li>Access information 24/7 from any device without waiting for updates</li>
           </ul>
-          <div class="portal-note">Add your real portal image here and this section is ready to go.</div>
+          <div class="portal-note">Click the preview to expand the dashboard</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- REVIEWS SECTION -->
   <section class="section" style="background:#ffffff;">
     <div class="container">
       <h3>Real Airbnb Guest Reviews</h3>
-      <p style="text-align:center;margin-bottom:10px;font-weight:600;color:#ff5a5f;">★★★★★ Verified Airbnb Guest Feedback</p>
       <p class="section-intro">Real reviews from guests staying at Ocean Vacations properties. Clean homes, strong communication, and consistent 5-star experiences.</p>
-
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;">
-
+      <div class="proof-grid">
         <div class="proof">
-          <h4>★★★★★ Carlita</h4>
+          <div class="tag">★★★★★ Airbnb Review</div>
+          <h4>Carlita</h4>
           <p>Zack was the perfect host. His place is exactly like the pictures. It’s a perfect spot and in the middle of everything. Very clean and comfortable. I look forward to booking again.</p>
         </div>
-
         <div class="proof">
-          <h4>★★★★★ Natalie</h4>
+          <div class="tag">★★★★★ Airbnb Review</div>
+          <h4>Natalie</h4>
           <p>Loved the pool and very close to the beach. Host was very communicative and easy to work with.</p>
         </div>
-
         <div class="proof">
-          <h4>★★★★★ Steven</h4>
+          <div class="tag">★★★★★ Airbnb Review</div>
+          <h4>Steven</h4>
           <p>Fantastic place and exactly what we needed. Easy to get everywhere and great communication. Would definitely recommend.</p>
         </div>
-
         <div class="proof">
-          <h4>★★★★★ Leah</h4>
+          <div class="tag">★★★★★ Airbnb Review</div>
+          <h4>Leah</h4>
           <p>Our stay was perfect. House was comfortable and met all our needs. Great for families and close to everything.</p>
         </div>
-
         <div class="proof">
-          <h4>★★★★★ Jenise</h4>
+          <div class="tag">★★★★★ Airbnb Review</div>
+          <h4>Jenise</h4>
           <p>The house was clean and well stocked. Location was close to the beach and shopping. Would definitely rent again.</p>
         </div>
-
         <div class="proof">
-          <h4>★★★★★ Cam</h4>
+          <div class="tag">★★★★★ Airbnb Review</div>
+          <h4>Cam</h4>
           <p>Very easy check-in, clean property, and felt like home. Would definitely book again.</p>
         </div>
-
       </div>
     </div>
   </section>
 
-  <section class="section">
+  <section class="section" style="background:#eef5fa;">
     <div class="container">
-      <h3>Example owner results</h3>
-      <p class="section-intro">Replace these placeholders with your real numbers once you send them to me.</p>
-      <div class="proof-grid">
-        <div class="proof">
-          <div class="tag">Example Result</div>
-          <h4>Better pricing strategy</h4>
-          <p>A similar property improved booking pace and increased annual revenue after pricing and listing updates.</p>
+      <h3>Featured properties managed by Ocean Vacations</h3>
+      <p class="section-intro">A sample of active listings across Myrtle Beach, Murrells Inlet, Surfside Beach, and North Myrtle Beach.</p>
+      <div class="property-grid">
+        <div class="property-card">
+          <div class="property-image">Add listing photo here</div>
+          <div class="property-content">
+            <div class="property-location">Murrells Inlet, South Carolina</div>
+            <h4 class="property-title">Private Pool + Steps to Beach • Spacious (827B)</h4>
+            <div class="property-meta">16+ guests • 6 bedrooms • 10 beds • 6.5 baths</div>
+            <p class="property-copy">Private pool, ocean-view balconies, self check-in, smart TVs, and a prime beachside location.</p>
+            <a class="button-link property-link" href="https://www.airbnb.com/rooms/708211388941105572" target="_blank" rel="noopener noreferrer">View Listing</a>
+          </div>
         </div>
-        <div class="proof">
-          <div class="tag">Example Result</div>
-          <h4>Improved listing quality</h4>
-          <p>Professional presentation, stronger copy, and better guest communication led to stronger performance.</p>
+
+        <div class="property-card">
+          <div class="property-image">Add listing photo here</div>
+          <div class="property-content">
+            <div class="property-location">Surfside Beach, South Carolina</div>
+            <h4 class="property-title">Coastal Retreat • Pool • Steps to Beach • (11313)</h4>
+            <div class="property-meta">14 guests • 5 bedrooms • 7 beds • 4.5 baths</div>
+            <p class="property-copy">Strong guest favorite with pool access, spacious layout, and a location close to the beach.</p>
+            <a class="button-link property-link" href="https://www.airbnb.com/rooms/709057072852697080" target="_blank" rel="noopener noreferrer">View Listing</a>
+          </div>
         </div>
-        <div class="proof">
-          <div class="tag">Example Result</div>
-          <h4>Hands off ownership</h4>
-          <p>The owner gained a more passive experience while keeping the property active and guest ready.</p>
+
+        <div class="property-card">
+          <div class="property-image">Add listing photo here</div>
+          <div class="property-content">
+            <div class="property-location">Myrtle Beach, South Carolina</div>
+            <h4 class="property-title">2131 • Short Walk to the Beach • Pool</h4>
+            <div class="property-meta">Active Ocean Vacations listing</div>
+            <p class="property-copy">Convenient beach access, pool amenities, and professional listing presentation in a strong vacation rental zone.</p>
+            <a class="button-link property-link" href="https://www.airbnb.com/rooms/710427495881962086" target="_blank" rel="noopener noreferrer">View Listing</a>
+          </div>
+        </div>
+
+        <div class="property-card">
+          <div class="property-image">Add listing photo here</div>
+          <div class="property-content">
+            <div class="property-location">Myrtle Beach, South Carolina</div>
+            <h4 class="property-title">Sleep 10 • 2 Min from the Beach • Central • 7401</h4>
+            <div class="property-meta">Active Ocean Vacations listing</div>
+            <p class="property-copy">Centrally located group-friendly property positioned close to the beach and area attractions.</p>
+            <a class="button-link property-link" href="https://www.airbnb.com/rooms/710428120921482392" target="_blank" rel="noopener noreferrer">View Listing</a>
+          </div>
+        </div>
+
+        <div class="property-card">
+          <div class="property-image">Add listing photo here</div>
+          <div class="property-content">
+            <div class="property-location">Myrtle Beach, South Carolina</div>
+            <h4 class="property-title">Amazing View • Steps From the Beach • Pool (7500)</h4>
+            <div class="property-meta">Active Ocean Vacations listing</div>
+            <p class="property-copy">Beach access, attractive views, and resort-style appeal in a high-demand Myrtle Beach location.</p>
+            <a class="button-link property-link" href="https://www.airbnb.com/rooms/766827435246995384" target="_blank" rel="noopener noreferrer">View Listing</a>
+          </div>
+        </div>
+
+        <div class="property-card">
+          <div class="property-image">Add listing photo here</div>
+          <div class="property-content">
+            <div class="property-location">North Myrtle Beach, South Carolina</div>
+            <h4 class="property-title">Beachfront Views • Relax Near CG Pier (3104/2)</h4>
+            <div class="property-meta">Active Ocean Vacations listing</div>
+            <p class="property-copy">Beachfront positioning, strong destination appeal, and a polished guest-facing presentation.</p>
+            <a class="button-link property-link" href="https://www.airbnb.com/rooms/1667586750685015182" target="_blank" rel="noopener noreferrer">View Listing</a>
+          </div>
         </div>
       </div>
     </div>
@@ -602,60 +918,55 @@
     <div class="container">
       <div class="cta">
         <h3>Want to know what your property could really earn?</h3>
-        <p>Request a free review and we will take a look at your property, your current setup, and where the biggest opportunities may be.</p>
-        <a href="#ownerLeadForm" class="cta-button">Start My Free Review</a>
+        <p>Request a free review and we will look at your property, your current setup, and where the biggest opportunities may be.</p>
+        <a href="#ownerLeadForm" class="button-link cta-button">Start My Free Review</a>
       </div>
     </div>
   </section>
 
   <footer>
-    Ocean Vacations • Vacation Rental Management • Replace with your phone, email, and service areas
+    Ocean Vacations • Myrtle Beach Property Management • Replace with your phone, email, and service areas
   </footer>
+
+  <div class="portal-modal" id="portalModal">
+    <div class="portal-modal-box">
+      <button class="portal-close" id="portalClose" aria-label="Close">✕</button>
+      <img src="/images/owner-portal-preview.png" alt="Expanded owner portal dashboard preview" />
+    </div>
+  </div>
 
   <script>
     const form = document.getElementById('ownerLeadForm');
+    const portalPreview = document.getElementById('portalPreview');
+    const portalModal = document.getElementById('portalModal');
+    const portalClose = document.getElementById('portalClose');
 
-    form.addEventListener('submit', function(event) {
-      event.preventDefault();
+    if (form) {
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const values = Object.fromEntries(formData.entries());
+        console.log('Owner lead submitted:', values);
+        alert('Thank you. Your request was submitted. We will review your property and reach out shortly.');
+        form.reset();
+      });
+    }
 
-      const formData = new FormData(form);
-      const values = Object.fromEntries(formData.entries());
+    if (portalPreview && portalModal && portalClose) {
+      portalPreview.addEventListener('click', function() {
+        portalModal.classList.add('open');
+      });
 
-      console.log('Owner lead submitted:', values);
+      portalClose.addEventListener('click', function() {
+        portalModal.classList.remove('open');
+      });
 
-      alert('Thank you. Your request was submitted. We will review your property and reach out shortly.');
-      form.reset();
-
-      // Next step:
-      // Connect this form to your backend, CRM, email service, or webhook.
-      // Options include Formspree, Zapier, Make, HubSpot, GoHighLevel, or your own API endpoint.
-    });
+      portalModal.addEventListener('click', function(event) {
+        if (event.target === portalModal) {
+          portalModal.classList.remove('open');
+        }
+      });
+    }
   </script>
-
-
-<!-- PORTAL POPUP -->
-<div id="portalModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:999;align-items:center;justify-content:center;">
-  <div style="background:#fff;padding:20px;border-radius:20px;max-width:900px;width:90%;position:relative;">
-    <span onclick="closePortal()" style="position:absolute;top:10px;right:15px;font-size:22px;cursor:pointer;">✕</span>
-    <img src="/images/owner-portal-preview.png" style="width:100%;border-radius:12px;" />
-  </div>
-</div>
-
-<script>
-function openPortal(){
-  document.getElementById('portalModal').style.display='flex';
-}
-function closePortal(){
-  document.getElementById('portalModal').style.display='none';
-}
-
-// make portal image clickable
-const portalImg = document.querySelector('.portal-image');
-if(portalImg){
-  portalImg.style.cursor='pointer';
-  portalImg.onclick=openPortal;
-}
-</script>
-
 </body>
 </html>
