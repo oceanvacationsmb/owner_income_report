@@ -539,10 +539,16 @@
     }
 
     .property-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 22px;
-    }
+  display: flex;
+  overflow: hidden;
+  gap: 18px;
+}
+
+.property-grid .property-card {
+  min-width: 320px;
+  max-width: 320px;
+  flex: 0 0 auto;
+}
 
     .property-card {
   background: #ffffff;
@@ -738,7 +744,7 @@
       <div class="topbar">
         <div class="brand">
           <div class="brand-name">Ocean Vacations</div>
-          <div class="brand-sub">Myrtle Beach Property Management</div>
+          <div class="brand-sub">Myrtle Beach Property Management • 843-222-9751</div>
         </div>
       </div>
 
@@ -819,7 +825,7 @@
   <div class="host-status-item">
     <div class="host-status-title airbnb-text">Airbnb</div>
     <div class="host-status-stars">★★★★★</div>
-    <div class="host-status-note">4.8 average rating</div>
+    <div class="host-status-note">AVG RATING 4.87</div>
   </div>
 
   <div class="host-status-divider"></div>
@@ -827,6 +833,7 @@
   <div class="host-status-item">
     <div class="host-status-title">VRBO Premier Host</div>
     <div class="host-status-stars">★★★★★</div>
+    <div class="host-status-note">AVG RATING 4.85</div>
   </div>
 
   <div class="host-status-divider"></div>
@@ -834,19 +841,22 @@
   <div class="host-status-item">
     <div class="host-status-title">Ocean Vacations</div>
     <div class="host-status-stars">★★★★★</div>
+    <div class="host-status-note">AVG RATING 4.93</div>
   </div>
-
-  
+</div>
 </div>
     </div>
   </section>
 
  <section class="section" style="background:#ffffff; padding-top:30px;">
     <div class="container">
-      <h3>Example of our Managed Properties</h3>
+      <h3>Sample Of Our Managed Properties</h3>
       <p class="section-intro">A few of the vacation rentals we manage across the Grand Strand.</p>
 
-      <div class="property-grid">
+      <div class="reviews-slider-wrap">
+  <button class="reviews-arrow" onclick="scrollProperties(-1)">‹</button>
+
+  <div class="property-grid" id="propertySlider">
         <div class="property-card">
           <div class="property-image">Add listing photo here</div>
           <div class="property-content">
@@ -902,19 +912,26 @@
           </div>
         </div>
 
-        <div class="property-card">
-          <div class="property-image">Add listing photo here</div>
-          <div class="property-content">
-            <div class="property-location">North Myrtle Beach, South Carolina</div>
-            <h4 class="property-title">Beachfront Views • Relax Near CG Pier (3104/2)</h4>
-            <div class="property-meta">Active Ocean Vacations listing</div>
-            <p class="property-copy">Beachfront positioning, strong destination appeal, and a polished guest-facing presentation.</p>
-            <a class="button-link property-link" href="https://www.airbnb.com/rooms/1667586750685015182" target="_blank" rel="noopener noreferrer">View Listing</a>
-          </div>
-        </div>
+      <div class="reviews-slider-wrap">
+  <button class="reviews-arrow" onclick="scrollProperties(-1)">‹</button>
+
+  <div class="property-grid" id="propertySlider">
+
+    <div class="property-card">
+      <div class="property-image">Add listing photo here</div>
+      <div class="property-content">
+        <div class="property-location">North Myrtle Beach, South Carolina</div>
+        <h4 class="property-title">Beachfront Views • Relax Near CG Pier (3104/2)</h4>
+        <div class="property-meta">Active Ocean Vacations listing</div>
+        <p class="property-copy">Beachfront positioning, strong destination appeal, and a polished guest-facing presentation.</p>
+        <a class="button-link property-link" href="https://www.airbnb.com/rooms/1667586750685015182" target="_blank" rel="noopener noreferrer">View Listing</a>
       </div>
     </div>
-  </section>
+
+  </div>
+
+  <button class="reviews-arrow" onclick="scrollProperties(1)">›</button>
+</div>
   
   <section class="section">
     <div class="container">
@@ -1092,7 +1109,7 @@
   </section>
 
   <footer>
-    Ocean Vacations • Myrtle Beach Property Management • Replace with your phone, email, and service areas
+    
   </footer>
 
   <script>
@@ -1116,6 +1133,15 @@
         form.reset();
       });
     }
+    function scrollProperties(direction) {
+  const slider = document.getElementById('propertySlider');
+  if (!slider) return;
+
+  slider.scrollBy({
+    left: direction * 340,
+    behavior: 'smooth'
+  });
+}
   </script>
 </body>
 </html>
