@@ -614,6 +614,123 @@
       align-self: flex-start;
     }
 
+.portal-showcase {
+  display: grid;
+  grid-template-columns: 1.08fr 0.92fr;
+  gap: 26px;
+  align-items: center;
+  background: linear-gradient(135deg, #eef8ff 0%, #ffffff 52%, #f6fbff 100%);
+  border: 1px solid #dde8f3;
+  border-radius: 30px;
+  padding: 26px;
+  box-shadow: 0 18px 34px rgba(15, 61, 94, 0.09);
+}
+
+.portal-image-wrap {
+  background: #fff;
+  border-radius: 22px;
+  padding: 14px;
+  box-shadow: 0 10px 28px rgba(15, 61, 94, 0.08);
+}
+
+.portal-image {
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid #dfe8f1;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.portal-image:hover {
+  transform: scale(1.01);
+}
+
+.portal-copy h4 {
+  margin: 0 0 12px;
+  font-size: 32px;
+  line-height: 1.12;
+  color: var(--navy);
+}
+
+.portal-copy p {
+  margin: 0 0 18px;
+  font-size: 17px;
+  color: var(--muted);
+}
+
+.portal-points {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 22px;
+  padding: 0;
+  list-style: none;
+}
+
+.portal-points li {
+  background: rgba(255,255,255,0.8);
+  border: 1px solid #dce7f2;
+  border-radius: 16px;
+  padding: 14px 16px;
+  color: var(--text);
+  font-size: 15px;
+}
+
+.portal-note {
+  display: inline-block;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.portal-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(6, 24, 40, 0.76);
+  padding: 24px;
+  align-items: center;
+  justify-content: center;
+}
+
+.portal-modal.open {
+  display: flex;
+}
+
+.portal-modal-box {
+  position: relative;
+  width: min(980px, 96vw);
+  background: #fff;
+  border-radius: 24px;
+  padding: 18px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.25);
+}
+
+.portal-modal-box img {
+  width: 100%;
+  border-radius: 16px;
+}
+
+.portal-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 0;
+  background: rgba(15,53,82,0.9);
+  color: #fff;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 700;
+  box-shadow: none;
+  padding: 0;
+}
+    
     .cta {
       background: linear-gradient(
         135deg,
@@ -961,6 +1078,32 @@
     </div>
   </section>
 
+<section class="section">
+  <div class="container">
+    <h3>Owner Portal Access</h3>
+    <p class="section-intro">Owners can log in anytime to view payouts, reservations, booked nights, and property activity in one clean dashboard.</p>
+
+    <div class="portal-showcase">
+      <div class="portal-image-wrap">
+        <img src="/images/owner-portal-preview.png" alt="Owner portal preview" class="portal-image" id="portalPreview" />
+      </div>
+
+      <div class="portal-copy">
+        <h4>Full visibility without the back and forth</h4>
+        <p>Your owner portal gives direct access to reservation activity, payout information, and property performance whenever you want to check in.</p>
+
+        <ul class="portal-points">
+          <li>View payout summaries and owner earnings</li>
+          <li>See reservations, stay dates, and booked nights</li>
+          <li>Access everything anytime from desktop or mobile</li>
+        </ul>
+
+        <div class="portal-note">Click the preview to expand</div>
+      </div>
+    </div>
+  </div>
+</section>
+  
   <section class="section" style="background:#ffffff; padding-top:30px;">
     <div class="container">
       <h3>Sample Of Our Managed Properties</h3>
@@ -1079,6 +1222,13 @@
     </div>
   </section>
 
+<div class="portal-modal" id="portalModal">
+  <div class="portal-modal-box">
+    <button class="portal-close" id="portalClose" aria-label="Close">✕</button>
+    <img src="/images/owner-portal-preview.png" alt="Expanded owner portal preview" />
+  </div>
+</div>
+  
   <footer></footer>
 
   <script>
@@ -1108,6 +1258,26 @@
       });
     }
 
+const portalPreview = document.getElementById('portalPreview');
+const portalModal = document.getElementById('portalModal');
+const portalClose = document.getElementById('portalClose');
+
+if (portalPreview && portalModal && portalClose) {
+  portalPreview.addEventListener('click', function() {
+    portalModal.classList.add('open');
+  });
+
+  portalClose.addEventListener('click', function() {
+    portalModal.classList.remove('open');
+  });
+
+  portalModal.addEventListener('click', function(event) {
+    if (event.target === portalModal) {
+      portalModal.classList.remove('open');
+    }
+  });
+}
+    
     const form = document.getElementById('ownerLeadForm');
     if (form) {
       form.addEventListener('submit', function(event) {
