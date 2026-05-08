@@ -189,7 +189,17 @@ const OWNERS = {
     cleaningFee: 0,
     viewMode: "draft"
   },
-  "liatedri18@hotmail.com": {
+  "zilkerinvestments@gmail.com": {
+    password: "owner7920$$",
+    ownerName: "Tal",
+    propertyName: "214 - GTI GROUP TAL",
+    postalCode: "29582",
+    pmcPercent: 12,
+    guestyApiKey: "c7e8955a81b8c096ab53ef7a408c3b02aad671536d9ad6483a8ba64caf7810ce84ac6c1b869affcb40e992308ea3c1598fd8a6d8d8efa9b834fc37b426e4da29",
+    cleaningFee: 400,
+    viewMode: "payout"
+  },
+    "liatedri18@hotmail.com": {
     password: "owner6357$$",
     ownerName: "Liat",
     propertyName: "GHO REVOCABLE TRUST",
@@ -239,7 +249,7 @@ const OWNERS = {
     cleaningFee: 200,
     viewMode: "payout"
   },
-  "pleasechange@email.com": {
+  "morenaventura@yahoo.com": {
     password: "owner8589$$",
     ownerName: "Moran",
     propertyName: "4679 Wild Iris Drive Myrtle Beach SC 29577",
