@@ -291,7 +291,7 @@ const OWNERS = {
     viewMode: "payout"
     },
     "jesseholt@ymail.com": {
-    password: "owner9001$$",
+    password: "owner9001",
     ownerName: "Jesse",
     propertyName: "113B 15th Avenue South, Surfside Beach SC 29575",
     postalCode: "29575",
