@@ -289,6 +289,16 @@ const OWNERS = {
     guestyApiKey: "7cc1fd5c77c703d2a5c2d612f809922b4b82a97c187d85e72d828421c189cc03e98d6fde2583b1b688d151c4efff3efc0479563d3b8e2cf742129aa7cf6e7f9f",
     cleaningFee: 350,
     viewMode: "payout"
+    },
+    "jesseholt@ymail.com": {
+    password: "owner9001$$",
+    ownerName: "Jesse",
+    propertyName: "113B 15th Avenue South, Surfside Beach SC 29575",
+    postalCode: "29575",
+    pmcPercent: 12,
+    guestyApiKey: "23dc04d5c23b901190f49f72dd09d4da80f7062bed5bd45ac29c60f5fe4c8bb8209945ceb5be241eab516a067923a3ce99ad8f3e8794799613eb68e47b9f7b25",
+    cleaningFee: 350,
+    viewMode: "payout"
   },
   };
 
