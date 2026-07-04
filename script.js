@@ -300,6 +300,16 @@ const OWNERS = {
     cleaningFee: 350,
     viewMode: "payout"
   },
+"myoung816@gmail.com": {
+    password: "owner8616",
+    ownerName: "Mike",
+    propertyName: "204 27th Ave N. North Myrtle Beach SC 29582",
+    postalCode: "29582",
+    pmcPercent: 12,
+    guestyApiKey: "d3f11230d9e72fee7ef49bcc287dc648a6195ee9e2dc45cf50eeb6ea85c0fbc8c6fd90db9e16c5076ffdc5410adeafb7624e0adfff95bfe1c050fbc183168ffc",
+    cleaningFee: 350,
+    viewMode: "payout"
+  },
   };
 
 applyNewOwnersFromStorage();
